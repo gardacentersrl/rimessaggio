@@ -30,19 +30,17 @@ pre{margin:0;padding:12px;background:var(--card);border:1px solid var(--line);bo
 <h1>Rimessaggio Garda Center</h1>
 
 <form id="f1" hidden>
-<p>Inserisci la tua email. Ti mandiamo un codice per entrare, senza password.</p>
+<p>Inserisci la tua email. Ti mandiamo un link per entrare, senza password.</p>
 <label for="em">Email</label>
 <input id="em" type="email" autocomplete="email" inputmode="email" required>
-<button id="b1" type="submit">Invia il codice</button>
+<button id="b1" type="submit">Invia il link</button>
 </form>
 
-<form id="f2" hidden>
-<p id="t2">Abbiamo inviato un codice alla tua email. Scrivilo qui sotto.</p>
-<label for="cod">Codice</label>
-<input id="cod" type="text" autocomplete="one-time-code" inputmode="numeric" maxlength="10" required>
-<button id="b2" type="submit">Entra</button>
+<section id="f2" hidden>
+<p id="t2"></p>
+<p>Apri l'email e tocca il link di accesso. Se non la vedi, controlla anche la cartella spam.</p>
 <button id="b2x" class="alt" type="button">Cambia email</button>
-</form>
+</section>
 
 <section id="s3" hidden>
 <p id="t3"></p>
@@ -74,24 +72,13 @@ $('f1').addEventListener('submit',async function(e){
   $('b1').disabled=true;msg('Invio in corso...');
   try{
     var r=await api('/auth/v1/otp',{method:'POST',body:JSON.stringify({email:em,create_user:true})});
-    if(!r.ok){msg('Non è stato possibile inviare il codice: '+err(r),'ko');return}
-    $('f2').dataset.email=em;$('t2').textContent='Abbiamo inviato un codice a '+em+'. Scrivilo qui sotto.';
-    show('f2');msg('');$('cod').focus();
+    if(!r.ok){msg('Non è stato possibile inviare il link: '+err(r),'ko');return}
+    $('t2').textContent='Abbiamo inviato un link di accesso a '+em+'.';
+    show('f2');msg('');
   }catch(x){msg('Connessione assente. Riprova tra poco.','ko')}
   finally{$('b1').disabled=false}
 });
 $('b2x').addEventListener('click',function(){show('f1');msg('')});
-$('f2').addEventListener('submit',async function(e){
-  e.preventDefault();var em=$('f2').dataset.email,c=$('cod').value.replace(/\s/g,'');if(!c)return;
-  $('b2').disabled=true;msg('Controllo il codice...');
-  try{
-    var r=await api('/auth/v1/verify',{method:'POST',body:JSON.stringify({type:'email',email:em,token:c})});
-    if(!r.ok||!r.j||!r.j.access_token){msg('Codice non valido o scaduto: '+err(r),'ko');return}
-    sv({at:r.j.access_token,rt:r.j.refresh_token,uid:r.j.user.id,em:r.j.user.email,exp:Date.now()+(r.j.expires_in||3600)*1000});
-    $('cod').value='';await entra();
-  }catch(x){msg('Connessione assente. Riprova tra poco.','ko')}
-  finally{$('b2').disabled=false}
-});
 async function rinnova(s){
   var r=await api('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:s.rt})});
   if(!r.ok||!r.j||!r.j.access_token){sv(null);return null}
@@ -118,6 +105,17 @@ $('cp').addEventListener('click',function(){
     var r=document.createRange();r.selectNodeContents($('sql'));var s=getSelection();s.removeAllRanges();s.addRange(r);msg('Selezionato: copialo a mano.')});
 });
 $('ex').addEventListener('click',function(){sv(null);show('f1');msg('')});
-entra();
+async function daLink(){
+  var h=location.hash||'';
+  if(h.indexOf('access_token=')<0&&h.indexOf('error_description=')<0)return false;
+  var p=new URLSearchParams(h.slice(1));history.replaceState(null,'',location.pathname);
+  if(p.get('error_description')){show('f1');msg('Link non valido o scaduto: '+p.get('error_description').replace(/\+/g,' ')+'. Richiedine uno nuovo.','ko');return true}
+  var at=p.get('access_token'),rt=p.get('refresh_token'),ex=parseInt(p.get('expires_in')||'3600',10);
+  var r=await api('/auth/v1/user',{},at);
+  if(!r.ok||!r.j){show('f1');msg('Accesso non riuscito: '+err(r),'ko');return true}
+  sv({at:at,rt:rt,uid:r.j.id,em:r.j.email,exp:Date.now()+ex*1000});
+  await entra();return true;
+}
+daLink().then(function(f){if(!f)entra()});
 </script>
 </body></html>
