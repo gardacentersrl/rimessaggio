@@ -71,7 +71,7 @@ $('f1').addEventListener('submit',async function(e){
   e.preventDefault();var em=$('em').value.trim().toLowerCase();if(!em)return;
   $('b1').disabled=true;msg('Invio in corso...');
   try{
-    var r=await api('/auth/v1/otp',{method:'POST',body:JSON.stringify({email:em,create_user:true})});
+    var r=await api('/auth/v1/otp?redirect_to='+encodeURIComponent(location.origin+location.pathname),{method:'POST',body:JSON.stringify({email:em,create_user:true})});
     if(!r.ok){msg('Non è stato possibile inviare il link: '+err(r),'ko');return}
     $('t2').textContent='Abbiamo inviato un link di accesso a '+em+'.';
     show('f2');msg('');
