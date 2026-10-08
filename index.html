@@ -1,69 +1,123 @@
 <!doctype html>
-<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Test collegamento database</title>
-<style>
-/* Layout: una colonna stretta, tre controlli in lista, esito in evidenza */
-:root{--bg:#f6f7f5;--fg:#1d2420;--mut:#5b665f;--line:#d9ded9;--card:#ffffff;--ok:#1f7a45;--ko:#b3312b;--wait:#8a6a12;--acc:#245c7a;
---f-d:'Fraunces',Georgia,serif;--f-b:'Public Sans',system-ui,sans-serif;--f-m:ui-monospace,Menlo,monospace}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a17;--fg:#e6ebe7;--mut:#97a39b;--line:#2b342f;--card:#1b231f;--ok:#5fcf8c;--ko:#ff8a80;--wait:#e3be5a;--acc:#7fb8d6;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#141a17;--fg:#e6ebe7;--mut:#97a39b;--line:#2b342f;--card:#1b231f;--ok:#5fcf8c;--ko:#ff8a80;--wait:#e3be5a;--acc:#7fb8d6;color-scheme:dark}
-body{background:var(--bg);color:var(--fg);font-family:var(--f-b);padding-inline:16px;padding-block:24px}
-main{max-width:34rem;margin:0 auto;display:flex;flex-direction:column;gap:20px}
-h1{font-family:var(--f-d);font-size:1.7rem;margin:0;text-wrap:balance}
-p{margin:0;line-height:1.5;color:var(--mut)}
-ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
-li{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
-.t{font-weight:600}
-.s{font-family:var(--f-m);font-size:.8rem;overflow-wrap:anywhere}
-.ok{color:var(--ok)}.ko{color:var(--ko)}.wait{color:var(--wait)}
-button{font:inherit;font-weight:600;background:var(--acc);color:var(--bg);border:0;border-radius:6px;padding:10px 16px;cursor:pointer;align-self:flex-start}
-button:focus-visible{outline:3px solid var(--fg);outline-offset:2px}
-#esito{font-weight:600;line-height:1.4}
-</style>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Rimessaggio Garda Center</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Public+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: una colonna stretta centrata, un solo passo alla volta (email, codice, esito) */
+:root{--bg:#f6f7f5;--fg:#1d2420;--mut:#5b665f;--line:#d9ded9;--card:#ffffff;--ok:#1f7a45;--ko:#b3312b;--acc:#245c7a;
+--f-d:'Fraunces',Georgia,serif;--f-b:'Public Sans',system-ui,sans-serif;--f-m:ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a17;--fg:#e6ebe7;--mut:#97a39b;--line:#2b342f;--card:#1b231f;--ok:#5fcf8c;--ko:#ff8a80;--acc:#7fb8d6;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141a17;--fg:#e6ebe7;--mut:#97a39b;--line:#2b342f;--card:#1b231f;--ok:#5fcf8c;--ko:#ff8a80;--acc:#7fb8d6;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-b);padding-inline:16px;padding-block:32px}
+main{max-width:26rem;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--f-d);font-size:1.8rem;margin:0;text-wrap:balance}
+p{margin:0;line-height:1.5;color:var(--mut)}
+form{display:flex;flex-direction:column;gap:12px}
+label{font-weight:600}
+input{font:inherit;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg);width:100%}
+input#cod{font-family:var(--f-m);font-size:1.4rem;letter-spacing:.3em;text-align:center}
+button{font:inherit;font-weight:600;background:var(--acc);color:var(--bg);border:0;border-radius:6px;padding:12px 16px;cursor:pointer}
+button.alt{background:transparent;color:var(--acc);border:1px solid var(--line)}
+button:disabled{opacity:.6;cursor:default}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.msg{font-weight:600;line-height:1.4}
+.ko{color:var(--ko)}.ok{color:var(--ok)}
+pre{margin:0;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:6px;font-family:var(--f-m);font-size:.8rem;white-space:pre-wrap;overflow-wrap:anywhere}
+</style></head>
 <body>
 <main>
-<h1>Test collegamento database</h1>
-<p>Questa pagina prova se può raggiungere il tuo database Supabase. Non legge né scrive dati.</p>
-<button id="go" type="button">Avvia il test</button>
-<ul>
-<li><span class="t">1. Il servizio risponde</span><span class="s wait" id="r1">in attesa</span></li>
-<li><span class="t">2. La struttura del database è stata caricata</span><span class="s wait" id="r2">in attesa</span></li>
-<li><span class="t">3. I permessi bloccano chi non ha fatto il login</span><span class="s wait" id="r3">in attesa</span></li>
-</ul>
-<div id="esito"></div>
+<h1>Rimessaggio Garda Center</h1>
+
+<form id="f1" hidden>
+<p>Inserisci la tua email. Ti mandiamo un codice per entrare, senza password.</p>
+<label for="em">Email</label>
+<input id="em" type="email" autocomplete="email" inputmode="email" required>
+<button id="b1" type="submit">Invia il codice</button>
+</form>
+
+<form id="f2" hidden>
+<p id="t2">Abbiamo inviato un codice alla tua email. Scrivilo qui sotto.</p>
+<label for="cod">Codice</label>
+<input id="cod" type="text" autocomplete="one-time-code" inputmode="numeric" maxlength="10" required>
+<button id="b2" type="submit">Entra</button>
+<button id="b2x" class="alt" type="button">Cambia email</button>
+</form>
+
+<section id="s3" hidden>
+<p id="t3"></p>
+<pre id="sql" hidden></pre>
+<button id="cp" type="button" hidden>Copia il comando</button>
+<button id="ex" class="alt" type="button">Esci</button>
+</section>
+
+<div id="m" class="msg" role="status"></div>
 </main>
 <script>
-var URL_='https://faemhbtebrjyyvapdziw.supabase.co';
-var KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhZW1oYnRlYnJqeXl2YXBkeml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMDg3ODUsImV4cCI6MjEwNjc4NDc4NX0.E3hAV0vWE6ZWJTJHE0gYjBu5HIDumfNJETxpVWohpgg';
-function set(id,cls,txt){var e=document.getElementById(id);e.className='s '+cls;e.textContent=txt}
-async function call(path){
-  var r=await fetch(URL_+path,{headers:{apikey:KEY,Authorization:'Bearer '+KEY}});
-  var t=await r.text();return{status:r.status,body:t};
+var U='https://faemhbtebrjyyvapdziw.supabase.co';
+var K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhZW1oYnRlYnJqeXl2YXBkeml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMDg3ODUsImV4cCI6MjEwNjc4NDc4NX0.E3hAV0vWE6ZWJTJHE0gYjBu5HIDumfNJETxpVWohpgg';
+var SK='rim-sess';
+function $(i){return document.getElementById(i)}
+function msg(t,c){var m=$('m');m.textContent=t||'';m.className='msg '+(c||'')}
+function show(w){['f1','f2','s3'].forEach(function(i){$(i).hidden=(i!==w)})}
+function ld(){try{return JSON.parse(localStorage.getItem(SK)||'null')}catch(e){return null}}
+function sv(s){try{if(s)localStorage.setItem(SK,JSON.stringify(s));else localStorage.removeItem(SK)}catch(e){}}
+async function api(path,opt,tok){
+  opt=opt||{};opt.headers=Object.assign({apikey:K,'Content-Type':'application/json',Authorization:'Bearer '+(tok||K)},opt.headers||{});
+  var r=await fetch(U+path,opt),t=await r.text(),j=null;try{j=t?JSON.parse(t):null}catch(e){}
+  return{ok:r.ok,status:r.status,j:j,t:t};
 }
-document.getElementById('go').addEventListener('click',async function(){
-  ['r1','r2','r3'].forEach(function(i){set(i,'wait','in corso...')});
-  document.getElementById('esito').textContent='';
-  var reached=false;
-  try{
-    var a=await call('/auth/v1/health');
-    reached=true;
-    set('r1',a.status===200?'ok':'ko',a.status===200?'OK (risposta 200)':'Risposta '+a.status+': '+a.body.slice(0,120));
-  }catch(e){
-    set('r1','ko','Non raggiungibile da questa pagina: '+e.message);
-    set('r2','ko','non verificato');set('r3','ko','non verificato');
-    document.getElementById('esito').innerHTML='<span class="ko">Questa pagina non può collegarsi al database. Mandami questo messaggio così scelgo un altro modo di pubblicare l\'app.</span>';
-    return;
-  }
-  try{
-    var b=await call('/rest/v1/clienti?select=id&limit=1');
-    if(b.status===200){set('r2','ok','OK, la tabella "clienti" esiste');
-      set('r3',b.body.trim()==='[]'?'ok':'ko',b.body.trim()==='[]'?'OK, senza login non si vede nessun dato':'ATTENZIONE: senza login i dati sono visibili');}
-    else{set('r2','ko','Risposta '+b.status+': '+b.body.slice(0,160));set('r3','wait','non verificato')}
-  }catch(e){set('r2','ko',e.message);set('r3','ko','non verificato')}
-  document.getElementById('esito').innerHTML=reached?'<span class="ok">Test completato. Copia o fotografa le tre righe e mandamele.</span>':'';
-});
-</script>
-</body>
+function err(r){return (r.j&&(r.j.msg||r.j.error_description||r.j.message))||('errore '+r.status)}
 
-</html>
+$('f1').addEventListener('submit',async function(e){
+  e.preventDefault();var em=$('em').value.trim().toLowerCase();if(!em)return;
+  $('b1').disabled=true;msg('Invio in corso...');
+  try{
+    var r=await api('/auth/v1/otp',{method:'POST',body:JSON.stringify({email:em,create_user:true})});
+    if(!r.ok){msg('Non è stato possibile inviare il codice: '+err(r),'ko');return}
+    $('f2').dataset.email=em;$('t2').textContent='Abbiamo inviato un codice a '+em+'. Scrivilo qui sotto.';
+    show('f2');msg('');$('cod').focus();
+  }catch(x){msg('Connessione assente. Riprova tra poco.','ko')}
+  finally{$('b1').disabled=false}
+});
+$('b2x').addEventListener('click',function(){show('f1');msg('')});
+$('f2').addEventListener('submit',async function(e){
+  e.preventDefault();var em=$('f2').dataset.email,c=$('cod').value.replace(/\s/g,'');if(!c)return;
+  $('b2').disabled=true;msg('Controllo il codice...');
+  try{
+    var r=await api('/auth/v1/verify',{method:'POST',body:JSON.stringify({type:'email',email:em,token:c})});
+    if(!r.ok||!r.j||!r.j.access_token){msg('Codice non valido o scaduto: '+err(r),'ko');return}
+    sv({at:r.j.access_token,rt:r.j.refresh_token,uid:r.j.user.id,em:r.j.user.email,exp:Date.now()+(r.j.expires_in||3600)*1000});
+    $('cod').value='';await entra();
+  }catch(x){msg('Connessione assente. Riprova tra poco.','ko')}
+  finally{$('b2').disabled=false}
+});
+async function rinnova(s){
+  var r=await api('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:s.rt})});
+  if(!r.ok||!r.j||!r.j.access_token){sv(null);return null}
+  s={at:r.j.access_token,rt:r.j.refresh_token,uid:r.j.user.id,em:r.j.user.email,exp:Date.now()+(r.j.expires_in||3600)*1000};sv(s);return s;
+}
+async function entra(){
+  var s=ld();if(!s){show('f1');return}
+  if(s.exp<Date.now()+60000){s=await rinnova(s);if(!s){show('f1');msg('Sessione scaduta, accedi di nuovo.');return}}
+  var r=await api('/rest/v1/profili?select=ruolo,nome,cliente_id&id=eq.'+s.uid,{},s.at);
+  show('s3');msg('');
+  if(r.ok&&r.j&&r.j.length){
+    var p=r.j[0];$('sql').hidden=true;$('cp').hidden=true;
+    $('t3').textContent='Accesso eseguito come '+s.em+'. Ruolo: '+p.ruolo+'.';
+    msg('Il collegamento funziona. Le schermate dell\'app arrivano nei prossimi passi.','ok');
+  }else{
+    $('t3').textContent='Accesso eseguito come '+s.em+', ma questo account non ha ancora un ruolo. Se sei il titolare, copia il comando qui sotto, incollalo in Supabase (SQL Editor) e premi Run. Poi esci e rientra.';
+    $('sql').textContent="insert into profili (id, ruolo, nome) values ('"+s.uid+"', 'master', 'Titolare');";
+    $('sql').hidden=false;$('cp').hidden=false;
+  }
+}
+$('cp').addEventListener('click',function(){
+  var t=$('sql').textContent;
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){msg('Comando copiato.','ok')},function(){
+    var r=document.createRange();r.selectNodeContents($('sql'));var s=getSelection();s.removeAllRanges();s.addRange(r);msg('Selezionato: copialo a mano.')});
+});
+$('ex').addEventListener('click',function(){sv(null);show('f1');msg('')});
+entra();
+</script>
+</body></html>
