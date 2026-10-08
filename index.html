@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Test collegamento database</title>
+<style>
+/* Layout: una colonna stretta, tre controlli in lista, esito in evidenza */
+:root{--bg:#f6f7f5;--fg:#1d2420;--mut:#5b665f;--line:#d9ded9;--card:#ffffff;--ok:#1f7a45;--ko:#b3312b;--wait:#8a6a12;--acc:#245c7a;
+--f-d:'Fraunces',Georgia,serif;--f-b:'Public Sans',system-ui,sans-serif;--f-m:ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a17;--fg:#e6ebe7;--mut:#97a39b;--line:#2b342f;--card:#1b231f;--ok:#5fcf8c;--ko:#ff8a80;--wait:#e3be5a;--acc:#7fb8d6;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141a17;--fg:#e6ebe7;--mut:#97a39b;--line:#2b342f;--card:#1b231f;--ok:#5fcf8c;--ko:#ff8a80;--wait:#e3be5a;--acc:#7fb8d6;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-b);padding-inline:16px;padding-block:24px}
+main{max-width:34rem;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--f-d);font-size:1.7rem;margin:0;text-wrap:balance}
+p{margin:0;line-height:1.5;color:var(--mut)}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+li{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.t{font-weight:600}
+.s{font-family:var(--f-m);font-size:.8rem;overflow-wrap:anywhere}
+.ok{color:var(--ok)}.ko{color:var(--ko)}.wait{color:var(--wait)}
+button{font:inherit;font-weight:600;background:var(--acc);color:var(--bg);border:0;border-radius:6px;padding:10px 16px;cursor:pointer;align-self:flex-start}
+button:focus-visible{outline:3px solid var(--fg);outline-offset:2px}
+#esito{font-weight:600;line-height:1.4}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Public+Sans:wght@400;600&display=swap">
+<body>
+<main>
+<h1>Test collegamento database</h1>
+<p>Questa pagina prova se può raggiungere il tuo database Supabase. Non legge né scrive dati.</p>
+<button id="go" type="button">Avvia il test</button>
+<ul>
+<li><span class="t">1. Il servizio risponde</span><span class="s wait" id="r1">in attesa</span></li>
+<li><span class="t">2. La struttura del database è stata caricata</span><span class="s wait" id="r2">in attesa</span></li>
+<li><span class="t">3. I permessi bloccano chi non ha fatto il login</span><span class="s wait" id="r3">in attesa</span></li>
+</ul>
+<div id="esito"></div>
+</main>
+<script>
+var URL_='https://faemhbtebrjyyvapdziw.supabase.co';
+var KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhZW1oYnRlYnJqeXl2YXBkeml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMDg3ODUsImV4cCI6MjEwNjc4NDc4NX0.E3hAV0vWE6ZWJTJHE0gYjBu5HIDumfNJETxpVWohpgg';
+function set(id,cls,txt){var e=document.getElementById(id);e.className='s '+cls;e.textContent=txt}
+async function call(path){
+  var r=await fetch(URL_+path,{headers:{apikey:KEY,Authorization:'Bearer '+KEY}});
+  var t=await r.text();return{status:r.status,body:t};
+}
+document.getElementById('go').addEventListener('click',async function(){
+  ['r1','r2','r3'].forEach(function(i){set(i,'wait','in corso...')});
+  document.getElementById('esito').textContent='';
+  var reached=false;
+  try{
+    var a=await call('/auth/v1/health');
+    reached=true;
+    set('r1',a.status===200?'ok':'ko',a.status===200?'OK (risposta 200)':'Risposta '+a.status+': '+a.body.slice(0,120));
+  }catch(e){
+    set('r1','ko','Non raggiungibile da questa pagina: '+e.message);
+    set('r2','ko','non verificato');set('r3','ko','non verificato');
+    document.getElementById('esito').innerHTML='<span class="ko">Questa pagina non può collegarsi al database. Mandami questo messaggio così scelgo un altro modo di pubblicare l\'app.</span>';
+    return;
+  }
+  try{
+    var b=await call('/rest/v1/clienti?select=id&limit=1');
+    if(b.status===200){set('r2','ok','OK, la tabella "clienti" esiste');
+      set('r3',b.body.trim()==='[]'?'ok':'ko',b.body.trim()==='[]'?'OK, senza login non si vede nessun dato':'ATTENZIONE: senza login i dati sono visibili');}
+    else{set('r2','ko','Risposta '+b.status+': '+b.body.slice(0,160));set('r3','wait','non verificato')}
+  }catch(e){set('r2','ko',e.message);set('r3','ko','non verificato')}
+  document.getElementById('esito').innerHTML=reached?'<span class="ok">Test completato. Copia o fotografa le tre righe e mandamele.</span>':'';
+});
+</script>
+</body>
+
+</html>
