@@ -362,7 +362,7 @@ function tariffaInfo(t,l,dx,ct){l=+l||0;ct=ct||'A';let a=null,note='';
  if(ct!=='A'){const r=t==='MOTOSCAFO'?{S2:200,S1:300,S3:450}:(t==='ROULOTTE'||t==='CARRELLO'||t==="MOTO D'ACQUA")?{S2:100,S1:200,S3:300}:null;if(r&&r[ct])return{p:r[ct],note}}
  return{p:a,note}}
 const tariffa=(t,l,dx,ct)=>tariffaInfo(t,l,dx,ct).p;
-const tarC=c=>tariffa(c.tipo,c.lung,c.dasse,c.ct);
+const tarC=c=>c.tp>0?c.tp:tariffa(c.tipo,c.lung,c.dasse,c.ct); // c.tp = prezzo concordato per la stagione in corso (si azzera all'apertura della nuova stagione)
 // Stato IN/OUT/X: stessa regola della macro "Aggiorna stato capannone"
 function stato(c){const t=oggi(),z='2000-01-01',uo=c.uo||z,ui=c.ui||z;
  if(uo===z&&ui===z)return'X';
@@ -1286,13 +1286,13 @@ let cy=cur(),uy=cur(),ty=cur(),by='';
 const histY=()=>cy!==cur();
 function rollPreview(){let nc=0,tot=0;db.cl.forEach(c=>{const r=daPagare(c);if(r>.004){nc++;tot+=r}});return{y:db.yr,ny:db.yr+1,n:db.cl.length,nc,tot:r2(tot)}}
 // Apre la nuova stagione: l'importo da pagare riparte dalla tariffa, il residuo non pagato diventa arretrato con l'anno di riferimento
-function stagioneApri(){const y=db.yr,ny=y+1,snap=db.cl.map(c=>({id:c.id,acconto:c.acconto||0,pagato:c.pagato||0,b:JSON.parse(JSON.stringify(c.b||{ui:'',uo:'',lav:0,rit:0})),arr:JSON.parse(JSON.stringify(c.arr||[])),nh:(c.hist||[]).length}));
+function stagioneApri(){const y=db.yr,ny=y+1,snap=db.cl.map(c=>({id:c.id,tp:c.tp,acconto:c.acconto||0,pagato:c.pagato||0,b:JSON.parse(JSON.stringify(c.b||{ui:'',uo:'',lav:0,rit:0})),arr:JSON.parse(JSON.stringify(c.arr||[])),nh:(c.hist||[]).length}));
  db.cl.forEach(c=>{const res=r2(daPagare(c));(c.hist=c.hist||[]).push({y,tar:tarC(c),acc:c.acconto||0,ext:50*((c.lav||0)+(c.rit||0)),pag:c.pagato||0,res});
-  if(res>.004)(c.arr=c.arr||[]).push({y,imp:res,pag:0});c.acconto=0;c.pagato=0;c.b=Object.assign(c.b||{},{lav:0,rit:0})});
+  if(res>.004)(c.arr=c.arr||[]).push({y,imp:res,pag:0});c.acconto=0;c.pagato=0;delete c.tp;c.b=Object.assign(c.b||{},{lav:0,rit:0})});
  db.yr=ny;db.rd=(ny+1)+'-01-01';db.cl.forEach(c=>recalc(c.id));
  db.rl={from:y,to:ny,d:oggi(),pm:Math.max(0,...db.pag.map(p=>p.id||0)),snap};cy=uy=ty=cur();return{from:y,to:ny}}
 function stagioneUndo(){const r=db.rl;if(!r)return{err:'Niente da annullare'};if(Math.max(0,...db.pag.map(p=>p.id||0))!==r.pm)return{err:'Nella nuova stagione sono già stati registrati pagamenti: non si può annullare'};
- r.snap.forEach(s=>{const c=cli(s.id);if(!c)return;c.acconto=s.acconto;c.pagato=s.pagato;c.b=s.b;c.arr=s.arr;c.hist=(c.hist||[]).slice(0,s.nh)});
+ r.snap.forEach(s=>{const c=cli(s.id);if(!c)return;c.acconto=s.acconto;c.pagato=s.pagato;if(s.tp>0)c.tp=s.tp;else delete c.tp;c.b=s.b;c.arr=s.arr;c.hist=(c.hist||[]).slice(0,s.nh)});
  db.yr=r.from;db.rd=(r.from+1)+'-01-01';db.cl.forEach(c=>recalc(c.id));db.rl=null;cy=uy=ty=cur();return{ok:1}}
 function rollOpen(){const pv=rollPreview(),cu=db.rl&&Math.max(0,...db.pag.map(p=>p.id||0))===db.rl.pm;
  $('#ss-i').innerHTML=`<div class="mon"><div>Stagione attuale<b>${pv.y}</b></div><div>Nuova stagione<b>${pv.ny}</b></div><div>Clienti<b>${pv.n}</b></div></div>
