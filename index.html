@@ -107,6 +107,7 @@ async function entra(){
   show('s3');msg('');
   if(r.ok&&r.j&&r.j.length){
     var p=r.j[0];$('sql').hidden=true;$('cp').hidden=true;
+    if(p.ruolo==='master'){location.replace('gestionale.html');return}
     $('t3').textContent='Accesso eseguito come '+s.em+'. Ruolo: '+p.ruolo+'.';
     msg('Il collegamento funziona. Le schermate dell\'app arrivano nei prossimi passi.','ok');
   }else{
