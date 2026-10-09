@@ -299,7 +299,7 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
  <div class="chips" id="ml-tabs" style="margin-top:12px"><button class="chip on" data-s="1">1 · Testo</button><button class="chip" data-s="2">2 · Destinatari</button><button class="chip" data-s="3">3 · Invio</button></div>
 
  <section id="ml-p1">
-  <p class="mut">Il messaggio esiste in quattro lingue: ogni cliente riceve quella della sua nazionalità. Scegli la lingua qui sotto per modificarla.</p>
+  <p class="mut">Il messaggio esiste in tre lingue (italiano, inglese, tedesco): ogni cliente riceve quella della sua nazionalità; olandesi e belgi ricevono l'inglese. Scegli la lingua qui sotto per modificarla.</p>
   <div class="chips" id="ml-lg"></div>
   <label for="ml-o">Oggetto dell'email</label><input id="ml-o">
   <label>Testo</label>
@@ -599,9 +599,9 @@ $('#ut-l').onclick=async e=>{const b=e.target.closest&&e.target.closest('[data-u
  try{await window.__rim.rpc('utente_rimuovi',{p_id:id,p_email:em});toast('Accesso tolto');utLoad()}catch(e){toast('Non riuscito')}};
 // ======== Email ai clienti ========
 db.mtp=db.mtp||[];db.mcf=db.mcf||[];db.msd=db.msd||[];
-const MLG=['it','en','de','nl'],MLN={it:'Italiano',en:'English',de:'Deutsch',nl:'Nederlands'};
+const MLG=['it','en','de'],MLN={it:'Italiano',en:'English',de:'Deutsch'};
 const mlCard=()=>(typeof window!=='undefined'&&window.SITE&&ROLE==='master')?`<div class="card xm" data-ml="1"><div><b>Email ai clienti</b><div class="mut">Modelli per Natale, conferma posto, arretrati. Testo per nazionalità, immagini e allegati</div></div><span class="ch">›</span></div>`:'';
-const mlLang=c=>{const n=String(c.naz||'').toUpperCase();return['NL','B','BE'].includes(n)?'nl':['D','DE','A','AT','CH','LI'].includes(n)?'de':['I','IT'].includes(n)?'it':'en'};
+const mlLang=c=>{const n=String(c.naz||'').toUpperCase();return['D','DE','A','AT','CH','LI'].includes(n)?'de':['I','IT'].includes(n)?'it':'en'};
 const mlCfg=()=>{const c=db.mcf[0]||(db.mcf[0]={id:'cfg',nome:'Garda Center',rt:'',iban:'',acc:50,lim:100,inv:{d:'',n:0}});if(c.bic==null)c.bic='UNCRITM1N34';if(c.intest==null)c.intest='GARDA CENTER SRL';return c};
 const arrRest=c=>(c.arr||[]).reduce((a,x)=>a+Math.max(0,x.imp-(x.pag||0)),0);
 const mlMoney=(n,L)=>new Intl.NumberFormat({it:'it-IT',en:'en-GB',de:'de-DE',nl:'nl-NL'}[L],{style:'currency',currency:'EUR'}).format(n);
