@@ -679,7 +679,7 @@ $('#ml-del').onclick=async()=>{if(ML.w.fisso)return toast('I modelli base non si
 async function mlPost(items,t){const c=mlCfg();return window.__rim.fn('invia-email',{from_name:c.nome||'Garda Center',reply_to:c.rt||undefined,messages:items})}
 $('#ml-ts').onclick=async()=>{mlGrab();const c=cli($('#ml-pc').value)||mlSel()[0],me=window.__rim.me();if(!c)return toast('Scegli un cliente per la prova');if(!me)return toast('Non trovo la tua email');
  const m=mlBuild(c,ML.w);try{const r=await mlPost([{id:'prova',to:me,subject:'[PROVA] '+m.subject,html:m.html,attachments:(ML.w.att[m.L]||[]).map(a=>({filename:a.n,url:a.url}))}]);const x=r.results[0];toast(x.ok?'Prova inviata a '+me:'Non riuscito: '+x.info)}catch(e){toast('Non riuscito: '+e.message)}};
-$('#ml-go').onclick=async()=>{mlGrab();const c0=mlCfg(),if(!c0.rt){$('#dlgml details').open=true;return toast("Prima scrivi in Impostazioni di invio l'email a cui devono arrivare le risposte dei clienti")}res=Math.max(0,(+c0.lim||100)-(c0.inv.d===oggi()?c0.inv.n:0)),list=mlSel().slice(0,res);
+$('#ml-go').onclick=async()=>{mlGrab();const c0=mlCfg();if(!c0.rt){$('#dlgml details').open=true;return toast("Prima scrivi in Impostazioni di invio l'email a cui devono arrivare le risposte dei clienti")}const res=Math.max(0,(+c0.lim||100)-(c0.inv.d===oggi()?c0.inv.n:0)),list=mlSel().slice(0,res);
  if(!list.length)return toast(res?'Nessun cliente da contattare':'Limite di oggi raggiunto: riprova domani');
  const by={};list.forEach(c=>{const L=mlLang(c);by[L]=(by[L]||0)+1});
  if(!await askQ('Inviare le email?',`<b>${list.length}</b> email: ${Object.entries(by).map(([k,v])=>v+' in '+MLN[k]).join(', ')}.<br>Oggetto: ${esc(ML.w.ogg.it||ML.w.ogg.en)}<br>Non si può annullare.`,'Invia'))return;
