@@ -38,7 +38,12 @@ pre{margin:0;padding:12px;background:var(--card);border:1px solid var(--line);bo
 
 <section id="f2" hidden>
 <p id="t2"></p>
-<p>Apri l'email e tocca il link di accesso. Se non la vedi, controlla anche la cartella spam.</p>
+<form id="fc">
+<label for="cod">Codice ricevuto per email</label>
+<input id="cod" type="text" autocomplete="one-time-code" inputmode="numeric" maxlength="10">
+<button id="b2" type="submit">Entra con il codice</button>
+</form>
+<p>Oppure tocca il link che trovi nella stessa email. Se non la vedi, controlla anche la cartella spam.</p>
 <button id="b2x" class="alt" type="button">Cambia email</button>
 </section>
 
@@ -73,12 +78,23 @@ $('f1').addEventListener('submit',async function(e){
   try{
     var r=await api('/auth/v1/otp?redirect_to='+encodeURIComponent(location.origin+location.pathname),{method:'POST',body:JSON.stringify({email:em,create_user:true})});
     if(!r.ok){msg('Non è stato possibile inviare il link: '+err(r),'ko');return}
-    $('t2').textContent='Abbiamo inviato un link di accesso a '+em+'.';
+    $('f2').dataset.email=em;$('t2').textContent='Abbiamo inviato un\'email a '+em+'.';
     show('f2');msg('');
   }catch(x){msg('Connessione assente. Riprova tra poco.','ko')}
   finally{$('b1').disabled=false}
 });
 $('b2x').addEventListener('click',function(){show('f1');msg('')});
+$('fc').addEventListener('submit',async function(e){
+  e.preventDefault();var em=$('f2').dataset.email,c=$('cod').value.replace(/\s/g,'');if(!c)return;
+  $('b2').disabled=true;msg('Controllo il codice...');
+  try{
+    var r=await api('/auth/v1/verify',{method:'POST',body:JSON.stringify({type:'email',email:em,token:c})});
+    if(!r.ok||!r.j||!r.j.access_token){msg('Codice non valido o scaduto: '+err(r),'ko');return}
+    sv({at:r.j.access_token,rt:r.j.refresh_token,uid:r.j.user.id,em:r.j.user.email,exp:Date.now()+(r.j.expires_in||3600)*1000});
+    $('cod').value='';await entra();
+  }catch(x){msg('Connessione assente. Riprova tra poco.','ko')}
+  finally{$('b2').disabled=false}
+});
 async function rinnova(s){
   var r=await api('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:s.rt})});
   if(!r.ok||!r.j||!r.j.access_token){sv(null);return null}
