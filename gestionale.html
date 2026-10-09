@@ -291,6 +291,13 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
 <dialog id="dlg10"><h2>Ritiro del mezzo</h2><div id="rt-i"></div><label>Data del ritiro</label><input id="rt-d" type="date"><button class="btn" id="rt-s">Conferma ritiro</button><button class="btn g" id="rt-c">Annulla</button></dialog>
 <dialog id="dlgpos"><h2 id="ps-t">Assegna posto</h2><p class="mut" id="ps-d"></p><label for="ps-q">Numero cliente (o T1 per un provvisorio)</label><input id="ps-q" type="text" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="Es. 123"><button class="btn g sm lens" type="button" id="ps-lens">🔍 Non ricordi il numero? Cerca per nome o targa</button><div id="ps-pv" class="prev" hidden></div><button class="btn" id="ps-ok">Assegna posto</button><button class="btn g" id="ps-no">Annulla</button></dialog>
 <dialog id="dlgsh"><h2 id="sh-t"></h2><div id="sh-b"></div><button class="btn g" id="sh-x">Chiudi</button></dialog>
+<dialog id="dlgut"><h2>Utenti e permessi</h2>
+ <p class="mut">Scrivi l'email della persona e scegli cosa può fare. La prima volta che entra con il suo codice trova già i permessi.</p>
+ <div id="ut-l"></div>
+ <label for="ut-e">Email</label><input id="ut-e" type="email" autocomplete="off" inputmode="email">
+ <label for="ut-n">Nome</label><input id="ut-n" autocomplete="off" placeholder="es. Enrico">
+ <label for="ut-r">Cosa può fare</label><select id="ut-r"><option value="trasportatore">Trasportatore: vede solo i Trasporti (le sue aggiunte restano da confermare)</option><option value="operaio">Operaio: vede solo le Uscite</option></select>
+ <button class="btn" id="ut-ok">Aggiungi</button><button class="btn g" id="ut-no">Chiudi</button></dialog>
 <dialog id="dlgtr"><h2>Nuovo trasporto</h2>
  <p class="mut">Resta "da confermare" finché l'ufficio non lo approva.</p>
  <label for="tr-n">Numero cliente</label><input id="tr-n" type="text" autocapitalize="characters" placeholder="es. 25 oppure S3">
@@ -522,11 +529,28 @@ function home(){const t=oggi(),dm=add(1),n={IN:0,OUT:0,X:0};db.cl.forEach(c=>{if
 function menuX(){const dap=cont().reduce((a,o)=>a+o.dap,0),nr=db.tr.filter(x=>x.d>=oggi()).length;
  $('#x-l').innerHTML=`<div class="card xm" data-go="r"><div><b>Trasporti</b><div class="mut">Calendario di Enrico, passati e contabilità · ${nr} in programma${dap>0?' · da incassare '+eur(dap):''}</div></div><span class="ch">›</span></div>
  <div class="card xm" data-go="k"><div><b>Cassa, Registro pagamenti e Prima nota</b><div class="mut">Registra pagamenti, consulta il registro, conferma le fatture emesse${fatDue().length?' · '+fatDue().length+' fatture da confermare':''}</div></div><span class="ch">›</span></div>
- <div class="card xm" data-bk2="1"><div><b>Backup completo</b><div class="mut">Scarica un file con tutti i dati dell'app: serve per trasferirli nel database online e come copia di sicurezza</div></div><span class="ch">›</span></div>`}
+ <div class="card xm" data-bk2="1"><div><b>Backup completo</b><div class="mut">Scarica un file con tutti i dati dell'app: serve per trasferirli nel database online e come copia di sicurezza</div></div><span class="ch">›</span></div>`+rsCard()+utCard()}
+const rsCard=()=>(typeof window!=='undefined'&&window.SITE&&ROLE==='master')?`<div class="card xm" data-rs="1"><div><b>Sostituisci tutti i dati con un backup</b><div class="mut">Carica un file di backup (o l'importazione da Excel) al posto dei dati attuali. Prima ti scarica una copia di quelli di adesso</div></div><span class="ch">›</span></div>`:'';
+function rsOpen(){const f=document.createElement('input');f.type='file';f.accept='.json,application/json';f.onchange=async()=>{const fl=f.files[0];if(!fl)return;let o;try{o=JSON.parse(await fl.text())}catch(e){return toast('Il file non è leggibile')}
+ const nd=o&&o.formato==='rimessaggio-backup'?o.db:o;if(!nd||!Array.isArray(nd.cl))return toast('Questo non sembra un backup del rimessaggio');
+ const ok=await askQ('Sostituire tutti i dati?',`Il file contiene <b>${nd.cl.length} clienti</b>. Dopo aver scaricato una copia dei dati attuali, tutti i dati online verranno sostituiti con quelli del file. Quello che hai inserito nel frattempo andrà perso.`,'Sostituisci tutto');if(!ok)return;
+ await bkSave();toast('Sostituzione in corso…');try{await window.__rim.restore(o)}catch(e){toast('Non riuscito: '+(e.message||e))}};f.click()}
+const utCard=()=>(typeof window!=='undefined'&&window.SITE&&ROLE==='master')?`<div class="card xm" data-ut="1"><div><b>Utenti e permessi</b><div class="mut">Chi può entrare e cosa vede: Enrico, operai</div></div><span class="ch">›</span></div>`:'';
+const RUOLO_T={master:'Titolare',trasportatore:'Trasportatore',operaio:'Operaio'};
+async function utLoad(){const b=$('#ut-l');b.innerHTML='<p class="mut">Carico…</p>';
+ try{const l=await window.__rim.rpc('utenti_elenco',{});b.innerHTML=l.map(u=>`<div class="row" style="margin:8px 0"><div><b>${esc(u.nome||u.email)}</b><div class="mut">${esc(u.email)} · ${RUOLO_T[u.ruolo]||esc(u.ruolo)}${u.attesa?' · invitato, non è ancora entrato':''}</div></div>${u.ruolo==='master'?'':`<div style="flex:none"><button class="btn g sm" style="margin:0" data-ur="${u.id||''}|${esc(u.email)}">Togli</button></div>`}</div>`).join('')||'<p class="mut">Nessun utente.</p>'}
+ catch(e){b.innerHTML='<p class="mut">Non riesco a leggere gli utenti. Hai eseguito il file schema4_utenti.sql in Supabase?</p>'}}
+function utOpen(){$('#ut-e').value='';$('#ut-n').value='';$('#dlgut').showModal();utLoad()}
+$('#ut-no').onclick=()=>$('#dlgut').close();
+$('#ut-ok').onclick=async()=>{const em=$('#ut-e').value.trim(),nm=$('#ut-n').value.trim();if(!em)return toast("Scrivi l'email");if(!nm)return toast('Scrivi il nome');
+ try{const r=await window.__rim.rpc('utente_assegna',{p_email:em,p_ruolo:$('#ut-r').value,p_nome:nm});$('#ut-e').value='';$('#ut-n').value='';toast(r==='abilitato'?'Abilitato':'Invitato: potrà entrare con il suo codice');utLoad()}catch(e){toast('Non riuscito: '+String(e.message||e).replace(/^.*"message":"([^"]*)".*$/,'$1').slice(0,120))}};
+$('#ut-l').onclick=async e=>{const b=e.target.closest&&e.target.closest('[data-ur]');if(!b)return;const q=b.dataset.ur.split('|'),id=q[0]||null,em=q[1];
+ if(!await askQ('Togliere l\'accesso?',esc(em)+' non potrà più entrare nel gestionale.','Togli'))return;
+ try{await window.__rim.rpc('utente_rimuovi',{p_id:id,p_email:em});toast('Accesso tolto');utLoad()}catch(e){toast('Non riuscito')}};
 async function bkSave(){try{const d=await claude.use('downloads');if(!d)return toast('Salvataggio non disponibile qui');
  const o={formato:'rimessaggio-backup',v:1,creato:new Date().toISOString(),db:db,files:fdb()};
  await d.save({filename:'backup-rimessaggio-'+oggi()+'.json',data:new Blob([JSON.stringify(o)],{type:'application/json'})});try{localStorage.setItem('rim-bk',oggi())}catch(e){}toast('Backup salvato');render()}catch(e){if(!e||e.code!=='declined')toast('Salvataggio non riuscito')}}
-$('#x-l').onclick=e=>{if(e.target.closest&&e.target.closest('[data-bk2]'))return bkSave();const b=e.target.closest&&e.target.closest('[data-go]');if(b)go(b.dataset.go);const r=e.target.closest&&e.target.closest('[data-roll]');if(r)rollOpen()};
+$('#x-l').onclick=e=>{if(e.target.closest&&e.target.closest('[data-bk2]'))return bkSave();if(e.target.closest&&e.target.closest('[data-rs]'))return rsOpen();if(e.target.closest&&e.target.closest('[data-ut]'))return utOpen();const b=e.target.closest&&e.target.closest('[data-go]');if(b)go(b.dataset.go);const r=e.target.closest&&e.target.closest('[data-roll]');if(r)rollOpen()};
 $('#v-h').querySelector&&0;
 document.querySelector('.qa')&&(document.querySelector('.qa').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-q]');if(!b)return;const q=b.dataset.q;if(q==='new')regOpen(false,'c');else if(q==='find')srOpen(id=>{filtro=isS(id)?'STAG':'TUTTI';$('#q').value=fid(id);aperto=id;go('c');render()});else if(q==='pay'){kt='R';go('k');pn()}else go(q)});
 $('#m-d').value=oggi();
@@ -1586,7 +1610,14 @@ async function boot(){
   }catch(e){
     box('<h1 style="font:600 1.6rem Georgia,serif;margin:0 0 8px">Non riesco a collegarmi</h1><p style="color:#5b665f">'+(e.message==='sessione'?'La sessione è scaduta.':'Controlla la connessione e riprova.')+'</p><p><a href="gestionale.html" style="color:#245c7a">Riprova</a> · <a href="#" id="bk-out" style="color:#245c7a">Esci</a></p>');
     document.getElementById('bk-out').onclick=function(e){e.preventDefault();esci()}}}
-window.__rim={flatten:flatten,assemble:assemble,idOf:idOf};
+window.__rim={rpc:function(n,a){return rest('rpc/'+n,{method:'POST',body:JSON.stringify(a||{})})},flatten:flatten,assemble:assemble,idOf:idOf,restore:async function(o){
+  if(ROLE!=='master')throw new Error('solo il titolare');
+  var nd=o&&o.formato==='rimessaggio-backup'?o.db:o,nf=o&&o.formato==='rimessaggio-backup'?(o.files||{}):{};
+  if(!nd||!Array.isArray(nd.cl))throw new Error('file non valido');
+  clearTimeout(timer);ready=false;
+  _set.call(localStorage,'rim2',JSON.stringify(nd));_set.call(localStorage,'rim2f',JSON.stringify(nf));
+  await pushDiff(true);try{_rem.call(localStorage,DK)}catch(e){}
+  location.reload()}};
 boot();
 })();
 </script></body></html>
