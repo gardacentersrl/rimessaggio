@@ -107,13 +107,11 @@ async function entra(){
   show('s3');msg('');
   if(r.ok&&r.j&&r.j.length){
     var p=r.j[0];$('sql').hidden=true;$('cp').hidden=true;
-    if(p.ruolo==='master'){location.replace('gestionale.html');return}
-    $('t3').textContent='Accesso eseguito come '+s.em+'. Ruolo: '+p.ruolo+'.';
-    msg('Il collegamento funziona. Le schermate dell\'app arrivano nei prossimi passi.','ok');
+    if(['master','trasportatore','operaio'].indexOf(p.ruolo)>=0){location.replace('gestionale.html');return}
+    $('t3').textContent='Accesso eseguito come '+s.em+'. L\'area per il ruolo "'+p.ruolo+'" non è ancora disponibile.';
   }else{
-    $('t3').textContent='Accesso eseguito come '+s.em+', ma questo account non ha ancora un ruolo. Se sei il titolare, copia il comando qui sotto, incollalo in Supabase (SQL Editor) e premi Run. Poi esci e rientra.';
-    $('sql').textContent="insert into profili (id, ruolo, nome) values ('"+s.uid+"', 'master', 'Titolare');";
-    $('sql').hidden=false;$('cp').hidden=false;
+    $('t3').textContent='Accesso eseguito come '+s.em+', ma questo indirizzo non è ancora abilitato. Chiedi al titolare di abilitarlo, poi esci e rientra.';
+    $('sql').hidden=true;$('cp').hidden=true;
   }
 }
 $('cp').addEventListener('click',function(){

@@ -94,6 +94,13 @@ a.btn{display:block;text-align:center;text-decoration:none}
 .ok{color:var(--in);font-weight:600}.ko{color:var(--out);font-weight:600}.btn.sm{width:auto;margin:0;padding:8px 12px}
 dialog{max-height:92vh;overflow:auto}h3{margin:14px 0 6px;font-size:15px}.lens{margin-top:6px}
 </style></head><body>
+<style id="rolecss">
+#r-add{display:none}
+body.role-trasportatore #r-add{display:block}
+body.role-operaio nav,body.role-trasportatore nav,body.role-operaio #seg,body.role-trasportatore #seg,body.role-operaio #al,body.role-trasportatore #al,body.role-operaio #al-line,body.role-trasportatore #al-line,body.role-operaio #sum,body.role-trasportatore #sum{display:none!important}
+body.role-operaio [data-em],body.role-trasportatore [data-mail],body.role-trasportatore [data-em],body.role-trasportatore [data-del],body.role-trasportatore [data-pdf],body.role-trasportatore [data-cons],body.role-trasportatore #r-x,body.role-operaio #u-x{display:none!important}
+body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.role-trasportatore #dlg3 p.mut{display:none}
+</style>
 <header><h1>Rimessaggio</h1><p id="sum"></p></header>
 <div id="al-line" hidden></div>
 <div id="seg"></div>
@@ -220,6 +227,7 @@ dialog{max-height:92vh;overflow:auto}h3{margin:14px 0 6px;font-size:15px}.lens{m
  <select id="r-y"></select>
  <div class="chips" id="r-sub"></div>
  <div id="r-l"></div>
+ <button class="btn g" id="r-add">Aggiungi trasporto</button>
  <button class="btn g" id="r-x">Esporta in Excel</button>
 </section>
 <section id="v-k" class="v">
@@ -283,6 +291,19 @@ dialog{max-height:92vh;overflow:auto}h3{margin:14px 0 6px;font-size:15px}.lens{m
 <dialog id="dlg10"><h2>Ritiro del mezzo</h2><div id="rt-i"></div><label>Data del ritiro</label><input id="rt-d" type="date"><button class="btn" id="rt-s">Conferma ritiro</button><button class="btn g" id="rt-c">Annulla</button></dialog>
 <dialog id="dlgpos"><h2 id="ps-t">Assegna posto</h2><p class="mut" id="ps-d"></p><label for="ps-q">Numero cliente (o T1 per un provvisorio)</label><input id="ps-q" type="text" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="Es. 123"><button class="btn g sm lens" type="button" id="ps-lens">🔍 Non ricordi il numero? Cerca per nome o targa</button><div id="ps-pv" class="prev" hidden></div><button class="btn" id="ps-ok">Assegna posto</button><button class="btn g" id="ps-no">Annulla</button></dialog>
 <dialog id="dlgsh"><h2 id="sh-t"></h2><div id="sh-b"></div><button class="btn g" id="sh-x">Chiudi</button></dialog>
+<dialog id="dlgtr"><h2>Nuovo trasporto</h2>
+ <p class="mut">Resta "da confermare" finché l'ufficio non lo approva.</p>
+ <label for="tr-n">Numero cliente</label><input id="tr-n" type="text" autocapitalize="characters" placeholder="es. 25 oppure S3">
+ <button class="btn g sm lens" type="button" id="tr-lens">🔍 Cerca per nome o targa</button>
+ <div id="tr-pv" class="prev" hidden></div>
+ <label for="tr-t">Tipo di viaggio</label><select id="tr-t"><option value="Uscita">Uscita (porto il mezzo al campeggio)</option><option value="Rientro">Rientro (riporto il mezzo)</option></select>
+ <label for="tr-d">Data</label><input id="tr-d" type="date">
+ <label for="tr-o">Ora</label><select id="tr-o"></select>
+ <label for="tr-c">Campeggio</label><input id="tr-c">
+ <label for="tr-p">Piazzola</label><input id="tr-p">
+ <label for="tr-s">Sede del mezzo</label><select id="tr-s"><option value="Casalemenini">Casalemenini</option><option value="Camporengo">Camporengo</option></select>
+ <label for="tr-i">Importo del viaggio (€)</label><input id="tr-i" type="number" step="0.01" inputmode="decimal">
+ <button class="btn" id="tr-ok">Aggiungi</button><button class="btn g" id="tr-no">Annulla</button></dialog>
 <dialog id="dlg11"><h2>Cerca numero cliente</h2><input id="sr-q" type="search" placeholder="Nome, targa o marca"><div id="sr-l"></div><button class="btn g" id="sr-x">Chiudi</button></dialog>
 <dialog id="dlg12"><h2>Trasforma in cliente</h2><div id="fn-i"></div><label>Codice cancello (se già assegnato)</label><input id="fn-cod"><label id="fn-al">Data di arrivo del mezzo</label><input id="fn-arr" type="date"><button class="btn" id="fn-s">Conferma</button><button class="btn g" id="fn-c">Annulla</button></dialog>
 <dialog id="dlg7"><h2>Documenti cliente</h2><div id="dc-b"></div><button class="btn g" id="dc-x">Chiudi</button></dialog>
@@ -393,6 +414,7 @@ CAP.forEach(([cap,luogo,zs])=>zs.forEach(z=>{const righe=[];let items=null;
  else if(z.k==='x')righe.push({t:'',c:z.x.map(x=>z.p+' '+x)});
  else[...z.r].forEach((r,i)=>{const n=(Array.isArray(z.n)?z.n[i]:z.n)+(z.d?1:0);if(z.d)ALIAS[`${z.p} ${r} DAVANTI`]=`${z.p} ${r}${n}`;if(z.old){for(let j=1;j<=n;j++)ALIAS[`${z.old} ${r}${j}`]=`${z.p} ${r}${j}`;ALIAS[`${z.old} ${r} DAVANTI`]=`${z.p} ${r}${n}`}righe.push({t:r,c:Array.from({length:n},(_,j)=>`${z.p} ${r}${j+1}`)})});
  righe.forEach(r=>r.c.forEach(l=>LOC[l]={cap,luogo}));if(items)items.cells.forEach(c=>LOC[c.l]={cap,luogo});ZONE.push({cap,luogo,nome:z.p,righe,items,col:'fav'.includes(z.k||'-')||!!z.v})}));
+const ROLE=(typeof window!=='undefined'&&window.ROLE)||'master';
 let db;try{db=JSON.parse(localStorage.getItem('rim2'))}catch(e){}
 if(!db||!db.cl){db={cl:seed(),mov:seedMov()}}
 db.pag=db.pag||[];db.pn=db.pn||[];db.mov=db.mov||[];db.mov.forEach((m,i)=>{if(!m.id)m.id=i+1});db.mov=db.mov||[];db.tmp=db.tmp||[];db.tr=db.tr||[];db.trp=db.trp||[];db.trc=db.trc||[];db.rit=db.rit||[];db.pren=db.pren||[];
@@ -485,7 +507,7 @@ const GRP={h:'h',o:'h',cs:'m',c:'c',b:'c',m:'m',u:'m',p:'p',x:'x',r:'x',k:'x'},S
 function segDraw(v){const g=GRP[v],e=$('#seg');if(SEGS[g])e.innerHTML='<div class="chips">'+SEGS[g].map(([k,n])=>`<button class="chip ${k===v?'on':''}" data-go="${k}">${n}</button>`).join('')+'</div>';
  else if(v==='o')e.innerHTML='<button class="btn g sm" data-go="h" style="margin:8px 0">← Oggi</button>';else if(g==='x'&&v!=='x')e.innerHTML='<button class="btn g sm" data-go="x" style="margin:8px 0">← Altro</button>';else e.innerHTML=''}
 function alBadge(){const b=$('#bd-h'),l=$('#al-line');if(b){b.hidden=!alN;b.textContent=alN}if(l){l.hidden=!(alN>0&&curV!=='h');l.textContent='⚠ '+alN+(alN===1?' avviso da controllare':' avvisi da controllare')+' · tocca per vederli'}}
-function go(v){if(v!=='o')mvBack();document.querySelectorAll('nav button,.v').forEach(x=>x.classList.remove('on'));const nb=$('nav button[data-v="'+GRP[v]+'"]');if(nb)nb.classList.add('on');$('#v-'+v).classList.add('on');curV=v;lastV[GRP[v]]=v;segDraw(v);alBadge();window.scrollTo&&window.scrollTo(0,0)}
+function go(v){if(ROLE!=='master'){const ok=ROLE==='operaio'?['u']:['r'];if(!ok.includes(v))v=ok[0]}if(v!=='o')mvBack();document.querySelectorAll('nav button,.v').forEach(x=>x.classList.remove('on'));const nb=$('nav button[data-v="'+GRP[v]+'"]');if(nb)nb.classList.add('on');$('#v-'+v).classList.add('on');curV=v;lastV[GRP[v]]=v;segDraw(v);alBadge();window.scrollTo&&window.scrollTo(0,0)}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{const g=b.dataset.v;go(g==='x'||g==='h'?g:(lastV[g]||g))});
 $('#seg').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-go]');if(b)go(b.dataset.go)};
 $('#al-line').onclick=()=>go('h');
@@ -503,7 +525,7 @@ function menuX(){const dap=cont().reduce((a,o)=>a+o.dap,0),nr=db.tr.filter(x=>x.
  <div class="card xm" data-bk2="1"><div><b>Backup completo</b><div class="mut">Scarica un file con tutti i dati dell'app: serve per trasferirli nel database online e come copia di sicurezza</div></div><span class="ch">›</span></div>`}
 async function bkSave(){try{const d=await claude.use('downloads');if(!d)return toast('Salvataggio non disponibile qui');
  const o={formato:'rimessaggio-backup',v:1,creato:new Date().toISOString(),db:db,files:fdb()};
- await d.save({filename:'backup-rimessaggio-'+oggi()+'.json',data:new Blob([JSON.stringify(o)],{type:'application/json'})});toast('Backup salvato')}catch(e){if(!e||e.code!=='declined')toast('Salvataggio non riuscito')}}
+ await d.save({filename:'backup-rimessaggio-'+oggi()+'.json',data:new Blob([JSON.stringify(o)],{type:'application/json'})});try{localStorage.setItem('rim-bk',oggi())}catch(e){}toast('Backup salvato');render()}catch(e){if(!e||e.code!=='declined')toast('Salvataggio non riuscito')}}
 $('#x-l').onclick=e=>{if(e.target.closest&&e.target.closest('[data-bk2]'))return bkSave();const b=e.target.closest&&e.target.closest('[data-go]');if(b)go(b.dataset.go);const r=e.target.closest&&e.target.closest('[data-roll]');if(r)rollOpen()};
 $('#v-h').querySelector&&0;
 document.querySelector('.qa')&&(document.querySelector('.qa').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-q]');if(!b)return;const q=b.dataset.q;if(q==='new')regOpen(false,'c');else if(q==='find')srOpen(id=>{filtro=isS(id)?'STAG':'TUTTI';$('#q').value=fid(id);aperto=id;go('c');render()});else if(q==='pay'){kt='R';go('k');pn()}else go(q)});
@@ -853,22 +875,22 @@ const sedeDi=c=>(LOC[c.pos]||{}).luogo||c.sede||'';
 db.tr.forEach(t=>{delete t.drv;if(t.imp==null)t.imp=trTariffa(cli(t.cid)||{},false)||0});
 db.trp=db.trp.filter(p=>p.paid!==false&&p.imp>0).map(p=>{delete p.drv;return p});db.trc.forEach(c=>{delete c.drv});
 function cont(y){const m={},iy=d=>!y||String(d).slice(0,4)===String(y);
- db.tr.filter(t=>iy(t.d)).forEach(t=>{const o=m[t.cid]=m[t.cid]||{cid:t.cid,n:0,tot:0,ul:'',ue:'',pag:0,dare:0,cons:0,lp:null,dc:'',rient:''};o.n++;o.tot+=t.imp||0;
+ db.tr.filter(t=>iy(t.d)&&!t.pend).forEach(t=>{const o=m[t.cid]=m[t.cid]||{cid:t.cid,n:0,tot:0,ul:'',ue:'',pag:0,dare:0,cons:0,lp:null,dc:'',rient:''};o.n++;o.tot+=t.imp||0;
   if(t.tipo==='Uscita'&&t.d>o.ul)o.ul=t.d;if(t.tipo==='Rientro'){if(t.d>o.ue)o.ue=t.d;if(t.d<=oggi()&&t.d>o.rient)o.rient=t.d}});
- db.trp.filter(p=>iy(p.d)).forEach(p=>{const o=m[p.cid];if(!o)return;o.pag+=p.imp;if(p.dove==='IN UFFICIO')o.dare+=p.imp;if(!o.lp||p.d>=o.lp.d)o.lp=p});
+ db.trp.filter(p=>iy(p.d)&&!p.pend).forEach(p=>{const o=m[p.cid];if(!o)return;o.pag+=p.imp;if(p.dove==='IN UFFICIO')o.dare+=p.imp;if(!o.lp||p.d>=o.lp.d)o.lp=p});
  db.trc.filter(c=>iy(c.d)).forEach(c=>{const o=m[c.cid];if(o){o.dare-=c.imp;o.cons+=c.imp;if(c.d>o.dc)o.dc=c.d}});
  return Object.values(m).map(o=>(o.dap=Math.max(0,o.tot-o.pag),o))}
 const unpaid=()=>cont().filter(o=>o.rient&&o.dap>0);
 // Allerta: mezzo già riportato e trasporto non pagato (visibile in tutte le pagine)
-function al(){const l=unpaid(),dm=add(1),rem=db.mov.filter(m=>m.t==='uo'&&m.d===dm&&!m.mr),sc=db.cl.filter(c=>isS(c.id)&&c.per&&c.per.al&&c.per.al<oggi());const ar=db.cl.filter(c=>arrOpen(c)>.004),nr=oggi()>=db.rd,fd=fatDue(),mp=db.pag.filter(p=>p.mail===false).map(p=>['pag',p]).concat(db.trp.filter(p=>p.mail===false).map(p=>['trp',p]));alN=l.length+sc.length+rem.length+(fd.length?1:0)+(ar.length?1:0)+(nr?1:0)+mp.length;alBadge();
- $('#al').innerHTML=(nr?`<div class="card" style="border:2px solid var(--x);background:rgba(217,168,0,.14)"><b>Nuova stagione ${db.yr+1}: aggiorna gli importi da pagare</b><div class="mut">Era previsto per il ${dmy(db.rd)}.</div><button class="btn sm" data-roll="1">Apri la stagione ${db.yr+1}</button></div>`:'')
+function al(){const pe=ROLE==='master'?pendList():[],bk=ROLE==='master'&&bkOld(),l=unpaid(),dm=add(1),rem=db.mov.filter(m=>m.t==='uo'&&m.d===dm&&!m.mr),sc=db.cl.filter(c=>isS(c.id)&&c.per&&c.per.al&&c.per.al<oggi());const ar=db.cl.filter(c=>arrOpen(c)>.004),nr=oggi()>=db.rd,fd=fatDue(),mp=db.pag.filter(p=>p.mail===false).map(p=>['pag',p]).concat(db.trp.filter(p=>p.mail===false).map(p=>['trp',p]));alN=l.length+sc.length+rem.length+(fd.length?1:0)+(ar.length?1:0)+(nr?1:0)+mp.length+(pe.length?1:0)+(bk?1:0);alBadge();
+ $('#al').innerHTML=(pe.length?pendCard(pe,true):'')+(bk?bkCard():'')+(nr?`<div class="card" style="border:2px solid var(--x);background:rgba(217,168,0,.14)"><b>Nuova stagione ${db.yr+1}: aggiorna gli importi da pagare</b><div class="mut">Era previsto per il ${dmy(db.rd)}.</div><button class="btn sm" data-roll="1">Apri la stagione ${db.yr+1}</button></div>`:'')
  +(ar.length?`<div class="card" style="border:2px solid var(--out);background:rgba(214,69,69,.12)"><b style="color:var(--out)">⚠ Arretrati da incassare: ${ar.length} clienti, ${e2(r2(ar.reduce((a,c)=>a+arrOpen(c),0)))}</b><button class="btn g sm" data-arr="1">Vedi i clienti</button></div>`:'')
  +(fd.length?`<div class="card" style="border:2px solid var(--x);background:rgba(217,168,0,.14)"><b>Fatture da registrare: sono state emesse?</b><div class="mut">Sono passati ${FDAYS} giorni dall'incasso.</div>${fd.map(x=>`<div style="margin-top:4px">${esc(fid(x.cid))} · ${esc(x.nome)} · <b>${e2(x.imp)}</b> <span class="mut">(incassato il ${dmy(x.d)})</span></div>`).join('')}<button class="btn sm" data-fat="all">Conferma fatture emesse</button></div>`:'')
  +(mp.length?`<div class="card" style="border:2px solid var(--x);background:rgba(217,168,0,.14)"><b>Email di conferma pagamento da inviare</b>${mp.map(([k,x])=>`<div class="row" style="margin-top:6px"><div>${esc(fid(x.cid))} · ${esc(x.nome||(cli(x.cid)||{}).nome||'')} · ${e2(x.imp)}${k==='trp'?' <span class="mut">(trasporto)</span>':''}</div><button class="btn g sm" style="margin:0" data-mpk="${k}:${x.id}">Prepara email</button></div>`).join('')}</div>`:'')
  +(l.length?`<div class="card" style="border:2px solid var(--out);background:rgba(214,69,69,.12)"><b style="color:var(--out)">⚠ Mezzo già riportato, trasporto NON pagato</b>${l.map(o=>`<div>${fid(o.cid)} · ${esc((cli(o.cid)||{}).nome)} · <b>${eur(o.dap)}</b> <span class="mut">(rientro del ${o.rient})</span></div>`).join('')}<button class="btn g sm" id="al-go">Vai ai trasporti</button></div>`:'')
  +(sc.length?`<div class="card" style="border:2px solid var(--out);background:rgba(214,69,69,.12)"><b style="color:var(--out)">⚠ Stagionali con periodo scaduto: da ritirare o rinnovare</b>${sc.map(c=>`<div class="row" style="margin-top:6px"><div>${fid(c.id)} · ${esc(c.nome)} <span class="mut">(scaduto il ${c.per.al})</span></div><button class="btn g sm" style="margin:0" data-srt="${c.id}">Ritiro mezzo</button></div>`).join('')}</div>`:'')
  +(rem.length?`<div class="card" style="border:2px solid var(--x);background:rgba(217,168,0,.14)"><b>Email promemoria da inviare: uscite di domani</b>${rem.map(m=>`<div class="row" style="margin-top:6px"><div>${fid(m.cid)} · ${esc((cli(m.cid)||{}).nome)}</div><button class="btn g sm" style="margin:0" data-rem="${m.id}">Prepara email</button></div>`).join('')}</div>`:'')}
-$('#al').onclick=e=>{if(e.target.id==='al-go'){rs='K';go('r');trv()}if(e.target.dataset.rem)openMailMov(+e.target.dataset.rem,'rem');if(e.target.dataset.srt)ritOpen(+e.target.dataset.srt);if(e.target.dataset.fat)fatOpen(fatDue().map(x=>x.id));if(e.target.dataset.roll)rollOpen();if(e.target.dataset.arr){filtro='ARR';go('c');render()}if(e.target.dataset.mpk){const q=e.target.dataset.mpk.split(':');q[0]==='pag'?openMailPag(+q[1]):openMailTrp(+q[1])}};
+$('#al').onclick=e=>{if(pendClick(e))return;if(e.target.id==='al-go'){rs='K';go('r');trv()}if(e.target.dataset.rem)openMailMov(+e.target.dataset.rem,'rem');if(e.target.dataset.srt)ritOpen(+e.target.dataset.srt);if(e.target.dataset.fat)fatOpen(fatDue().map(x=>x.id));if(e.target.dataset.roll)rollOpen();if(e.target.dataset.arr){filtro='ARR';go('c');render()}if(e.target.dataset.mpk){const q=e.target.dataset.mpk.split(':');q[0]==='pag'?openMailPag(+q[1]):openMailTrp(+q[1])}};
 // Slot orari: 8-12 e 14-16, un solo trasporto per slot
 function slots(){const d=$('#m-d').value,cur=$('#m-ora').value,occ={};db.tr.filter(t=>t.d===d&&t.ora).forEach(t=>occ[t.ora]=t.cid);
  $('#m-ora').innerHTML='<option value="">Orario da definire</option>'+SLOT.map(h=>`<option value="${h}" ${occ[h]?'disabled':''}>${h}:00${occ[h]?' · occupato (cliente '+occ[h]+')':''}</option>`).join('');
@@ -889,7 +911,7 @@ function trv(){const t=oggi();
  const C0=cont(),mp={};C0.forEach(o=>mp[o.cid]=o);const C=rs==='K'?cont(ty):C0;let h='';
  if(rs==='K'){const l=C.sort((a,b)=>(!!b.rient&&b.dap>0)-(!!a.rient&&a.dap>0)||((cli(a.cid)||{}).nome>(cli(b.cid)||{}).nome?1:-1));
   const si=l.reduce((a,o)=>a+o.dap,0),sd=l.reduce((a,o)=>a+o.dare,0);
-  const iy=d=>d.slice(0,4)===ty,dir=db.trp.filter(p=>p.dove==='AL DRIVER'&&iy(p.d)).reduce((x,p)=>x+p.imp,0),cns=db.trc.filter(c=>iy(c.d)).reduce((x,c)=>x+c.imp,0);
+  const iy=d=>d.slice(0,4)===ty,dir=db.trp.filter(p=>p.dove==='AL DRIVER'&&iy(p.d)&&!p.pend).reduce((x,p)=>x+p.imp,0),cns=db.trc.filter(c=>iy(c.d)).reduce((x,c)=>x+c.imp,0);
   h=`<div class="card"><div class="mon"><div>Da incassare<b>${eur(si)}</b></div><div>Da dare a Enrico<b>${eur(sd)}</b></div><div>Totale di Enrico<b>${eur(dir+cns)}</b></div></div>
   <div style="margin-top:8px"><button class="btn g sm" data-pdf="1" ${sd>0?'':'disabled'}>Stampa dettaglio</button> <button class="btn sm" data-cons="1" ${sd>0?'':'disabled'}>Segna consegnato a Enrico</button></div>
   <div class="mut" style="margin-top:8px">Da dare a Enrico: contanti incassati da noi in ufficio, ancora da consegnare.<br>Totale di Enrico: ${eur(dir)} incassati direttamente da lui + ${eur(cns)} consegnati da noi.<br>${l.reduce((a,o)=>a+o.n,0)} viaggi · contabilità separata dal rimessaggio · solo contanti.</div></div>`;
@@ -900,14 +922,14 @@ function trv(){const t=oggi();
   ${o.dap>0?`<button class="btn g sm" data-pay="${o.cid}">Registra pagamento</button>`:''}</div>`}).join('')||'<p class="mut">Nessun trasporto registrato.</p>'}
  else{const l=db.tr.filter(x=>ty===cur()?(rs==='C'?x.d>=t:(x.d<t&&x.d.slice(0,4)===ty)):x.d.slice(0,4)===ty).sort((a,b)=>rs==='C'?(a.d>b.d?1:a.d<b.d?-1:(+a.ora||99)-(+b.ora||99)):(a.d<b.d?1:-1));let last='';
   l.forEach(x=>{const c=cli(x.cid)||{},up=x.tipo==='Uscita',o=mp[x.cid],nopag=!up&&o&&o.dap>0;if(x.d!==last){last=x.d;h+=dayH(x.d)}
-   h+=`<div class="card ${x.sede==='Casalemenini'?'cas':x.sede==='Camporengo'?'cam':''}"><div class="row"><span class="num">${fid(x.cid)}</span><div><b>${esc(c.nome)}</b><div class="mut">${esc(c.tipo)} · ${esc(c.targa)}</div></div><div style="flex:none;text-align:right"><span class="bt ${up?'U':''}">${x.tipo}</span><div class="mut">${x.ora?'ore '+x.ora+':00':'ora da definire'}</div></div></div>
+   h+=`<div class="card ${x.sede==='Casalemenini'?'cas':x.sede==='Camporengo'?'cam':''}"><div class="row"><span class="num">${fid(x.cid)}</span><div><b>${esc(c.nome)}</b><div class="mut">${esc(c.tipo)} · ${esc(c.targa)}</div></div><div style="flex:none;text-align:right">${x.pend?'<span class="b X">DA CONFERMARE</span> ':''}<span class="bt ${up?'U':''}">${x.tipo}</span><div class="mut">${x.ora?'ore '+x.ora+':00':'ora da definire'}</div></div></div>
    <div class="rt">Si trova: <b>${up?esc(x.sede)+(x.pos?' · '+esc(descr(x.pos)):''):campT(x)}</b><br>${up?'Va portato a: <b>'+campT(x)+'</b>':'Va riportato a: <b>'+esc(x.sede)+'</b>'}</div>
    <div class="mut" style="margin-top:6px">Viaggio ${eur(x.imp||0)}${nopag?' · <b style="color:var(--out)">NON PAGATO ('+eur(o.dap)+')</b>':''}</div>
    <button class="btn g sm" data-mail="${x.id}">Email al cliente</button>${x.mid?` <button class="btn g sm" data-em="${x.mid}">Modifica movimento</button>`:''} <button class="btn g sm" data-del="${x.id}">${delArm===x.id?'Sicuro? Tocca di nuovo':'Annulla trasporto'}</button></div>`});
   h=h||`<p class="mut">${rs==='C'?'Nessun trasporto in programma.':'Nessun trasporto passato.'}</p>`}
- $('#r-l').innerHTML=h}
+ $('#r-l').innerHTML=pendHtml()+h}
 $('#r-sub').onclick=e=>{if(e.target.dataset.s){rs=e.target.dataset.s;trv()}};
-$('#r-l').onclick=e=>{const b=e.target;
+$('#r-l').onclick=e=>{if(pendClick(e))return;const b=e.target;
  if(b.dataset.del){const id=+b.dataset.del;if(delArm===id){db.tr=db.tr.filter(x=>x.id!==id);delArm=null;save();render();toast('Trasporto annullato')}else{delArm=id;trv()}}
  if(b.dataset.mail)openMailTr(+b.dataset.mail);
  if(b.dataset.em)emOpen(+b.dataset.em);
@@ -924,7 +946,7 @@ $('#pd-c').onclick=()=>$('#dlg3').close();
 $('#pd-s').onclick=()=>{const o=cont().find(x=>x.cid===payId);if(!o)return;const imp=+$('#pd-e').value,d=$('#pd-d').value;
  if(!d)return toast('Scegli la data');if(!(imp>0))return toast('Inserisci un importo maggiore di zero');
  if(imp>o.dap+.005)return toast(`L'importo supera il dovuto (${eur(o.dap)})`);
- const tp={id:1+Math.max(0,...db.trp.map(x=>x.id||0)),cid:o.cid,d,imp,dove:$('#pd-w').value,mail:false};db.trp.push(tp);save();$('#dlg3').close();render();toast(`Pagamento registrato: ${eur(imp)}`);openMailTrp(tp.id)};
+ const M=ROLE==='master',tp={id:1+Math.max(0,...db.trp.map(x=>x.id||0)),cid:o.cid,d,imp,dove:M?$('#pd-w').value:'AL DRIVER',mail:M?false:true};if(!M)tp.pend=1;db.trp.push(tp);save();$('#dlg3').close();render();toast(M?`Pagamento registrato: ${eur(imp)}`:`Pagamento registrato: ${eur(imp)} (da confermare)`);if(M)openMailTrp(tp.id)};
 // ---- PDF "dettaglio per Enrico": incassi in ufficio da consegnare, con i dettagli dei viaggi
 const dmy=d=>String(d||'').split('-').reverse().join('/'),pe=n=>n.toFixed(2).replace('.',',')+' EUR';
 let pdfBlob=null,pdfName='';
@@ -1293,6 +1315,35 @@ function shOpen(id){const c=cli(id);if(!c)return;
  h+='<h3>Uscite</h3>'+habHtml(id);
  $('#sh-t').textContent=fid(id)+' · '+(c.nome||'');$('#sh-b').innerHTML=h;$('#dlgsh').showModal()}
 $('#sh-x').onclick=()=>$('#dlgsh').close();
+// ---- Ruoli: conferme dei movimenti di Enrico, backup settimanale, nuovo trasporto
+const pendList=()=>db.tr.filter(x=>x.pend).map(x=>['tr',x]).concat(db.trp.filter(x=>x.pend).map(x=>['trp',x]));
+const pendTxt=(k,x)=>{const c=cli(x.cid)||{};return k==='tr'?`${esc(fid(x.cid))} ${esc(c.nome||'')} · ${esc(x.tipo)} del ${dmy(x.d)}${x.ora?' ore '+x.ora+':00':''} · ${eur(x.imp||0)}`:`${esc(fid(x.cid))} ${esc(c.nome||'')} · pagamento trasporto ${eur(x.imp)} del ${dmy(x.d)}`};
+function pendCard(pe,btn){return`<div class="card" style="border:2px solid var(--x);background:rgba(217,168,0,.14)"><b>${ROLE==='master'?'Da confermare: inseriti da Enrico':'In attesa di conferma dell\'ufficio'}</b>${pe.map(([k,x])=>`<div class="row" style="margin-top:6px"><div>${pendTxt(k,x)}</div>${ROLE==='master'?`<div style="flex:none"><button class="btn sm" style="margin:0" data-pk="${k}:${x.id}">Conferma</button> <button class="btn g sm" style="margin:0" data-pr="${k}:${x.id}">Rifiuta</button></div>`:''}</div>`).join('')}</div>`}
+const pendHtml=()=>{const pe=pendList();return pe.length?pendCard(pe):''};
+function pendClick(e){const d=e.target&&e.target.dataset;if(!d)return false;
+ if(d.bkn){bkSave();return true}
+ const f=(v)=>{const q=v.split(':'),arr=q[0]==='tr'?db.tr:db.trp;return{k:q[0],arr,x:arr.find(y=>y.id===+q[1])}};
+ if(d.pk){const r=f(d.pk);if(r.x){delete r.x.pend;if(r.k==='trp')r.x.mail=false;save();render();toast('Confermato')}return true}
+ if(d.pr){const r=f(d.pr);if(r.x)askQ('Rifiutare?',pendTxt(r.k,r.x)+'<br>Verrà eliminato.','Rifiuta').then(ok=>{if(ok){const i=r.arr.indexOf(r.x);if(i>=0)r.arr.splice(i,1);save();render();toast('Eliminato')}});return true}
+ return false}
+const bkOld=()=>{if(typeof window==='undefined'||!window.SITE)return false;try{const t=localStorage.getItem('rim-bk');return !t||t<new Date(Date.now()-7*864e5).toISOString().slice(0,10)}catch(e){return false}};
+const bkCard=()=>{let t='';try{t=localStorage.getItem('rim-bk')||''}catch(e){}return`<div class="card" style="border:2px solid var(--x);background:rgba(217,168,0,.14)"><b>Backup settimanale</b><div class="mut">${t?'L\'ultimo backup scaricato su questo dispositivo è del '+dmy(t)+'.':'Su questo dispositivo non hai ancora scaricato un backup.'} Scaricalo e conservalo: il database gratuito non fa copie automatiche.</div><button class="btn sm" data-bkn="1">Scarica il backup</button></div>`};
+// Nuovo trasporto (Enrico)
+function trSlots(){const d=$('#tr-d').value,cur=$('#tr-o').value,occ={};db.tr.filter(t=>t.d===d&&t.ora).forEach(t=>occ[t.ora]=t.cid);
+ $('#tr-o').innerHTML='<option value="">Orario da definire</option>'+SLOT.map(h=>`<option value="${h}" ${occ[h]?'disabled':''}>${h}:00${occ[h]?' · occupato (cliente '+occ[h]+')':''}</option>`).join('');$('#tr-o').value=occ[cur]?'':cur}
+function trPv(){const v=$('#tr-n').value.trim(),b=$('#tr-pv'),c=v&&cli(v);if(!v){b.hidden=true;return}b.hidden=false;
+ if(!c){b.className='prev no';b.innerHTML='<b>Nessun cliente con questo numero</b>';return}
+ b.className='prev';b.innerHTML=`<div class="row"><span class="num">${fid(c.id)}</span><div><b>${esc(c.nome)}</b><div class="mut">${esc(c.tipo)}${c.marca?' '+esc(c.marca):''} · ${esc(c.targa)}${c.pos?'<br>Posizione: '+esc(descr(c.pos)):''}</div></div></div>`;
+ const sd=sedeDi(c);if(sd)$('#tr-s').value=sd}
+$('#r-add').onclick=()=>{['tr-n','tr-c','tr-p','tr-i'].forEach(i=>$('#'+i).value='');$('#tr-d').value=oggi();$('#tr-pv').hidden=true;trSlots();$('#dlgtr').showModal()};
+$('#tr-n').oninput=trPv;$('#tr-d').onchange=trSlots;$('#tr-no').onclick=()=>$('#dlgtr').close();
+$('#tr-lens').onclick=()=>srOpen(id=>{$('#tr-n').value=fid(id);trPv()});
+$('#tr-ok').onclick=()=>{const c=cli($('#tr-n').value),d=$('#tr-d').value,imp=+$('#tr-i').value,ora=$('#tr-o').value;
+ if(!c)return toast('Non esiste nessun cliente con questo numero');if(!d)return toast('Scegli la data');if(!(imp>0))return toast("Inserisci l'importo del viaggio");
+ if(ora&&db.tr.find(t=>t.d===d&&String(t.ora)===ora))return toast('Questo orario è già occupato');
+ const t={id:1+Math.max(0,...db.tr.map(x=>x.id||0)),cid:c.id,d,tipo:$('#tr-t').value,camp:$('#tr-c').value.trim(),piaz:$('#tr-p').value.trim(),ora,sede:$('#tr-s').value,pos:c.pos||'',imp,dx:false,pend:1};
+ db.tr.push(t);save();$('#dlgtr').close();render();toast('Trasporto aggiunto: in attesa di conferma')};
+if(ROLE!=='master'){document.body.classList.add('role-'+ROLE);render();go(ROLE==='operaio'?'u':'r')}
 db.cl.forEach(c=>{if(!c.b){const ms=db.mov.filter(m=>m.cid===c.id);c.b={ui:ms.some(m=>m.t==='ui')?'':(c.ui||''),uo:ms.some(m=>m.t==='uo')?'':(c.uo||''),lav:Math.max(0,(c.lav||0)-ms.filter(m=>m.lav).length),rit:Math.max(0,(c.rit||0)-ms.filter(m=>m.rit).length)};recalc(c.id)}});
 trp();
 render();
@@ -1303,7 +1354,8 @@ var U='https://faemhbtebrjyyvapdziw.supabase.co';
 var K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhZW1oYnRlYnJqeXl2YXBkeml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMDg3ODUsImV4cCI6MjEwNjc4NDc4NX0.E3hAV0vWE6ZWJTJHE0gYjBu5HIDumfNJETxpVWohpgg';
 var SK='rim-sess',DK='rim-dirty';
 var _set=Storage.prototype.setItem,_get=Storage.prototype.getItem,_rem=Storage.prototype.removeItem;
-var ready=false,snap=new Map(),lastPull='',timer=null,busy=false,again=false,stato='';
+var ROLE='master',WR={trasportatore:['tr','trp'],operaio:[]},CLR=['id','nome','tipo','marca','targa','lung','pos','sede','dasse','ct','per'];
+var sagg=new Map(),conf=false,ready=false,snap=new Map(),lastPull='',timer=null,busy=false,again=false,stato='';
 
 // ---- schermata di avvio e badge di stato
 var ov=document.createElement('div');
@@ -1319,6 +1371,7 @@ function badge(t,c){bd.hidden=false;bd.innerHTML='<span style="color:'+(c||'#1f7
 function esci(){try{_rem.call(localStorage,SK)}catch(e){}location.href='index.html'}
 
 // ---- sessione
+function setLP(v){lastPull=v;try{_set.call(localStorage,'rim-lp',v||'')}catch(e){}}
 function ses(){try{return JSON.parse(_get.call(localStorage,SK)||'null')}catch(e){return null}}
 function sset(s){try{_set.call(localStorage,SK,JSON.stringify(s))}catch(e){}}
 async function refresh(s){
@@ -1348,6 +1401,10 @@ function idOf(coll,it){
 function wrap(it){return(it&&typeof it==='object'&&!Array.isArray(it))?it:{_w:1,v:it}}
 function unwrap(d){return(d&&d._w===1)?d.v:d}
 function flatten(db,fdb){
+  var m=flat0(db,fdb);
+  if(ROLE==='master'){(db.cl||[]).forEach(function(c,i){var d={};CLR.forEach(function(f){if(c[f]!==undefined)d[f]=c[f]});m.set('clr|'+c.id,{coll:'clr',id:String(c.id),ord:i,dati:d})});return m}
+  var o=new Map(),ok=WR[ROLE]||[];m.forEach(function(r,k){if(ok.indexOf(r.coll)>=0)o.set(k,r)});return o}
+function flat0(db,fdb){
   var m=new Map(),keys=[];
   Object.keys(db).forEach(function(k){
     var v=db[k];
@@ -1363,7 +1420,8 @@ function assemble(rows){
   rows.forEach(function(r){if(r.coll==='cfg'&&r.id==='_keys')keys=r.dati.v||[]});
   keys.forEach(function(k){db[k]=[]});
   rows.slice().sort(function(a,b){return a.ord-b.ord}).forEach(function(r){
-    if(r.coll==='cfg'){if(r.id!=='_keys')db[r.id]=r.dati.v}
+    if(r.coll==='clr'){if(ROLE!=='master'){var c=Object.assign({acconto:0,pagato:0,lav:0,rit:0,b:{ui:'',uo:'',lav:0,rit:0}},r.dati);(db.cl=db.cl||[]).push(c)}}
+    else if(r.coll==='cfg'){if(r.id!=='_keys')db[r.id]=r.dati.v}
     else if(r.coll==='files')fdb[r.id]=r.dati.v;
     else{(db[r.coll]=db[r.coll]||[]).push(unwrap(r.dati))}});
   return{db:db,fdb:fdb}}
@@ -1377,8 +1435,8 @@ function local(){
 async function pullAll(){
   var out=[],off=0,n=1000;
   for(;;){
-    var p=await rest('righe?select=coll,id,ord,dati&order=coll,id&limit='+n+'&offset='+off);
-    out=out.concat(p);if(p.length<n)break;off+=n}
+    var p=await rest('righe?select=coll,id,ord,dati,agg&order=coll,id&limit='+n+'&offset='+off);
+    p.forEach(function(r){sagg.set(r.coll+'|'+r.id,r.agg)});out=out.concat(p);if(p.length<n)break;off+=n}
   return out}
 async function maxAgg(){
   var p=await rest('righe?select=agg&order=agg.desc&limit=1');
@@ -1389,29 +1447,55 @@ function chunks(arr,maxBytes){
   var res=[],cur=[],sz=0;
   arr.forEach(function(r){var s=JSON.stringify(r).length;if(cur.length&&(sz+s>maxBytes||cur.length>=400)){res.push(cur);cur=[];sz=0}cur.push(r);sz+=s});
   if(cur.length)res.push(cur);return res}
+async function remoteAgg(coll,ids){
+  var out={};
+  for(var q=0;q<ids.length;q+=40){
+    var part=ids.slice(q,q+40).map(function(x){return '"'+String(x).replace(/"/g,'\\"')+'"'}).join(',');
+    var r=await rest('righe?select=id,agg&coll=eq.'+encodeURIComponent(coll)+'&id=in.('+encodeURIComponent(part)+')');
+    r.forEach(function(x){out[x.id]=x.agg})}
+  return out}
 async function pushDiff(force){
   var L=local();if(!L.db)return;
-  var cur=flatten(L.db,L.fdb),ups=[],dels={};
-  cur.forEach(function(r,k){var js=JSON.stringify(r.dati);if(force||snap.get(k)!==js)ups.push(r)});
-  snap.forEach(function(js,k){if(!cur.has(k)){var p=k.indexOf('|'),c=k.slice(0,p),id=k.slice(p+1);(dels[c]=dels[c]||[]).push(id)}});
-    var batches=chunks(ups,1500000);
-  for(var i=0;i<batches.length;i++)
-    await rest('righe?on_conflict=coll,id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(batches[i])});
+  var M=ROLE==='master',cur=flatten(L.db,L.fdb),ups=[],dels={},bad=new Set();
+  cur.forEach(function(r,k){var js=JSON.stringify(r.dati);if(force||snap.get(k)!==js){if(M||r.dati.pend==1)ups.push(r)}});
+  if(M)snap.forEach(function(js,k){if(!cur.has(k)){var p=k.indexOf('|'),c=k.slice(0,p),id=k.slice(p+1);(dels[c]=dels[c]||[]).push(id)}});
+  if(!force){
+    // conflitti: la riga online è stata cambiata da un altro dispositivo dopo l'ultimo scarico
+    var chk={};
+    ups.forEach(function(r){(chk[r.coll]=chk[r.coll]||{})[r.id]='u'});
+    Object.keys(dels).forEach(function(c){dels[c].forEach(function(id){(chk[c]=chk[c]||{})[id]='d'})});
+    var cs0=Object.keys(chk);
+    for(var a=0;a<cs0.length;a++){
+      var ids=Object.keys(chk[cs0[a]]),ra=await remoteAgg(cs0[a],ids);
+      ids.forEach(function(id){var k=cs0[a]+'|'+id,have=sagg.get(k),rem=ra[id];
+        if(chk[cs0[a]][id]==='d'){if(rem!==undefined&&rem!==have)bad.add(k)}
+        else if(have===undefined?rem!==undefined:rem!==have)bad.add(k)})}
+    ups=ups.filter(function(r){return !bad.has(r.coll+'|'+r.id)});
+    Object.keys(dels).forEach(function(c){dels[c]=dels[c].filter(function(id){return !bad.has(c+'|'+id)})})}
+  var batches=chunks(ups,1500000);
+  for(var i=0;i<batches.length;i++){
+    var rr=await rest('righe?on_conflict=coll,id&select=coll,id,agg',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=representation'},body:JSON.stringify(batches[i])});
+    (rr||[]).forEach(function(x){sagg.set(x.coll+'|'+x.id,x.agg)})}
   var cs=Object.keys(dels);
   for(var j=0;j<cs.length;j++){
-    var ids=dels[cs[j]];
-    for(var q=0;q<ids.length;q+=50){
-      var part=ids.slice(q,q+50).map(function(x){return '"'+String(x).replace(/"/g,'\\"')+'"'}).join(',');
-      await rest('righe?coll=eq.'+encodeURIComponent(cs[j])+'&id=in.('+encodeURIComponent(part)+')',{method:'DELETE',headers:{Prefer:'return=minimal'}})}}
-  snap=new Map();cur.forEach(function(r,k){snap.set(k,JSON.stringify(r.dati))});
-  lastPull=await maxAgg()}
+    var ids2=dels[cs[j]];
+    for(var q=0;q<ids2.length;q+=50){
+      var part=ids2.slice(q,q+50).map(function(x){return '"'+String(x).replace(/"/g,'\\"')+'"'}).join(',');
+      await rest('righe?coll=eq.'+encodeURIComponent(cs[j])+'&id=in.('+encodeURIComponent(part)+')',{method:'DELETE',headers:{Prefer:'return=minimal'}});
+      ids2.slice(q,q+50).forEach(function(id){sagg.delete(cs[j]+'|'+id)})}}
+  var ns=new Map();
+  cur.forEach(function(r,k){if(bad.has(k)){if(snap.has(k))ns.set(k,snap.get(k))}else ns.set(k,JSON.stringify(r.dati))});
+  snap.forEach(function(js,k){if(!cur.has(k)&&bad.has(k))ns.set(k,js)});
+  snap=ns;conf=bad.size>0;
+  setLP(await maxAgg())}
 async function doPush(){
   if(busy){again=true;return}
   busy=true;badge('Salvataggio…','#8a6a12');
   try{
     do{again=false;await pushDiff(false)}while(again);
-    try{_rem.call(localStorage,DK)}catch(e){}
-    badge('Salvato online ✓');stato='ok'
+    if(conf){stato='conf';badge('Conflitto: un altro dispositivo ha modificato gli stessi dati. <a href="#" id="bd-c" style="color:#245c7a">Ricarica</a> (le tue ultime modifiche su quei dati andranno perse)','#b3312b');
+      var c=document.getElementById('bd-c');if(c)c.onclick=function(e){e.preventDefault();try{_rem.call(localStorage,DK)}catch(x){}location.reload()}}
+    else{try{_rem.call(localStorage,DK)}catch(e){}badge('Salvato online ✓');stato='ok'}
   }catch(e){
     stato='err';badge('Non sincronizzato: riprovo','#b3312b');
     timer=setTimeout(doPush,15000)
@@ -1426,7 +1510,7 @@ Storage.prototype.setItem=function(k,v){
 
 // ---- controlla aggiornamenti fatti da altri dispositivi
 async function checkNews(){
-  if(!ready||busy||stato==='err')return;
+  if(!ready||busy||stato==='err'||stato==='conf')return;
   try{
     var p=await rest('righe?select=agg&agg=gt.'+encodeURIComponent(lastPull)+'&order=agg.desc&limit=1');
     if(p&&p.length){badge('Ci sono aggiornamenti da altri dispositivi: <a href="#" id="bd-r" style="color:#245c7a">ricarica</a>','#8a6a12');
@@ -1476,21 +1560,29 @@ async function boot(){
   try{
     var pr=await rest('profili?select=ruolo&id=eq.'+encodeURIComponent(s.uid));
     var ruolo=pr&&pr[0]&&pr[0].ruolo;
-    if(ruolo!=='master'){
-      box('<h1 style="font:600 1.6rem Georgia,serif;margin:0 0 8px">Area non ancora disponibile</h1><p style="color:#5b665f">Il tuo profilo ('+(ruolo||'senza ruolo')+') non ha ancora una schermata in questa versione.</p><p><a href="#" id="bk-out" style="color:#245c7a">Esci</a></p>');
+    if(['master','trasportatore','operaio'].indexOf(ruolo)<0){
+      box('<h1 style="font:600 1.6rem Georgia,serif;margin:0 0 8px">'+(ruolo==='cliente'?'Area clienti in arrivo':'Account non abilitato')+'</h1><p style="color:#5b665f">'+(ruolo==='cliente'?'La tua area personale non è ancora disponibile.':'Chiedi al titolare di abilitare questo indirizzo email.')+'</p><p><a href="#" id="bk-out" style="color:#245c7a">Esci</a></p>');
       document.getElementById('bk-out').onclick=function(e){e.preventDefault();esci()};return}
+    ROLE=ruolo;window.ROLE=ruolo;window.SITE=true;
+    var note='';
     if(_get.call(localStorage,DK)==='1'&&local().db){
-      // modifiche rimaste non inviate: le invio prima di scaricare
-      try{snap=new Map();await pushDiff(true);_rem.call(localStorage,DK)}catch(e){}}
+      // modifiche rimaste non inviate: le invio solo se nessun altro ha cambiato i dati nel frattempo
+      var lp=_get.call(localStorage,'rim-lp')||'',now=await maxAgg();
+      if(lp&&now===lp){try{snap=new Map();sagg=new Map();await pushDiff(true);_rem.call(localStorage,DK)}catch(e){}}
+      else{note='Le modifiche non inviate di questo dispositivo sono state scartate perché altri dispositivi hanno aggiornato i dati nel frattempo.';_rem.call(localStorage,DK)}}
+    sagg=new Map();
     var rows=await pullAll();
+    if(!rows.length&&ruolo!=='master'){
+      box('<h1 style="font:600 1.6rem Georgia,serif;margin:0 0 8px">Nessun dato disponibile</h1><p style="color:#5b665f">Il titolare deve prima aprire il gestionale. Riprova più tardi.</p><p><a href="#" id="bk-out" style="color:#245c7a">Esci</a></p>');
+      document.getElementById('bk-out').onclick=function(e){e.preventDefault();esci()};return}
     if(!rows.length){
       if(local().db&&_get.call(localStorage,DK)==='1'){startApp();return}
       importScreen('');return}
     var A=assemble(rows);
     _set.call(localStorage,'rim2',JSON.stringify(A.db));_set.call(localStorage,'rim2f',JSON.stringify(A.fdb));
-    var L=flatten(A.db,A.fdb);snap=new Map();L.forEach(function(r,k){snap.set(k,JSON.stringify(r.dati))});
-    lastPull=await maxAgg();
-    startApp()
+    var L=flatten(A.db,A.fdb);snap=new Map();L.forEach(function(r,k){if(sagg.has(k))snap.set(k,JSON.stringify(r.dati))});
+    setLP(await maxAgg());
+    startApp();if(note)setTimeout(function(){alert(note)},1200)
   }catch(e){
     box('<h1 style="font:600 1.6rem Georgia,serif;margin:0 0 8px">Non riesco a collegarmi</h1><p style="color:#5b665f">'+(e.message==='sessione'?'La sessione è scaduta.':'Controlla la connessione e riprova.')+'</p><p><a href="gestionale.html" style="color:#245c7a">Riprova</a> · <a href="#" id="bk-out" style="color:#245c7a">Esci</a></p>');
     document.getElementById('bk-out').onclick=function(e){e.preventDefault();esci()}}}
