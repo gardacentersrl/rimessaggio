@@ -94,6 +94,7 @@ a.btn{display:block;text-align:center;text-decoration:none}
 .ok{color:var(--in);font-weight:600}.ko{color:var(--out);font-weight:600}.btn.sm{width:auto;margin:0;padding:8px 12px}
 dialog{max-height:92vh;overflow:auto}h3{margin:14px 0 6px;font-size:15px}.lens{margin-top:6px}
 </style></head><body>
+<style>#ml-ed{min-height:170px;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--card);overflow:auto;line-height:1.5}#ml-ed img{max-width:100%}.mlr{display:flex;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid var(--line)}.mlr input{width:auto;margin:0}</style>
 <style id="rolecss">
 #r-add{display:none}
 body.role-trasportatore #r-add{display:block}
@@ -291,6 +292,38 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
 <dialog id="dlg10"><h2>Ritiro del mezzo</h2><div id="rt-i"></div><label>Data del ritiro</label><input id="rt-d" type="date"><button class="btn" id="rt-s">Conferma ritiro</button><button class="btn g" id="rt-c">Annulla</button></dialog>
 <dialog id="dlgpos"><h2 id="ps-t">Assegna posto</h2><p class="mut" id="ps-d"></p><label for="ps-q">Numero cliente (o T1 per un provvisorio)</label><input id="ps-q" type="text" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="Es. 123"><button class="btn g sm lens" type="button" id="ps-lens">🔍 Non ricordi il numero? Cerca per nome o targa</button><div id="ps-pv" class="prev" hidden></div><button class="btn" id="ps-ok">Assegna posto</button><button class="btn g" id="ps-no">Annulla</button></dialog>
 <dialog id="dlgsh"><h2 id="sh-t"></h2><div id="sh-b"></div><button class="btn g" id="sh-x">Chiudi</button></dialog>
+<dialog id="dlgml" style="width:min(96vw,720px)"><h2>Email ai clienti</h2>
+ <label for="ml-t">Modello</label><select id="ml-t"></select>
+ <div style="display:flex;gap:8px"><button class="btn g sm" id="ml-new" style="margin-top:8px">Nuovo modello</button><button class="btn g sm" id="ml-del" style="margin-top:8px">Elimina modello</button></div>
+ <h3>Testo</h3>
+ <p class="mut">Ogni cliente riceve la lingua della sua nazionalità (Olanda e Belgio olandese, Germania/Austria/Svizzera tedesco, Italia italiano, tutti gli altri inglese). Scrivi o correggi qui ogni versione.</p>
+ <div class="chips" id="ml-lg"></div>
+ <label for="ml-o">Oggetto</label><input id="ml-o">
+ <div id="ml-tb" style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 6px">
+  <button class="btn g sm" style="margin:0;width:auto" data-c="bold"><b>B</b></button><button class="btn g sm" style="margin:0;width:auto" data-c="italic"><i>I</i></button><button class="btn g sm" style="margin:0;width:auto" data-c="insertUnorderedList">• Elenco</button><button class="btn g sm" style="margin:0;width:auto" data-c="link">Link</button><button class="btn g sm" style="margin:0;width:auto" data-c="img">Immagine</button><button class="btn g sm" style="margin:0;width:auto" data-c="att">Allegato</button>
+  <select id="ml-f" style="width:auto;flex:1;min-width:150px"></select></div>
+ <div id="ml-ed" contenteditable="true"></div>
+ <div id="ml-at" class="mut"></div>
+ <input type="file" id="ml-fi" hidden>
+ <h3>Destinatari</h3>
+ <select id="ml-fl"><option value="tutti">Tutti i clienti con email</option><option value="arr">Solo clienti con arretrati</option><option value="dap">Solo clienti con saldo della stagione da pagare</option><option value="CM">Solo sede Casalemenini</option><option value="CR">Solo sede Camporengo</option></select>
+ <div class="mut" id="ml-cnt" style="margin:6px 0"></div>
+ <div style="display:flex;gap:8px"><button class="btn g sm" id="ml-all" style="margin:0">Seleziona tutti</button><button class="btn g sm" id="ml-none" style="margin:0">Nessuno</button><button class="btn g sm" id="ml-rs" style="margin:0">Azzera elenco inviati</button></div>
+ <div id="ml-rc" style="max-height:220px;overflow:auto;margin-top:8px"></div>
+ <h3>Anteprima</h3>
+ <select id="ml-pc"></select>
+ <div id="ml-pv" class="card" style="margin-top:8px"></div>
+ <details style="margin-top:12px"><summary><b>Impostazioni di invio</b></summary>
+  <label for="ml-s1">Nome del mittente</label><input id="ml-s1">
+  <label for="ml-s2">Le risposte dei clienti arrivano a (email)</label><input id="ml-s2" type="email">
+  <label for="ml-s3">IBAN per i bonifici</label><input id="ml-s3">
+  <label for="ml-s4">Importo dell'acconto (€)</label><input id="ml-s4" type="number">
+  <label for="ml-s5">Massimo email al giorno</label><input id="ml-s5" type="number"></details>
+ <div class="mut" id="ml-st" style="margin:10px 0"></div>
+ <button class="btn g" id="ml-sv">Salva modello</button>
+ <button class="btn g" id="ml-ts">Invia una prova a me</button>
+ <button class="btn" id="ml-go">Invia ai clienti</button>
+ <button class="btn g" id="ml-x">Chiudi</button></dialog>
 <dialog id="dlgut"><h2>Utenti e permessi</h2>
  <p class="mut">Scrivi l'email della persona e scegli cosa può fare. La prima volta che entra con il suo codice trova già i permessi.</p>
  <div id="ut-l"></div>
@@ -529,7 +562,7 @@ function home(){const t=oggi(),dm=add(1),n={IN:0,OUT:0,X:0};db.cl.forEach(c=>{if
 function menuX(){const dap=cont().reduce((a,o)=>a+o.dap,0),nr=db.tr.filter(x=>x.d>=oggi()).length;
  $('#x-l').innerHTML=`<div class="card xm" data-go="r"><div><b>Trasporti</b><div class="mut">Calendario di Enrico, passati e contabilità · ${nr} in programma${dap>0?' · da incassare '+eur(dap):''}</div></div><span class="ch">›</span></div>
  <div class="card xm" data-go="k"><div><b>Cassa, Registro pagamenti e Prima nota</b><div class="mut">Registra pagamenti, consulta il registro, conferma le fatture emesse${fatDue().length?' · '+fatDue().length+' fatture da confermare':''}</div></div><span class="ch">›</span></div>
- <div class="card xm" data-bk2="1"><div><b>Backup completo</b><div class="mut">Scarica un file con tutti i dati dell'app: serve per trasferirli nel database online e come copia di sicurezza</div></div><span class="ch">›</span></div>`+rsCard()+utCard()}
+ <div class="card xm" data-bk2="1"><div><b>Backup completo</b><div class="mut">Scarica un file con tutti i dati dell'app: serve per trasferirli nel database online e come copia di sicurezza</div></div><span class="ch">›</span></div>`+rsCard()+utCard()+mlCard()}
 const rsCard=()=>(typeof window!=='undefined'&&window.SITE&&ROLE==='master')?`<div class="card xm" data-rs="1"><div><b>Sostituisci tutti i dati con un backup</b><div class="mut">Carica un file di backup (o l'importazione da Excel) al posto dei dati attuali. Prima ti scarica una copia di quelli di adesso</div></div><span class="ch">›</span></div>`:'';
 function rsOpen(){const f=document.createElement('input');f.type='file';f.accept='.json,application/json';f.onchange=async()=>{const fl=f.files[0];if(!fl)return;let o;try{o=JSON.parse(await fl.text())}catch(e){return toast('Il file non è leggibile')}
  const nd=o&&o.formato==='rimessaggio-backup'?o.db:o;if(!nd||!Array.isArray(nd.cl))return toast('Questo non sembra un backup del rimessaggio');
@@ -547,10 +580,121 @@ $('#ut-ok').onclick=async()=>{const em=$('#ut-e').value.trim(),nm=$('#ut-n').val
 $('#ut-l').onclick=async e=>{const b=e.target.closest&&e.target.closest('[data-ur]');if(!b)return;const q=b.dataset.ur.split('|'),id=q[0]||null,em=q[1];
  if(!await askQ('Togliere l\'accesso?',esc(em)+' non potrà più entrare nel gestionale.','Togli'))return;
  try{await window.__rim.rpc('utente_rimuovi',{p_id:id,p_email:em});toast('Accesso tolto');utLoad()}catch(e){toast('Non riuscito')}};
+// ======== Email ai clienti ========
+db.mtp=db.mtp||[];db.mcf=db.mcf||[];db.msd=db.msd||[];
+const MLG=['it','en','de','nl'],MLN={it:'Italiano',en:'English',de:'Deutsch',nl:'Nederlands'};
+const mlCard=()=>(typeof window!=='undefined'&&window.SITE&&ROLE==='master')?`<div class="card xm" data-ml="1"><div><b>Email ai clienti</b><div class="mut">Modelli per Natale, conferma posto, arretrati. Testo per nazionalità, immagini e allegati</div></div><span class="ch">›</span></div>`:'';
+const mlLang=c=>{const n=String(c.naz||'').toUpperCase();return['NL','B','BE'].includes(n)?'nl':['D','DE','A','AT','CH','LI'].includes(n)?'de':['I','IT'].includes(n)?'it':'en'};
+const mlCfg=()=>db.mcf[0]||(db.mcf[0]={id:'cfg',nome:'Garda Center',rt:'',iban:'',acc:50,lim:100,inv:{d:'',n:0}});
+const arrRest=c=>(c.arr||[]).reduce((a,x)=>a+Math.max(0,x.imp-(x.pag||0)),0);
+const mlMoney=(n,L)=>new Intl.NumberFormat({it:'it-IT',en:'en-GB',de:'de-DE',nl:'nl-NL'}[L],{style:'currency',currency:'EUR'}).format(n);
+const mlDate=(d,L)=>{const t=new Date(d+'T12:00:00');return t.toLocaleDateString({it:'it-IT',en:'en-GB',de:'de-DE',nl:'nl-NL'}[L],{day:'numeric',month:'long',year:'numeric'})};
+const MLCAMPI=[['nome','Nome e cognome'],['nome_proprio','Nome'],['cognome','Cognome'],['numero','Numero cliente'],['mezzo','Mezzo (es. Roulotte Hobby)'],['targa','Targa'],['posizione','Posizione nel capannone'],['sede','Sede'],['stagione','Stagione in corso (anno)'],['totale','Totale della stagione'],['acconto_versato','Acconto già versato'],['da_pagare','Da pagare per la stagione'],['arretrati','Totale arretrati'],['totale_dovuto','Totale dovuto (stagione + arretrati)'],['conto','Il conto in tabella'],['acconto','Importo acconto per prenotare'],['iban','IBAN'],['data','Data di oggi'],['email','Email del cliente']];
+function mlFields(c,L){
+ const E=esc,pr=c.pos?descr(c.pos):'',dp=Math.max(0,daPagare(c)),ar=arrRest(c),cf=mlCfg();
+ const T={it:{ar:'Arretrato',st:'Stagione',tot:'Totale',vers:'Già versato',dap:'Da pagare',td:'Totale da pagare'},en:{ar:'Arrears',st:'Season',tot:'Total',vers:'Already paid',dap:'To pay',td:'Total due'},de:{ar:'Rückstand',st:'Saison',tot:'Gesamt',vers:'Bereits bezahlt',dap:'Zu zahlen',td:'Gesamtbetrag fällig'},nl:{ar:'Achterstand',st:'Seizoen',tot:'Totaal',vers:'Reeds betaald',dap:'Te betalen',td:'Totaal verschuldigd'}}[L];
+ let rows='';(c.arr||[]).forEach(x=>{const r=Math.max(0,x.imp-(x.pag||0));if(r>.004)rows+=`<tr><td style="padding:4px 12px 4px 0">${T.ar} ${x.y}</td><td style="text-align:right">${E(mlMoney(r,L))}</td></tr>`});
+ if(dp>.004)rows+=`<tr><td style="padding:4px 12px 4px 0">${T.st} ${db.yr} (${T.tot} ${E(mlMoney(tarC(c)+50*((c.lav||0)+(c.rit||0)),L))}, ${T.vers} ${E(mlMoney((c.acconto||0)+(c.pagato||0),L))})</td><td style="text-align:right">${E(mlMoney(dp,L))}</td></tr>`;
+ rows+=`<tr><td style="padding:6px 12px 4px 0;border-top:1px solid #999"><b>${T.td}</b></td><td style="text-align:right;border-top:1px solid #999"><b>${E(mlMoney(ar+dp,L))}</b></td></tr>`;
+ const nm=(c.nm||'').trim(),cg=(c.cg||'').trim();
+ return{nome:E((nm+' '+cg).trim()||c.nome),nome_proprio:E(nm||c.nome),cognome:E(cg||c.nome),numero:E(fid(c.id)),mezzo:E(((c.tipo||'').charAt(0)+(c.tipo||'').slice(1).toLowerCase()+' '+(c.marca||'')).trim()),targa:E(c.targa||''),posizione:E(pr||'—'),sede:E(sedeDi(c)||''),stagione:db.yr,totale:E(mlMoney(tarC(c),L)),acconto_versato:E(mlMoney(c.acconto||0,L)),da_pagare:E(mlMoney(dp,L)),arretrati:E(mlMoney(ar,L)),totale_dovuto:E(mlMoney(ar+dp,L)),conto:`<table style="border-collapse:collapse;margin:8px 0">${rows}</table>`,acconto:E(mlMoney(+cf.acc||0,L)),iban:E(cf.iban||'(IBAN)'),data:E(mlDate(oggi(),L)),email:E(c.mail||'')}}
+const mlRender=(t,f)=>String(t||'').replace(/\{\{(\w+)\}\}/g,(m,k)=>f[k]!=null?f[k]:'');
+const mlWrap=h=>`<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#222;max-width:620px">${h}<hr style="border:0;border-top:1px solid #ddd;margin:24px 0 8px"><div style="font-size:12px;color:#777">Garda Center s.r.l. · www.gardacenter.info</div></div>`;
+function mlDefaults(){
+ const P=(...a)=>a.map(x=>'<p>'+x+'</p>').join('');
+ const natale={id:'natale',nome:'Auguri di Natale',fisso:1,filtro:'tutti',att:{},
+  ogg:{it:'Buon Natale da Garda Center',en:'Merry Christmas from Garda Center',de:'Frohe Weihnachten von Garda Center',nl:'Prettige feestdagen van Garda Center'},
+  txt:{it:P('Gentile {{nome}},','a nome di tutto il team di Garda Center vi auguriamo un sereno Natale e un felice anno nuovo. Grazie per la fiducia che ci avete accordato.','Cordiali saluti,<br>Garda Center'),
+   en:P('Dear {{nome}},','On behalf of the whole Garda Center team we wish you a Merry Christmas and a happy new year. Thank you for your trust.','Kind regards,<br>Garda Center'),
+   de:P('Sehr geehrte(r) {{nome}},','im Namen des gesamten Garda-Center-Teams wünschen wir Ihnen frohe Weihnachten und ein glückliches neues Jahr. Vielen Dank für Ihr Vertrauen.','Mit freundlichen Grüßen<br>Garda Center'),
+   nl:P('Beste {{nome}},','Namens het hele team van Garda Center wensen wij u prettige kerstdagen en een gelukkig nieuwjaar. Hartelijk dank voor uw vertrouwen.','Met vriendelijke groet,<br>Garda Center')}};
+ const conf={id:'conferma',nome:'Conferma del posto e acconto (febbraio)',fisso:1,filtro:'tutti',att:{},
+  ogg:{it:'Vuole confermare il suo posto per la stagione {{stagione}}?',en:'Would you like to confirm your storage space for season {{stagione}}?',de:'Möchten Sie Ihren Stellplatz für die Saison {{stagione}} bestätigen?',nl:'Wilt u uw stalplaats voor seizoen {{stagione}} bevestigen?'},
+  txt:{it:P('Gentile {{nome}},','la stagione {{stagione}} sta per iniziare. Desidera confermare il posto per il suo mezzo ({{mezzo}}, targa {{targa}}) nel nostro rimessaggio?','Per prenotare il posto chiediamo un acconto di <b>{{acconto}}</b>, che verrà detratto dal totale della stagione ({{totale}}).','Bonifico a: Garda Center s.r.l.<br>IBAN: <b>{{iban}}</b><br>Causale: {{numero}} {{cognome}} acconto {{stagione}}','Se non desidera rinnovare, risponda semplicemente a questa email.','Cordiali saluti,<br>Garda Center'),
+   en:P('Dear {{nome}},','Season {{stagione}} is about to begin. Would you like to confirm your space for your vehicle ({{mezzo}}, plate {{targa}}) in our storage facility?','To reserve your space we ask for a deposit of <b>{{acconto}}</b>, which will be deducted from the season total ({{totale}}).','Bank transfer to: Garda Center s.r.l.<br>IBAN: <b>{{iban}}</b><br>Reference: {{numero}} {{cognome}} deposit {{stagione}}','If you do not wish to renew, simply reply to this email.','Kind regards,<br>Garda Center'),
+   de:P('Sehr geehrte(r) {{nome}},','die Saison {{stagione}} beginnt bald. Möchten Sie den Stellplatz für Ihr Fahrzeug ({{mezzo}}, Kennzeichen {{targa}}) in unserer Abstellanlage bestätigen?','Zur Reservierung des Platzes bitten wir um eine Anzahlung von <b>{{acconto}}</b>, die vom Saisonpreis ({{totale}}) abgezogen wird.','Überweisung an: Garda Center s.r.l.<br>IBAN: <b>{{iban}}</b><br>Verwendungszweck: {{numero}} {{cognome}} Anzahlung {{stagione}}','Wenn Sie nicht verlängern möchten, antworten Sie einfach auf diese E-Mail.','Mit freundlichen Grüßen<br>Garda Center'),
+   nl:P('Beste {{nome}},','seizoen {{stagione}} begint bijna. Wilt u de plaats voor uw voertuig ({{mezzo}}, kenteken {{targa}}) in onze stalling bevestigen?','Om de plaats te reserveren vragen wij een aanbetaling van <b>{{acconto}}</b>, die wordt afgetrokken van het seizoenstarief ({{totale}}).','Overschrijving naar: Garda Center s.r.l.<br>IBAN: <b>{{iban}}</b><br>Omschrijving: {{numero}} {{cognome}} aanbetaling {{stagione}}','Als u niet wilt verlengen, beantwoord dan gewoon deze e-mail.','Met vriendelijke groet,<br>Garda Center')}};
+ const arr={id:'arretrati',nome:'Conto per i clienti con arretrati (ottobre)',fisso:1,filtro:'arr',att:{},
+  ogg:{it:'Importo da saldare - Garda Center',en:'Outstanding balance - Garda Center',de:'Offener Betrag - Garda Center',nl:'Openstaand bedrag - Garda Center'},
+  txt:{it:P('Gentile {{nome}},','dai nostri registri risulta un importo ancora da saldare per il suo mezzo ({{mezzo}}, targa {{targa}}):','{{conto}}','Può effettuare il bonifico a: Garda Center s.r.l.<br>IBAN: <b>{{iban}}</b><br>Causale: {{numero}} {{cognome}} saldo','Se ha già pagato, ci scusi e ci invii la ricevuta del bonifico rispondendo a questa email.','Cordiali saluti,<br>Garda Center'),
+   en:P('Dear {{nome}},','our records show an outstanding balance for your vehicle ({{mezzo}}, plate {{targa}}):','{{conto}}','Please pay by bank transfer to: Garda Center s.r.l.<br>IBAN: <b>{{iban}}</b><br>Reference: {{numero}} {{cognome}} balance','If you have already paid, please accept our apologies and send us the transfer receipt by replying to this email.','Kind regards,<br>Garda Center'),
+   de:P('Sehr geehrte(r) {{nome}},','laut unseren Unterlagen ist für Ihr Fahrzeug ({{mezzo}}, Kennzeichen {{targa}}) noch ein Betrag offen:','{{conto}}','Bitte überweisen Sie an: Garda Center s.r.l.<br>IBAN: <b>{{iban}}</b><br>Verwendungszweck: {{numero}} {{cognome}} Restbetrag','Falls Sie bereits bezahlt haben, bitten wir um Entschuldigung und senden Sie uns den Zahlungsbeleg als Antwort auf diese E-Mail.','Mit freundlichen Grüßen<br>Garda Center'),
+   nl:P('Beste {{nome}},','volgens onze administratie staat er nog een bedrag open voor uw voertuig ({{mezzo}}, kenteken {{targa}}):','{{conto}}','U kunt overmaken naar: Garda Center s.r.l.<br>IBAN: <b>{{iban}}</b><br>Omschrijving: {{numero}} {{cognome}} restbetaling','Heeft u al betaald, dan excuses; stuur ons dan het betalingsbewijs door als antwoord op deze e-mail.','Met vriendelijke groet,<br>Garda Center')}};
+ const libero={id:'libero',nome:'Messaggio libero',fisso:1,filtro:'tutti',att:{},ogg:{it:'',en:'',de:'',nl:''},txt:{it:P('Gentile {{nome}},',''),en:P('Dear {{nome}},',''),de:P('Sehr geehrte(r) {{nome}},',''),nl:P('Beste {{nome}},','')}};
+ return[natale,conf,arr,libero]}
+let ML=null;
+const mlRecips=()=>{const f=$('#ml-fl').value;return db.cl.filter(c=>{if(f==='arr')return arrRest(c)>.004;if(f==='dap')return daPagare(c)>.004;if(f==='CM'||f==='CR')return sedeDi(c)===(f==='CM'?'Casalemenini':'Camporengo');return true})};
+const mlOk=c=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.mail||'');
+const mlKey=()=>ML.w.id+':'+oggi().slice(0,4);
+const mlSent=()=>db.msd.find(x=>x.id===mlKey())||{id:mlKey(),cids:[],d:{}};
+function mlOpen(){if(!db.mtp.length){db.mtp=mlDefaults();save()}
+ ML={ex:new Set(),lang:'it',t:db.mtp[0].id};
+ $('#ml-t').innerHTML=db.mtp.map(t=>`<option value="${esc(t.id)}">${esc(t.nome)}</option>`).join('');mlLoad(ML.t);
+ const c=mlCfg();$('#ml-s1').value=c.nome||'';$('#ml-s2').value=c.rt||'';$('#ml-s3').value=c.iban||'';$('#ml-s4').value=c.acc;$('#ml-s5').value=c.lim;
+ $('#ml-f').innerHTML='<option value="">Inserisci un campo…</option>'+MLCAMPI.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');
+ $('#dlgml').showModal()}
+function mlLoad(id){ML.t=id;ML.w=JSON.parse(JSON.stringify(db.mtp.find(t=>t.id===id)));ML.w.att=ML.w.att||{};ML.ex=new Set();$('#ml-t').value=id;$('#ml-fl').value=ML.w.filtro||'tutti';mlLangSet(ML.lang||'it',true);mlRecList()}
+function mlGrab(){if(!ML)return;ML.w.txt[ML.lang]=$('#ml-ed').innerHTML;ML.w.ogg[ML.lang]=$('#ml-o').value}
+function mlLangSet(L,noGrab){if(!noGrab)mlGrab();ML.lang=L;$('#ml-lg').innerHTML=MLG.map(k=>`<button class="chip ${k===L?'on':''}" data-l="${k}">${MLN[k]}</button>`).join('');$('#ml-o').value=ML.w.ogg[L]||'';$('#ml-ed').innerHTML=ML.w.txt[L]||'';mlAtt();mlPrev()}
+function mlAtt(){const a=ML.w.att[ML.lang]||[];$('#ml-at').innerHTML=a.length?'Allegati ('+MLN[ML.lang]+'): '+a.map((x,i)=>`${esc(x.n)} <a href="#" data-ra="${i}">togli</a>`).join(' · '):''}
+function mlRecList(){const l=mlRecips(),sd=mlSent(),ok=l.filter(mlOk),no=l.length-ok.length;
+ $('#ml-rc').innerHTML=l.map(c=>{const inv=sd.d[c.id],okk=mlOk(c);return`<label class="mlr"><input type="checkbox" data-cx="${c.id}" ${okk&&!ML.ex.has(c.id)&&!inv?'checked':''} ${okk?'':'disabled'}><span class="num">${fid(c.id)}</span><span style="flex:1">${esc(c.nome)}<span class="mut"> · ${MLN[mlLang(c)]}${okk?'':' · senza email'}${inv?' · inviata il '+dmy(inv):''}</span></span></label>`}).join('')||'<p class="mut">Nessun cliente.</p>';
+ $('#ml-pc').innerHTML=ok.slice(0,400).map(c=>`<option value="${c.id}">${esc(fid(c.id)+' '+c.nome)}</option>`).join('');mlCount();mlPrev()}
+function mlSel(){const sd=mlSent();return mlRecips().filter(c=>mlOk(c)&&!ML.ex.has(c.id)&&!sd.d[c.id])}
+function mlCount(){const n=mlSel().length,c=mlCfg(),oggiN=c.inv.d===oggi()?c.inv.n:0,res=Math.max(0,(+c.lim||100)-oggiN);
+ $('#ml-cnt').textContent=`${mlRecips().length} clienti nell'elenco · ${n} da contattare`;
+ $('#ml-st').textContent=`Oggi puoi ancora inviare ${res} email su ${c.lim||100}. ${n>res?'Gli altri '+(n-res)+' potrai inviarli nei prossimi giorni riaprendo questa pagina.':''}`;
+ $('#ml-go').textContent=`Invia a ${Math.min(n,res)} client${Math.min(n,res)===1?'e':'i'}`}
+function mlBuild(c,t){const L=mlLang(c),f=mlFields(c,L);return{L,subject:mlRender(t.ogg[L],f).replace(/<[^>]*>/g,''),html:mlWrap(mlRender(t.txt[L],f))}}
+function mlPrev(){if(!ML||!ML.w)return;mlGrab();const c=cli($('#ml-pc').value)||mlSel()[0];if(!c){$('#ml-pv').innerHTML='<span class="mut">Nessun cliente con email per l\'anteprima.</span>';return}
+ const m=mlBuild(c,ML.w);$('#ml-pv').innerHTML=`<div class="mut">A: ${esc(c.mail||'')} · lingua: ${MLN[m.L]}</div><div style="margin:6px 0"><b>${esc(m.subject)}</b></div>${m.html}`+((ML.w.att[m.L]||[]).length?'<div class="mut">Allegati: '+ML.w.att[m.L].map(x=>esc(x.n)).join(', ')+'</div>':'')}
+function mlSave(){mlGrab();ML.w.filtro=$('#ml-fl').value;const i=db.mtp.findIndex(t=>t.id===ML.w.id);db.mtp[i]=JSON.parse(JSON.stringify(ML.w));save();toast('Modello salvato')}
+const mlFile=name=>Date.now().toString(36)+Math.random().toString(36).slice(2,7)+'/'+name.toLowerCase().replace(/[^a-z0-9._-]+/g,'_');
+async function mlImg(file){const bm=await createImageBitmap(file),k=Math.min(1,900/bm.width),cv=document.createElement('canvas');cv.width=Math.round(bm.width*k);cv.height=Math.round(bm.height*k);cv.getContext('2d').drawImage(bm,0,0,cv.width,cv.height);
+ const png=file.type==='image/png',b=await new Promise(r=>cv.toBlob(r,png?'image/png':'image/jpeg',.85));return window.__rim.up(mlFile(png?'img.png':'img.jpg'),b,png?'image/png':'image/jpeg')}
+let mlMode='';
+$('#ml-t').onchange=()=>mlLoad($('#ml-t').value);
+$('#ml-lg').onclick=e=>{const b=e.target.closest('[data-l]');if(b)mlLangSet(b.dataset.l)};
+$('#ml-fl').onchange=()=>{ML.ex=new Set();mlRecList()};
+$('#ml-pc').onchange=mlPrev;$('#ml-o').oninput=mlPrev;$('#ml-ed').oninput=mlPrev;
+$('#ml-tb').onmousedown=e=>{if(e.target.closest('button'))e.preventDefault()};
+$('#ml-tb').onclick=async e=>{const b=e.target.closest('[data-c]');if(!b)return;const c=b.dataset.c;$('#ml-ed').focus();
+ if(c==='link'){const u=prompt('Indirizzo del link (es. https://www.gardacenter.info)');if(u)document.execCommand('createLink',false,u)}
+ else if(c==='img'||c==='att'){mlMode=c;const f=$('#ml-fi');f.accept=c==='img'?'image/*':'';f.value='';f.click()}
+ else document.execCommand(c)};
+$('#ml-f').onchange=()=>{const v=$('#ml-f').value;if(!v)return;$('#ml-ed').focus();document.execCommand('insertText',false,'{{'+v+'}}');$('#ml-f').value='';mlPrev()};
+$('#ml-fi').onchange=async()=>{const f=$('#ml-fi').files[0];if(!f)return;toast('Carico…');
+ try{if(mlMode==='img'){const u=await mlImg(f);$('#ml-ed').focus();document.execCommand('insertImage',false,u)}
+  else{if(f.size>8e6)return toast('Il file è troppo grande (massimo 8 MB)');const u=await window.__rim.up(mlFile(f.name),f,f.type);(ML.w.att[ML.lang]=ML.w.att[ML.lang]||[]).push({n:f.name,url:u});mlAtt()}
+  toast('Caricato');mlPrev()}catch(x){toast('Caricamento non riuscito. Hai eseguito schema5_email.sql?')}};
+$('#ml-at').onclick=e=>{const a=e.target.closest('[data-ra]');if(a){e.preventDefault();ML.w.att[ML.lang].splice(+a.dataset.ra,1);mlAtt()}};
+$('#ml-rc').onchange=e=>{const c=e.target.dataset&&e.target.dataset.cx;if(c){e.target.checked?ML.ex.delete(+c):ML.ex.add(+c);mlCount();mlPrev()}};
+$('#ml-all').onclick=()=>{ML.ex=new Set();mlRecList()};
+$('#ml-none').onclick=()=>{ML.ex=new Set(mlRecips().map(c=>c.id));mlRecList()};
+$('#ml-rs').onclick=async()=>{if(!await askQ("Azzerare l'elenco degli invii?","Tutti i clienti risulteranno di nuovo da contattare per questo messaggio.",'Azzera'))return;db.msd=db.msd.filter(x=>x.id!==mlKey());save();mlRecList()};
+['1','2','3','4','5'].forEach(n=>$('#ml-s'+n).onchange=()=>{const c=mlCfg();c.nome=$('#ml-s1').value.trim();c.rt=$('#ml-s2').value.trim();c.iban=$('#ml-s3').value.trim();c.acc=+$('#ml-s4').value||0;c.lim=+$('#ml-s5').value||100;save();mlCount();mlPrev()});
+$('#ml-sv').onclick=mlSave;$('#ml-x').onclick=()=>{mlGrab();$('#dlgml').close()};
+$('#ml-new').onclick=()=>{const n=prompt('Nome del nuovo modello (partirà da una copia di questo)');if(!n)return;mlGrab();const t=JSON.parse(JSON.stringify(ML.w));t.id='m'+Date.now().toString(36);t.nome=n.trim();delete t.fisso;db.mtp.push(t);save();$('#ml-t').innerHTML=db.mtp.map(x=>`<option value="${esc(x.id)}">${esc(x.nome)}</option>`).join('');mlLoad(t.id)};
+$('#ml-del').onclick=async()=>{if(ML.w.fisso)return toast('I modelli base non si eliminano: puoi modificarli');if(!await askQ('Eliminare il modello?',esc(ML.w.nome),'Elimina'))return;db.mtp=db.mtp.filter(t=>t.id!==ML.w.id);save();mlOpen()};
+async function mlPost(items,t){const c=mlCfg();return window.__rim.fn('invia-email',{from_name:c.nome||'Garda Center',reply_to:c.rt||undefined,messages:items})}
+$('#ml-ts').onclick=async()=>{mlGrab();const c=cli($('#ml-pc').value)||mlSel()[0],me=window.__rim.me();if(!c)return toast('Scegli un cliente per la prova');if(!me)return toast('Non trovo la tua email');
+ const m=mlBuild(c,ML.w);try{const r=await mlPost([{id:'prova',to:me,subject:'[PROVA] '+m.subject,html:m.html,attachments:(ML.w.att[m.L]||[]).map(a=>({filename:a.n,url:a.url}))}]);const x=r.results[0];toast(x.ok?'Prova inviata a '+me:'Non riuscito: '+x.info)}catch(e){toast('Non riuscito: '+e.message)}};
+$('#ml-go').onclick=async()=>{mlGrab();const c0=mlCfg(),if(!c0.rt){$('#dlgml details').open=true;return toast("Prima scrivi in Impostazioni di invio l'email a cui devono arrivare le risposte dei clienti")}res=Math.max(0,(+c0.lim||100)-(c0.inv.d===oggi()?c0.inv.n:0)),list=mlSel().slice(0,res);
+ if(!list.length)return toast(res?'Nessun cliente da contattare':'Limite di oggi raggiunto: riprova domani');
+ const by={};list.forEach(c=>{const L=mlLang(c);by[L]=(by[L]||0)+1});
+ if(!await askQ('Inviare le email?',`<b>${list.length}</b> email: ${Object.entries(by).map(([k,v])=>v+' in '+MLN[k]).join(', ')}.<br>Oggetto: ${esc(ML.w.ogg.it||ML.w.ogg.en)}<br>Non si può annullare.`,'Invia'))return;
+ mlSave();const k=mlKey();let sd=db.msd.find(x=>x.id===k);if(!sd){sd={id:k,cids:[],d:{}};db.msd.push(sd)}
+ let ok=0,ko=[],t=ML.w;$('#ml-go').disabled=true;
+ for(let i=0;i<list.length;i+=10){const ch=list.slice(i,i+10);$('#ml-st').textContent=`Invio in corso… ${ok}/${list.length}`;
+  try{const items=ch.map(c=>{const m=mlBuild(c,t);return{id:c.id,to:c.mail,subject:m.subject,html:m.html,key:k+'-'+c.id+'-'+oggi(),attachments:(t.att[m.L]||[]).map(a=>({filename:a.n,url:a.url}))}});
+   const r=await mlPost(items,t);r.results.forEach(x=>{if(x.ok){ok++;sd.cids.push(x.id);sd.d[x.id]=oggi();if(c0.inv.d!==oggi()){c0.inv.d=oggi();c0.inv.n=0}c0.inv.n++}else ko.push((cli(x.id)||{}).nome+': '+x.info)});save()}
+  catch(e){ko.push('Errore: '+e.message);break}}
+ $('#ml-go').disabled=false;mlRecList();
+ await askQ('Invio terminato',`Inviate: <b>${ok}</b>.${ko.length?'<br>Non riuscite: <b>'+ko.length+'</b><br><span class="mut">'+esc(ko.slice(0,5).join(' · '))+'</span>':''}`,'Ok')};
 async function bkSave(){try{const d=await claude.use('downloads');if(!d)return toast('Salvataggio non disponibile qui');
  const o={formato:'rimessaggio-backup',v:1,creato:new Date().toISOString(),db:db,files:fdb()};
  await d.save({filename:'backup-rimessaggio-'+oggi()+'.json',data:new Blob([JSON.stringify(o)],{type:'application/json'})});try{localStorage.setItem('rim-bk',oggi())}catch(e){}toast('Backup salvato');render()}catch(e){if(!e||e.code!=='declined')toast('Salvataggio non riuscito')}}
-$('#x-l').onclick=e=>{if(e.target.closest&&e.target.closest('[data-bk2]'))return bkSave();if(e.target.closest&&e.target.closest('[data-rs]'))return rsOpen();if(e.target.closest&&e.target.closest('[data-ut]'))return utOpen();const b=e.target.closest&&e.target.closest('[data-go]');if(b)go(b.dataset.go);const r=e.target.closest&&e.target.closest('[data-roll]');if(r)rollOpen()};
+$('#x-l').onclick=e=>{if(e.target.closest&&e.target.closest('[data-bk2]'))return bkSave();if(e.target.closest&&e.target.closest('[data-rs]'))return rsOpen();if(e.target.closest&&e.target.closest('[data-ut]'))return utOpen();if(e.target.closest&&e.target.closest('[data-ml]'))return mlOpen();const b=e.target.closest&&e.target.closest('[data-go]');if(b)go(b.dataset.go);const r=e.target.closest&&e.target.closest('[data-roll]');if(r)rollOpen()};
 $('#v-h').querySelector&&0;
 document.querySelector('.qa')&&(document.querySelector('.qa').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-q]');if(!b)return;const q=b.dataset.q;if(q==='new')regOpen(false,'c');else if(q==='find')srOpen(id=>{filtro=isS(id)?'STAG':'TUTTI';$('#q').value=fid(id);aperto=id;go('c');render()});else if(q==='pay'){kt='R';go('k');pn()}else go(q)});
 $('#m-d').value=oggi();
@@ -1610,7 +1754,10 @@ async function boot(){
   }catch(e){
     box('<h1 style="font:600 1.6rem Georgia,serif;margin:0 0 8px">Non riesco a collegarmi</h1><p style="color:#5b665f">'+(e.message==='sessione'?'La sessione è scaduta.':'Controlla la connessione e riprova.')+'</p><p><a href="gestionale.html" style="color:#245c7a">Riprova</a> · <a href="#" id="bk-out" style="color:#245c7a">Esci</a></p>');
     document.getElementById('bk-out').onclick=function(e){e.preventDefault();esci()}}}
-window.__rim={rpc:function(n,a){return rest('rpc/'+n,{method:'POST',body:JSON.stringify(a||{})})},flatten:flatten,assemble:assemble,idOf:idOf,restore:async function(o){
+window.__rim={me:function(){var s=ses();return s&&s.em},
+ up:async function(path,blob,type){var s=await tok();var r=await fetch(U+'/storage/v1/object/mail/'+path,{method:'POST',headers:{apikey:K,Authorization:'Bearer '+s.at,'Content-Type':type||'application/octet-stream','x-upsert':'true'},body:blob});if(!r.ok)throw new Error('upload '+r.status);return U+'/storage/v1/object/public/mail/'+path},
+ fn:async function(n,b){var s=await tok();var r=await fetch(U+'/functions/v1/'+n,{method:'POST',headers:{apikey:K,Authorization:'Bearer '+s.at,'Content-Type':'application/json'},body:JSON.stringify(b)});var t=await r.text(),j=null;try{j=JSON.parse(t)}catch(e){}if(!r.ok)throw new Error((j&&j.error)||('errore '+r.status));return j},
+ rpc:function(n,a){return rest('rpc/'+n,{method:'POST',body:JSON.stringify(a||{})})},flatten:flatten,assemble:assemble,idOf:idOf,restore:async function(o){
   if(ROLE!=='master')throw new Error('solo il titolare');
   var nd=o&&o.formato==='rimessaggio-backup'?o.db:o,nf=o&&o.formato==='rimessaggio-backup'?(o.files||{}):{};
   if(!nd||!Array.isArray(nd.cl))throw new Error('file non valido');
