@@ -330,6 +330,7 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
   <h3>Invio</h3>
   <div id="ml-sum" style="line-height:1.6"></div>
   <div class="mut" id="ml-st" style="margin:6px 0"></div>
+  <div id="ml-q" class="mut" style="margin:6px 0" hidden></div>
   <button class="btn" id="ml-go">Invia</button>
   <details style="margin-top:14px"><summary><b>Impostazioni di invio</b> (mittente, risposte, dati bancari)</summary>
    <label for="ml-s1">Nome del mittente</label><input id="ml-s1">
@@ -476,7 +477,7 @@ let db;try{db=JSON.parse(localStorage.getItem('rim2'))}catch(e){}
 if(!db||!db.cl){db={cl:seed(),mov:seedMov()}}
 db.pag=db.pag||[];db.pn=db.pn||[];db.mov=db.mov||[];db.mov.forEach((m,i)=>{if(!m.id)m.id=i+1});db.mov=db.mov||[];db.tmp=db.tmp||[];db.tr=db.tr||[];db.trp=db.trp||[];db.trc=db.trc||[];db.rit=db.rit||[];db.pren=db.pren||[];
 const mig=o=>{if(o&&ALIAS[o.pos])o.pos=ALIAS[o.pos]};db.cl.forEach(mig);db.tmp.forEach(mig);db.mov.forEach(mig); // vecchie etichette DAVANTI -> POS
-const save=()=>{try{localStorage.setItem('rim2',JSON.stringify(db))}catch(e){}};
+const save=()=>{try{localStorage.setItem('rim2',JSON.stringify(db))}catch(e){}try{mlAutoSoon()}catch(e){}};
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 const SB=10000,isS=n=>+n>=SB,fid=n=>isS(n)?'S'+(+n-SB):String(n); // stagionali: numerazione a parte S1, S2… (id interno 10001…)
 const eur=n=>n.toLocaleString('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
@@ -647,7 +648,7 @@ const mlKey=()=>ML.w.id+':'+oggi().slice(0,4);
 const mlSent=()=>db.msd.find(x=>x.id===mlKey())||{id:mlKey(),cids:[],d:{}};
 function mlOpen(){if(!db.mtp.length){db.mtp=mlDefaults();save()}
  else{let mod=0;mlDefaults().forEach(d=>{const i=db.mtp.findIndex(t=>t.id===d.id);if(i>=0&&db.mtp[i].fisso&&!(db.mtp[i].v>=2)){d.att=db.mtp[i].att||{};db.mtp[i]=d;mod=1}});if(mod)save()}
- ML={ex:new Set(),lang:'it',t:db.mtp[0].id};mlTab(1);$('#ml-msg').hidden=true;
+ ML={ex:new Set(),lang:'it',t:db.mtp[0].id};mlTab(1);$('#ml-msg').hidden=true;mlSrv();
  $('#ml-t').innerHTML=db.mtp.map(t=>`<option value="${esc(t.id)}">${esc(t.nome)}</option>`).join('');mlLoad(ML.t);
  const c=mlCfg();$('#ml-s1').value=c.nome||'';$('#ml-s2').value=c.rt||'';$('#ml-s3').value=c.iban||'';$('#ml-s4').value=c.acc;$('#ml-s5').value=c.lim;$('#ml-s6').value=c.intest;$('#ml-s7').value=c.bic;
  $('#ml-f').innerHTML='<option value="">Inserisci un campo…</option>'+MLCAMPI.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');
@@ -657,17 +658,17 @@ function mlGrab(){if(!ML)return;ML.w.txt[ML.lang]=$('#ml-ed').innerHTML;ML.w.ogg
 function mlLangSet(L,noGrab){if(!noGrab)mlGrab();ML.lang=L;$('#ml-lg').innerHTML=MLG.map(k=>`<button class="chip ${k===L?'on':''}" data-l="${k}">${MLN[k]}</button>`).join('');$('#ml-o').value=ML.w.ogg[L]||'';$('#ml-ed').innerHTML=ML.w.txt[L]||'';mlAtt();mlPrev()}
 function mlAtt(){const a=ML.w.att[ML.lang]||[];$('#ml-at').innerHTML=a.length?'Allegati ('+MLN[ML.lang]+'): '+a.map((x,i)=>`${esc(x.n)} <a href="#" data-ra="${i}">togli</a>`).join(' · '):''}
 function mlRecList(){const l=mlRecips(),sd=mlSent(),ok=l.filter(mlOk),no=l.length-ok.length;
- $('#ml-rc').innerHTML=l.map(c=>{const inv=sd.d[c.id],okk=mlOk(c);return`<label class="mlr"><input type="checkbox" data-cx="${c.id}" ${okk&&!ML.ex.has(c.id)&&!inv?'checked':''} ${okk?'':'disabled'}><span class="num">${fid(c.id)}</span><span style="flex:1">${esc(c.nome)}<span class="mut"> · ${MLN[mlLang(c)]}${okk?'':' · senza email'}${inv?' · inviata il '+dmy(inv):''}</span></span></label>`}).join('')||'<p class="mut">Nessun cliente.</p>';
+ $('#ml-rc').innerHTML=l.map(c=>{const inv=sd.d[c.id],okk=mlOk(c);return`<label class="mlr"><input type="checkbox" data-cx="${c.id}" ${okk&&!ML.ex.has(c.id)&&!inv?'checked':''} ${okk?'':'disabled'}><span class="num">${fid(c.id)}</span><span style="flex:1">${esc(c.nome)}<span class="mut"> · ${MLN[mlLang(c)]}${okk?'':' · senza email'}${inv?' · inviata o in coda dal '+dmy(inv):''}</span></span></label>`}).join('')||'<p class="mut">Nessun cliente.</p>';
  $('#ml-pc').innerHTML=ok.slice(0,400).map(c=>`<option value="${c.id}">${esc(fid(c.id)+' '+c.nome)}</option>`).join('');mlCount();mlPrev()}
 function mlSel(){const sd=mlSent();return mlRecips().filter(c=>mlOk(c)&&!ML.ex.has(c.id)&&!sd.d[c.id])}
 function mlTab(n){['1','2','3'].forEach(k=>{$('#ml-p'+k).hidden=k!=n});$('#ml-tabs').querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b.dataset.s==n));if(n==3&&ML&&ML.w){mlGrab();mlCount();mlPrev()}}
 $('#ml-tabs').onclick=e=>{const b=e.target.closest('[data-s]');if(b)mlTab(+b.dataset.s)};
 function mlCount(){const n=mlSel().length,c=mlCfg(),oggiN=c.inv.d===oggi()?c.inv.n:0,res=Math.max(0,(+c.lim||100)-oggiN);
  $('#ml-cnt').textContent=`${mlRecips().length} clienti nell'elenco · ${n} da contattare`;
- $('#ml-st').textContent=`Oggi puoi ancora inviare ${res} email su ${c.lim||100}. ${n>res?'Gli altri '+(n-res)+' potrai inviarli nei prossimi giorni riaprendo questa pagina.':''}`;
+ $('#ml-st').textContent=`Oggi possono ancora partire ${res} email su ${c.lim||100}. ${n>res?'Le altre '+(n-res)+' restano in coda e partono da sole nei giorni successivi, senza che tu debba fare altro.':''}`;
  const by={};mlSel().slice(0,res).forEach(c=>{const L=mlLang(c);by[L]=(by[L]||0)+1});const k=Math.min(n,res);
- $('#ml-sum').innerHTML=n?`Pronte <b>${n}</b> email${k<n?` (oggi ne parto${'no'} <b>${k}</b>)`:''}: ${Object.entries(by).map(([l,v])=>v+' in '+MLN[l]).join(', ')||'—'}.`:'Nessun cliente da contattare: controlla i destinatari (passo 2).';
- $('#ml-go').textContent=k?`Invia a ${k} client${k===1?'e':'i'}`:'Nessuna email da inviare';$('#ml-go').disabled=!k}
+ $('#ml-sum').innerHTML=n?`Pronte <b>${n}</b> email${k<n?` (oggi partono <b>${k}</b>, le altre nei giorni successivi)`:''}: ${Object.entries(by).map(([l,v])=>v+' in '+MLN[l]).join(', ')||'—'}.`:'Nessun cliente da contattare: controlla i destinatari (passo 2).';
+ $('#ml-go').textContent=n?`Invia a ${n} client${n===1?'e':'i'}`:'Nessuna email da inviare';$('#ml-go').disabled=!n}
 function mlBuild(c,t){const L=mlLang(c),f=mlFields(c,L);return{L,subject:mlRender(t.ogg[L],f).replace(/<[^>]*>/g,''),html:mlWrap(mlRender(t.txt[L],f))}}
 function mlPrev(){if(!ML||!ML.w)return;mlGrab();const c=cli($('#ml-pc').value)||mlSel()[0];if(!c){$('#ml-pv').innerHTML='<span class="mut">Nessun cliente con email per l\'anteprima.</span>';return}
  const m=mlBuild(c,ML.w);$('#ml-pv').innerHTML=`<div class="mut">A: ${esc(c.mail||'')} · lingua: ${MLN[m.L]}</div><div style="margin:6px 0"><b>${esc(m.subject)}</b></div>${m.html}`+((ML.w.att[m.L]||[]).length?'<div class="mut">Allegati: '+ML.w.att[m.L].map(x=>esc(x.n)).join(', ')+'</div>':'')}
@@ -702,18 +703,56 @@ $('#ml-del').onclick=async()=>{if(ML.w.fisso)return mlT('I modelli base non si e
 async function mlPost(items,t){const c=mlCfg();return window.__rim.fn('invia-email',{from_name:c.nome||'Garda Center',reply_to:c.rt||undefined,messages:items})}
 $('#ml-ts').onclick=async()=>{mlGrab();const c=cli($('#ml-pc').value)||mlSel()[0],me=window.__rim.me();if(!c)return mlT('Scegli un cliente per la prova');if(!me)return mlT('Non trovo la tua email');
  const m=mlBuild(c,ML.w);try{const r=await mlPost([{id:'prova',to:me,subject:'[PROVA] '+m.subject,html:m.html,attachments:(ML.w.att[m.L]||[]).map(a=>({filename:a.n,url:a.url}))}]);const x=r.results[0];(x.ok?mlT('✓ Prova inviata a '+me+'. Controlla la posta (anche lo spam).',0,1):mlT('Prova non riuscita: '+x.info,1,1))}catch(e){mlT('Prova non riuscita: '+e.message,1,1)}};
-$('#ml-go').onclick=async()=>{mlGrab();const c0=mlCfg();if(!c0.rt){$('#dlgml details').open=true;return mlT("Prima scrivi in Impostazioni di invio l'email a cui devono arrivare le risposte dei clienti")}const res=Math.max(0,(+c0.lim||100)-(c0.inv.d===oggi()?c0.inv.n:0)),list=mlSel().slice(0,res);
- if(!list.length)return mlT(res?'Nessun cliente da contattare':'Limite di oggi raggiunto: riprova domani');
- const by={};list.forEach(c=>{const L=mlLang(c);by[L]=(by[L]||0)+1});
- if(!await askQ('Inviare le email?',`<b>${list.length}</b> email: ${Object.entries(by).map(([k,v])=>v+' in '+MLN[k]).join(', ')}.<br>Oggetto: ${esc(ML.w.ogg.it||ML.w.ogg.en)}<br>Non si può annullare.`,'Invia'))return;
- mlSave();const k=mlKey();let sd=db.msd.find(x=>x.id===k);if(!sd){sd={id:k,cids:[],d:{}};db.msd.push(sd)}
- let ok=0,ko=[],t=ML.w;$('#ml-go').disabled=true;
- for(let i=0;i<list.length;i+=10){const ch=list.slice(i,i+10);$('#ml-st').textContent=`Invio in corso… ${ok}/${list.length}`;
-  try{const items=ch.map(c=>{const m=mlBuild(c,t);return{id:c.id,to:c.mail,subject:m.subject,html:m.html,key:k+'-'+c.id+'-'+oggi(),attachments:(t.att[m.L]||[]).map(a=>({filename:a.n,url:a.url}))}});
-   const r=await mlPost(items,t);r.results.forEach(x=>{if(x.ok){ok++;sd.cids.push(x.id);sd.d[x.id]=oggi();if(c0.inv.d!==oggi()){c0.inv.d=oggi();c0.inv.n=0}c0.inv.n++}else ko.push((cli(x.id)||{}).nome+': '+x.info)});save()}
-  catch(e){ko.push('Errore: '+e.message);break}}
- mlRecList();
- mlT(ko.length?`Inviate ${ok} email. Non riuscite: ${ko.length} (${ko.slice(0,3).join(' · ')})`:`✓ Inviate ${ok} email. Fatto!`,ko.length,1);mlCount()};
+const mlR=(p,o)=>window.__rim.dbr(p,o);
+async function mlSrv(){try{const c=mlCfg(),[g,q]=await Promise.all([mlR('mail_giorno?select=n&d=eq.'+oggi()),mlR('coda_mail?select=id&stato=eq.da_inviare&tipo=like.massivo*&limit=5000')]);
+ c.inv={d:oggi(),n:(g&&g[0]&&g[0].n)||0};mlCount();const e=$('#ml-q');e.hidden=!q.length;
+ e.innerHTML=q.length?`<b>In coda: ${q.length} email</b> (partono da sole ogni mattina, fino a ${c.lim||100} al giorno). <a href="#" id="ml-qx">Annulla quelle in coda</a>`:'';
+ if(q.length)$('#ml-qx').onclick=mlQx}catch(e){}}
+async function mlQx(ev){ev.preventDefault();if(!await askQ("Annullare le email in coda?","Le email non ancora partite non verranno inviate. Quelle già inviate restano inviate.",'Annulla la coda'))return;
+ try{const r=await mlR('coda_mail?select=cliente_id,tipo&stato=eq.da_inviare&tipo=like.massivo*&limit=5000');
+  await mlR('coda_mail?stato=eq.da_inviare&tipo=like.massivo*',{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({stato:'annullata'})});
+  r.forEach(x=>{const sd=db.msd.find(y=>'massivo:'+y.id===x.tipo);if(sd&&sd.d){delete sd.d[x.cliente_id];sd.cids=(sd.cids||[]).filter(i=>i!==x.cliente_id)}});save();mlRecList();mlSrv();mlT('✓ Coda annullata',0,1)}catch(e){mlT('Non riesco ad annullare: '+e.message,1,1)}}
+$('#ml-go').onclick=async()=>{mlGrab();const c0=mlCfg();if(!c0.rt){$('#dlgml details').open=true;return mlT("Prima scrivi in Impostazioni di invio l'email a cui devono arrivare le risposte dei clienti")}
+ const list=mlSel();if(!list.length)return mlT('Nessun cliente da contattare');
+ await mlSrv();const lim=+c0.lim||100,res=Math.max(0,lim-(c0.inv.d===oggi()?c0.inv.n:0)),by={};list.forEach(c=>{const L=mlLang(c);by[L]=(by[L]||0)+1});
+ const gg=list.length>res?Math.ceil((list.length-res)/lim):0;
+ if(!await askQ('Inviare le email?',`<b>${list.length}</b> email: ${Object.entries(by).map(([k,v])=>v+' in '+MLN[k]).join(', ')}.<br>Oggetto: ${esc(ML.w.ogg.it||ML.w.ogg.en)}<br>`+(list.length>res?`Oggi partono ${res}. Le altre ${list.length-res} restano in coda e partono da sole nelle ${gg} mattin${gg===1?'a':'e'} successiv${gg===1?'a':'e'}: non dovrai confermare di nuovo. Potrai annullarle quando vuoi.`:'Partono subito.'),'Conferma e invia'))return;
+ mlSave();const k=mlKey(),t=ML.w;let sd=db.msd.find(x=>x.id===k);if(!sd){sd={id:k,cids:[],d:{}};db.msd.push(sd)}
+ $('#ml-go').disabled=true;$('#ml-st').textContent='Preparo le email…';
+ try{await mlR('mail_cfg?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{id:1,lim}])});
+  const rows=list.map(c=>{const m=mlBuild(c,t);return{invio_dal:oggi(),prio:5,cliente_id:c.id,tipo:'massivo:'+k,chiave:k+'-'+c.id,a:c.mail,oggetto:m.subject,html:m.html,allegati:(t.att[m.L]||[]).map(a=>({filename:a.n,url:a.url})),mittente:c0.nome||'Garda Center',rispondi_a:c0.rt||null}});
+  for(let i=0;i<rows.length;i+=40)await mlR('coda_mail',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows.slice(i,i+40))});
+  list.forEach(c=>{sd.cids.push(c.id);sd.d[c.id]=oggi()});save();mlRecList();
+  $('#ml-st').textContent='Invio in corso…';let inv=0,err=0;
+  try{const r=await window.__rim.fn('invia-coda',{});inv=r.inviate||0;err=r.errori||0}catch(e){}
+  await mlSrv();
+  mlT(err?`Partite ${inv} email, ${err} non riuscite (restano segnate come errore). ${Math.max(0,list.length-inv-err)?'Le altre partono da sole nei giorni successivi.':''}`:list.length>inv?`✓ Partite ${inv} email. Le altre ${list.length-inv} sono in coda e partono da sole nei prossimi giorni.`:`✓ Inviate ${inv} email. Fatto!`,!!err,1)}
+ catch(e){mlT('Non riesco a mettere in coda le email: '+e.message+'. Hai eseguito schema6_coda.sql?',1,1)}
+ mlCount()};
+// ======== Promemoria automatico uscite (una settimana prima) ========
+let mlAT=0,mlBusy=false;
+function mlAutoSoon(){if(!(typeof window!=='undefined'&&window.SITE&&ROLE==='master'&&window.__rim&&window.__rim.dbr))return;clearTimeout(mlAT);mlAT=setTimeout(mlAuto,4000)}
+const mlDd=(d,n)=>{const t=new Date(d+'T12:00:00');t.setDate(t.getDate()+n);return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')};
+const mlHash=x=>{let h=5381;for(let i=0;i<x.length;i++)h=((h<<5)+h+x.charCodeAt(i))|0;return(h>>>0).toString(36)};
+async function mlAuto(){if(mlBusy)return;mlBusy=true;try{
+ const c0=mlCfg(),T=oggi(),R=mlR;
+ const rows=await R('coda_mail?select=id,rif,h,stato&tipo=eq.promemoria&stato=in.(da_inviare,inviata)&limit=5000');
+ const pend={},sent=new Set();rows.forEach(r=>{if(r.stato==='da_inviare')pend[r.rif]=r;else sent.add(r.rif)});
+ const seen=new Set();let flush=false,ch=false;
+ for(const m of db.mov){if(m.t!=='uo'||!m.d||m.d<T)continue;const c=cli(m.cid);if(!c||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(c.mail||'').trim()))continue;
+  const rif='mov:'+m.id;if(sent.has(rif)&&!pend[rif]){if(!m.mr){m.mr=true;ch=true}continue}
+  if(m.mr&&!pend[rif])continue;
+  const send=mlDd(m.d,-7)>T?mlDd(m.d,-7):T,n=Math.round((new Date(m.d+'T12:00')-new Date(send+'T12:00'))/864e5),t=db.tr.find(x=>x.mid===m.id)||null,x=mailFor(c,m,t,'rem',n);
+  const row={invio_dal:send,prio:1,cliente_id:c.id,tipo:'promemoria',rif,chiave:'rem-'+m.id+'-'+m.d,h:mlHash(send+'|'+c.mail+'|'+x.subject+x.body),a:String(c.mail).trim(),oggetto:x.subject,html:mlWrap(esc(x.body).replace(/\n/g,'<br>')),allegati:[],mittente:c0.nome||'Garda Center',rispondi_a:c0.rt||null};
+  if(pend[rif]){seen.add(rif);if(pend[rif].h!==row.h){await R('coda_mail?id=eq.'+pend[rif].id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(row)})}}
+  else{await R('coda_mail',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify([row])});m.mr=true;ch=true}
+  if(send<=T)flush=true}
+ for(const rif in pend){if(seen.has(rif))continue;const m=db.mov.find(y=>'mov:'+y.id===rif);
+  await R('coda_mail?id=eq.'+pend[rif].id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({stato:'annullata'})});if(m&&m.mr){m.mr=false;ch=true}}
+ if(ch)save();
+ if(flush)await window.__rim.fn('invia-coda',{})
+}catch(e){}finally{mlBusy=false}}
+if(typeof window!=='undefined')setTimeout(mlAutoSoon,8000);
 async function bkSave(){try{const d=await claude.use('downloads');if(!d)return toast('Salvataggio non disponibile qui');
  const o={formato:'rimessaggio-backup',v:1,creato:new Date().toISOString(),db:db,files:fdb()};
  await d.save({filename:'backup-rimessaggio-'+oggi()+'.json',data:new Blob([JSON.stringify(o)],{type:'application/json'})});try{localStorage.setItem('rim-bk',oggi())}catch(e){}toast('Backup salvato');render()}catch(e){if(!e||e.code!=='declined')toast('Salvataggio non riuscito')}}
@@ -1160,23 +1199,23 @@ $('#pdf-x').onclick=()=>$('#dlg6').close();
 // ---- Email al cliente: alla registrazione del movimento (con i dettagli del trasporto se c'è) e promemoria il giorno prima di ogni uscita
 const LANG=n=>{n=String(n||'').toUpperCase();return['I','IT'].includes(n)?'it':['D','DE','A','AT','CH'].includes(n)?'de':'en'};
 const MZ={ROULOTTE:{it:'roulotte',de:'Wohnwagen',en:'caravan'},MOTOSCAFO:{it:'motoscafo',de:'Motorboot',en:'motorboat'},CAMPER:{it:'camper',de:'Wohnmobil',en:'motorhome'}};
-function mailFor(c,m,t,kind){const L=LANG(c.naz),up=m.t==='uo',rem=kind==='rem',loc={it:'it-IT',de:'de-DE',en:'en-GB'}[L];
+function mailFor(c,m,t,kind,nn){const L=LANG(c.naz),NN=nn==null?1:nn,W={it:NN>=7?'tra una settimana':NN==1?'domani':NN==0?'oggi':'tra '+NN+' giorni',de:NN>=7?'in einer Woche':NN==1?'morgen':NN==0?'heute':'in '+NN+' Tagen',en:NN>=7?'in one week':NN==1?'tomorrow':NN==0?'today':'in '+NN+' days'}[LANG(c.naz)],up=m.t==='uo',rem=kind==='rem',loc={it:'it-IT',de:'de-DE',en:'en-GB'}[L];
  const data=new Date(m.d+'T12:00').toLocaleDateString(loc,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
  const sede=(t&&t.sede)||m.sede||sedeDi(c),pos=(t&&t.pos)||m.pos||'',pl=sede?sede+(up&&pos?' ('+pos+')':''):'';
  const mz=((MZ[c.tipo]||{})[L])||String(c.tipo||'').toLowerCase(),cas=sede==='Casalemenini',ora=t&&t.ora?t.ora+':00':'',camp=t?(t.camp||'-'):'',piaz=t?(t.piaz||'-'):'';
  const X={
- it:{s:`${rem?'Promemoria: uscita del suo '+mz+' domani':'Conferma '+(up?'uscita':'entrata')+' del suo '+mz}${t?' e trasporto':''} - cliente n. ${fid(c.id)}`,
-  head:[`Gentile ${c.nome},`,'',rem?`le ricordiamo che domani, ${data}, il suo ${mz} (${c.targa}) uscirà dal nostro deposito.`:up?`le confermiamo l'uscita del suo ${mz} (${c.targa}) dal nostro deposito in data ${data}.`:`le confermiamo l'entrata del suo ${mz} (${c.targa}) nel nostro deposito in data ${data}.`],
+ it:{s:`${rem?'Promemoria: uscita del suo '+mz+' '+W:'Conferma '+(up?'uscita':'entrata')+' del suo '+mz}${t?' e trasporto':''} - cliente n. ${fid(c.id)}`,
+  head:[`Gentile ${c.nome},`,'',rem?`le ricordiamo che ${W}, ${data}, il suo ${mz} (${c.targa}) uscirà dal nostro deposito.`:up?`le confermiamo l'uscita del suo ${mz} (${c.targa}) dal nostro deposito in data ${data}.`:`le confermiamo l'entrata del suo ${mz} (${c.targa}) nel nostro deposito in data ${data}.`],
   loc:pl?`${up?'Il mezzo si trova attualmente a':t?'Il mezzo verrà riportato a':'Il mezzo verrà custodito a'}: ${pl}.`:null,num:`Il suo numero cliente è: ${fid(c.id)}.`,gate:`Le ricordiamo il suo codice per il cancello: ${c.cod||'[codice mancante]'}.`,
   th:'DETTAGLI DEL TRASPORTO',lines:t&&[`Data: ${data}`,`Orario indicativo: ${ora?'ore '+ora:'da definire'}`,`Campeggio: ${camp}`,`Piazzola: ${piaz}`,up?`Ritiro presso: ${pl}`:`Ritiro presso: campeggio ${camp}`,up?`Consegna a: campeggio ${camp}`:`Riconsegna presso: ${t.sede}`,"L'orario indicato è indicativo: possono verificarsi ritardi."],
   wa:`Per comunicazioni riguardanti il trasporto può contattare direttamente Enrico con un messaggio WhatsApp (non una chiamata) al numero ${WA}, indicando nome, cognome e numero cliente.`,bye:['Cordiali saluti','Garda Center']},
- de:{s:`${rem?'Erinnerung: Ausfahrt Ihres Fahrzeugs ('+mz+') morgen':'Bestätigung '+(up?'Ausfahrt':'Einfahrt')+' Ihres Fahrzeugs ('+mz+')'}${t?' und Transport':''} - Kundennummer ${fid(c.id)}`,
-  head:[`Guten Tag ${c.nome},`,'',rem?`wir erinnern Sie daran, dass Ihr Fahrzeug (${mz}, ${c.targa}) morgen, ${data}, unser Depot verlässt.`:up?`wir bestätigen die Ausfahrt Ihres Fahrzeugs (${mz}, ${c.targa}) aus unserem Depot am ${data}.`:`wir bestätigen die Einfahrt Ihres Fahrzeugs (${mz}, ${c.targa}) in unser Depot am ${data}.`],
+ de:{s:`${rem?'Erinnerung: Ausfahrt Ihres Fahrzeugs ('+mz+') '+W:'Bestätigung '+(up?'Ausfahrt':'Einfahrt')+' Ihres Fahrzeugs ('+mz+')'}${t?' und Transport':''} - Kundennummer ${fid(c.id)}`,
+  head:[`Guten Tag ${c.nome},`,'',rem?`wir erinnern Sie daran, dass Ihr Fahrzeug (${mz}, ${c.targa}) ${W}, ${data}, unser Depot verlässt.`:up?`wir bestätigen die Ausfahrt Ihres Fahrzeugs (${mz}, ${c.targa}) aus unserem Depot am ${data}.`:`wir bestätigen die Einfahrt Ihres Fahrzeugs (${mz}, ${c.targa}) in unser Depot am ${data}.`],
   loc:pl?`${up?'Ihr Fahrzeug befindet sich derzeit in':t?'Ihr Fahrzeug wird zurückgebracht nach':'Ihr Fahrzeug wird untergestellt in'}: ${pl}.`:null,num:`Ihre Kundennummer: ${fid(c.id)}.`,gate:`Zur Erinnerung, Ihr Code für das Tor: ${c.cod||'[Code fehlt]'}.`,
   th:'TRANSPORTDETAILS',lines:t&&[`Datum: ${data}`,`Voraussichtliche Uhrzeit: ${ora?ora+' Uhr':'noch offen'}`,`Campingplatz: ${camp}`,`Stellplatz: ${piaz}`,up?`Abholung: ${pl}`:`Abholung: Campingplatz ${camp}`,up?`Lieferung: Campingplatz ${camp}`:`Rückgabe: ${t.sede}`,'Die angegebene Uhrzeit ist nur ein Richtwert; es kann zu Verspätungen kommen.'],
   wa:`Bei Fragen zum Transport kontaktieren Sie bitte Enrico direkt per WhatsApp-Nachricht (bitte nicht anrufen) unter ${WA} und nennen Sie Vor- und Nachname sowie Ihre Kundennummer.`,bye:['Mit freundlichen Grüßen','Garda Center']},
- en:{s:`${rem?'Reminder: your '+mz+' leaves our storage tomorrow':'Confirmation of '+(up?'departure':'arrival')+' of your '+mz}${t?' and transport':''} - customer no. ${fid(c.id)}`,
-  head:[`Dear ${c.nome},`,'',rem?`this is a reminder that your ${mz} (${c.targa}) leaves our storage tomorrow, ${data}.`:up?`we confirm that your ${mz} (${c.targa}) leaves our storage on ${data}.`:`we confirm that your ${mz} (${c.targa}) arrives at our storage on ${data}.`],
+ en:{s:`${rem?'Reminder: your '+mz+' leaves our storage '+W:'Confirmation of '+(up?'departure':'arrival')+' of your '+mz}${t?' and transport':''} - customer no. ${fid(c.id)}`,
+  head:[`Dear ${c.nome},`,'',rem?`this is a reminder that your ${mz} (${c.targa}) leaves our storage ${W}, ${data}.`:up?`we confirm that your ${mz} (${c.targa}) leaves our storage on ${data}.`:`we confirm that your ${mz} (${c.targa}) arrives at our storage on ${data}.`],
   loc:pl?`${up?'Your vehicle is currently located at':t?'Your vehicle will be brought back to':'Your vehicle will be stored at'}: ${pl}.`:null,num:`Your customer number: ${fid(c.id)}.`,gate:`As a reminder, your gate code: ${c.cod||'[code missing]'}.`,
   th:'TRANSPORT DETAILS',lines:t&&[`Date: ${data}`,`Approximate time: ${ora?ora:'to be confirmed'}`,`Campsite: ${camp}`,`Pitch: ${piaz}`,up?`Pick-up: ${pl}`:`Pick-up: campsite ${camp}`,up?`Delivery: campsite ${camp}`:`Return to: ${t.sede}`,'The time indicated is approximate and delays may occur.'],
   wa:`For any communication about the transport, please contact Enrico directly by WhatsApp message (please do not call) on ${WA}, stating your first name, surname and customer number.`,bye:['Kind regards','Garda Center']}}[L];
@@ -1777,7 +1816,7 @@ async function boot(){
   }catch(e){
     box('<h1 style="font:600 1.6rem Georgia,serif;margin:0 0 8px">Non riesco a collegarmi</h1><p style="color:#5b665f">'+(e.message==='sessione'?'La sessione è scaduta.':'Controlla la connessione e riprova.')+'</p><p><a href="gestionale.html" style="color:#245c7a">Riprova</a> · <a href="#" id="bk-out" style="color:#245c7a">Esci</a></p>');
     document.getElementById('bk-out').onclick=function(e){e.preventDefault();esci()}}}
-window.__rim={me:function(){var s=ses();return s&&s.em},
+window.__rim={dbr:rest,me:function(){var s=ses();return s&&s.em},
  up:async function(path,blob,type){var s=await tok();var r=await fetch(U+'/storage/v1/object/mail/'+path,{method:'POST',headers:{apikey:K,Authorization:'Bearer '+s.at,'Content-Type':type||'application/octet-stream','x-upsert':'true'},body:blob});if(!r.ok)throw new Error('upload '+r.status);return U+'/storage/v1/object/public/mail/'+path},
  fn:async function(n,b){var s=await tok();var r=await fetch(U+'/functions/v1/'+n,{method:'POST',headers:{apikey:K,Authorization:'Bearer '+s.at,'Content-Type':'application/json'},body:JSON.stringify(b)});var t=await r.text(),j=null;try{j=JSON.parse(t)}catch(e){}if(!r.ok)throw new Error((j&&j.error)||('errore '+r.status));return j},
  rpc:function(n,a){return rest('rpc/'+n,{method:'POST',body:JSON.stringify(a||{})})},flatten:flatten,assemble:assemble,idOf:idOf,restore:async function(o){
