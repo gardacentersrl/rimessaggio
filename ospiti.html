@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Area clienti Garda Center</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Public+Sans:wght@400;600&display=swap">
+<style>
+:root{--bg:#f6f7f5;--fg:#1d2420;--mut:#5b665f;--line:#d9ded9;--card:#fff;--ok:#1f7a45;--ko:#b3312b;--acc:#245c7a;--f-d:'Fraunces',Georgia,serif;--f-b:'Public Sans',system-ui,sans-serif;--f-m:ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a17;--fg:#e6ebe7;--mut:#97a39b;--line:#2b342f;--card:#1b231f;--ok:#5fcf8c;--ko:#ff8a80;--acc:#7fb8d6;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-b);padding:24px 16px 48px}
+main{max-width:34rem;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--f-d);font-size:1.7rem;margin:0;text-wrap:balance}
+h2{font-family:var(--f-d);font-size:1.15rem;margin:0 0 8px}
+p{margin:0;line-height:1.5;color:var(--mut)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.lg button{background:transparent;color:var(--acc);border:1px solid var(--line);padding:4px 8px;font-size:.85rem;margin-left:4px}
+.lg button.on{background:var(--acc);color:var(--bg)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px}
+form{display:flex;flex-direction:column;gap:10px}
+label{font-weight:600}
+input,textarea,select{font:inherit;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg);width:100%}
+input#cod{font-family:var(--f-m);font-size:1.4rem;letter-spacing:.3em;text-align:center}
+button{font:inherit;font-weight:600;background:var(--acc);color:var(--bg);border:0;border-radius:6px;padding:12px 16px;cursor:pointer}
+button.alt{background:transparent;color:var(--acc);border:1px solid var(--line)}
+button:disabled{opacity:.6;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.msg{font-weight:600;line-height:1.4}.ko{color:var(--ko)}.ok{color:var(--ok)}
+.row{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border:0}
+.big{font-family:var(--f-m);font-size:1.5rem;letter-spacing:.15em;font-weight:600}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;border:1px solid var(--line);font-size:.85rem;color:var(--mut)}
+.mono{font-family:var(--f-m);overflow-wrap:anywhere}
+.s{font-size:.85rem;color:var(--mut)}
+</style></head>
+<body><main>
+<div class="top"><h1 id="h">Area clienti</h1><div class="lg" id="lg"></div></div>
+<div id="m" class="msg" role="status"></div>
+
+<section id="v1" hidden><form id="f1" class="card">
+ <p id="t1"></p><label for="em" id="l1"></label><input id="em" type="email" autocomplete="email" inputmode="email" required>
+ <button id="b1" type="submit"></button></form></section>
+
+<section id="v2" hidden><form id="f2" class="card">
+ <p id="t2"></p><label for="cod" id="l2"></label><input id="cod" type="text" autocomplete="one-time-code" inputmode="numeric" maxlength="6" required>
+ <button id="b2" type="submit"></button><button id="b2x" class="alt" type="button"></button></form></section>
+
+<section id="v3" hidden><div id="app" style="display:flex;flex-direction:column;gap:16px"></div>
+ <button id="ex" class="alt" type="button" style="margin-top:8px"></button></section>
+</main>
+<script>
+var U='https://faemhbtebrjyyvapdziw.supabase.co',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhZW1oYnRlYnJqeXl2YXBkeml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMDg3ODUsImV4cCI6MjEwNjc4NDc4NX0.E3hAV0vWE6ZWJTJHE0gYjBu5HIDumfNJETxpVWohpgg';
+var D={
+it:{h:'Area clienti',t1:'Inserisci l\'email che ci hai comunicato. Ti mandiamo un codice per entrare, senza password.',l1:'Email',b1:'Invia il codice',t2:'Se l\'email è registrata, ti abbiamo inviato un codice di 6 cifre (controlla anche lo spam).',l2:'Codice',b2:'Entra',b2x:'Cambia email',ex:'Esci',
+ inviato:'Controlla la posta.',bad:'Codice non valido o scaduto.',err:'Qualcosa non ha funzionato. Riprova.',scad:'Sessione scaduta: rientra.',
+ mezzo:'Il tuo mezzo',dentro:'Nel nostro deposito',fuori:'Fuori dal deposito',nd:'Stato non disponibile',area:'Zona',cancello:'Codice cancello',cancs:'Il codice è sempre lo stesso per tutta la durata del contratto.',
+ conto:'Il tuo conto',stag:'Stagione',tot:'Totale stagione',vers:'Già versato',dap:'Da pagare',arr:'Arretrati da stagioni precedenti',saldato:'Tutto saldato, grazie!',pagam:'Pagamenti registrati',
+ bonifico:'Per pagare con bonifico',iban:'IBAN',bic:'BIC/SWIFT',intest:'Intestatario',caus:'Causale',agg:'Dati aggiornati al',
+ uscita:'Prenota l\'uscita',uscd:'Data di uscita desiderata',nota:'Note (facoltative)',invia:'Invia la richiesta',uscok:'Richiesta inviata! Ti confermeremo la data.',prog:'Uscite già programmate',rich:'Le tue richieste',
+ nuova:'in attesa',accettata:'accettata',rifiutata:'non accettata',annullata:'annullata',annulla:'Annulla',solodentro:'Puoi prenotare l\'uscita solo quando il mezzo è nel deposito.',
+ doc:'Documenti',docs:'Carica un documento (PDF, foto)',docok:'Documento inviato, grazie!',doclist:'Documenti inviati',doctp:'Sono accettati PDF, JPG e PNG fino a 6 MB.',nodoc:'Nessun documento.',
+ datein:'La data deve essere futura.'},
+en:{h:'Customer area',t1:'Enter the email address you gave us. We will send you a code to sign in, no password needed.',l1:'Email',b1:'Send code',t2:'If the email is registered, we have sent you a 6-digit code (check your spam folder too).',l2:'Code',b2:'Sign in',b2x:'Change email',ex:'Sign out',
+ inviato:'Check your inbox.',bad:'Invalid or expired code.',err:'Something went wrong. Please try again.',scad:'Session expired: please sign in again.',
+ mezzo:'Your vehicle',dentro:'In our storage',fuori:'Outside the storage',nd:'Status not available',area:'Area',cancello:'Gate code',cancs:'The code stays the same for the whole contract.',
+ conto:'Your account',stag:'Season',tot:'Season total',vers:'Already paid',dap:'To pay',arr:'Arrears from previous seasons',saldato:'All paid, thank you!',pagam:'Recorded payments',
+ bonifico:'To pay by bank transfer',iban:'IBAN',bic:'BIC/SWIFT',intest:'Account holder',caus:'Reference',agg:'Data updated on',
+ uscita:'Book your departure',uscd:'Desired departure date',nota:'Notes (optional)',invia:'Send request',uscok:'Request sent! We will confirm the date.',prog:'Scheduled departures',rich:'Your requests',
+ nuova:'pending',accettata:'accepted',rifiutata:'not accepted',annullata:'cancelled',annulla:'Cancel',solodentro:'You can book a departure only while the vehicle is in the storage.',
+ doc:'Documents',docs:'Upload a document (PDF, photo)',docok:'Document sent, thank you!',doclist:'Documents sent',doctp:'PDF, JPG and PNG up to 6 MB are accepted.',nodoc:'No documents.',
+ datein:'The date must be in the future.'},
+de:{h:'Kundenbereich',t1:'Geben Sie die E-Mail-Adresse ein, die Sie uns mitgeteilt haben. Wir senden Ihnen einen Code zur Anmeldung, ohne Passwort.',l1:'E-Mail',b1:'Code senden',t2:'Wenn die E-Mail registriert ist, haben wir Ihnen einen 6-stelligen Code gesendet (bitte auch den Spam-Ordner prüfen).',l2:'Code',b2:'Anmelden',b2x:'E-Mail ändern',ex:'Abmelden',
+ inviato:'Bitte prüfen Sie Ihr Postfach.',bad:'Code ungültig oder abgelaufen.',err:'Etwas ist schiefgelaufen. Bitte erneut versuchen.',scad:'Sitzung abgelaufen: bitte erneut anmelden.',
+ mezzo:'Ihr Fahrzeug',dentro:'In unserem Depot',fuori:'Nicht im Depot',nd:'Status nicht verfügbar',area:'Bereich',cancello:'Torcode',cancs:'Der Code bleibt für die gesamte Vertragsdauer gleich.',
+ conto:'Ihr Konto',stag:'Saison',tot:'Saisonpreis',vers:'Bereits bezahlt',dap:'Offen',arr:'Rückstände aus früheren Saisons',saldato:'Alles bezahlt, danke!',pagam:'Verbuchte Zahlungen',
+ bonifico:'Zahlung per Überweisung',iban:'IBAN',bic:'BIC/SWIFT',intest:'Kontoinhaber',caus:'Verwendungszweck',agg:'Daten aktualisiert am',
+ uscita:'Ausfahrt buchen',uscd:'Gewünschtes Ausfahrtsdatum',nota:'Anmerkungen (optional)',invia:'Anfrage senden',uscok:'Anfrage gesendet! Wir bestätigen das Datum.',prog:'Geplante Ausfahrten',rich:'Ihre Anfragen',
+ nuova:'ausstehend',accettata:'angenommen',rifiutata:'nicht angenommen',annullata:'storniert',annulla:'Stornieren',solodentro:'Eine Ausfahrt kann nur gebucht werden, wenn das Fahrzeug im Depot ist.',
+ doc:'Dokumente',docs:'Dokument hochladen (PDF, Foto)',docok:'Dokument gesendet, danke!',doclist:'Gesendete Dokumente',doctp:'PDF, JPG und PNG bis 6 MB werden akzeptiert.',nodoc:'Keine Dokumente.',
+ datein:'Das Datum muss in der Zukunft liegen.'}};
+var $=function(s){return document.querySelector(s)},E=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]})};
+var SK='ospite-tk',L=(function(){try{var l=localStorage.getItem('ospite-l');if(l&&D[l])return l}catch(e){}var n=(navigator.language||'it').slice(0,2);return D[n]?n:'en'})(),EM='',TK='',DATA=null;
+function T(k){return D[L][k]}
+function msg(t,ko){var m=$('#m');m.textContent=t||'';m.className='msg '+(ko?'ko':'ok')}
+function lang(l){L=l;try{localStorage.setItem('ospite-l',l)}catch(e){}document.documentElement.lang=l;paint()}
+function paint(){$('#h').textContent=T('h');$('#t1').textContent=T('t1');$('#l1').textContent=T('l1');$('#b1').textContent=T('b1');$('#t2').textContent=T('t2');$('#l2').textContent=T('l2');$('#b2').textContent=T('b2');$('#b2x').textContent=T('b2x');$('#ex').textContent=T('ex');
+ $('#lg').innerHTML=['it','en','de'].map(function(l){return'<button type="button" class="'+(l===L?'on':'')+'" data-l="'+l+'">'+l.toUpperCase()+'</button>'}).join('');if(DATA)draw()}
+$('#lg').onclick=function(e){var b=e.target.closest('[data-l]');if(b)lang(b.dataset.l)};
+function show(n){['v1','v2','v3'].forEach(function(k){$('#'+k).hidden=k!=='v'+n})}
+async function api(b){var r=await fetch(U+'/functions/v1/ospite',{method:'POST',headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json'},body:JSON.stringify(b)});var j=null;try{j=await r.json()}catch(e){}if(!r.ok){var er=new Error((j&&j.error)||'errore');er.st=r.status;throw er}return j}
+$('#f1').onsubmit=async function(e){e.preventDefault();EM=$('#em').value.trim().toLowerCase();$('#b1').disabled=true;msg('');
+ try{await api({a:'codice',email:EM});show(2);$('#cod').value='';$('#cod').focus();msg(T('inviato'))}catch(x){msg(T('err'),1)}$('#b1').disabled=false};
+$('#b2x').onclick=function(){show(1);msg('')};
+$('#f2').onsubmit=async function(e){e.preventDefault();$('#b2').disabled=true;msg('');
+ try{var r=await api({a:'entra',email:EM,codice:$('#cod').value});TK=r.token;try{sessionStorage.setItem(SK,TK)}catch(x){}await carica()}catch(x){msg(x.st===401?T('bad'):T('err'),1)}$('#b2').disabled=false};
+$('#ex').onclick=function(){TK='';DATA=null;try{sessionStorage.removeItem(SK)}catch(e){}show(1);msg('')};
+async function carica(){try{DATA=await api({a:'dati',token:TK});if(DATA.veicoli[0]&&DATA.veicoli[0].dati.L&&!localStorage.getItem('ospite-l'))L=DATA.veicoli[0].dati.L;paint();show(3);msg('')}
+ catch(x){TK='';show(1);msg(x.st===401?T('scad'):T('err'),1)}}
+function money(n,l){try{return new Intl.NumberFormat({it:'it-IT',en:'en-GB',de:'de-DE'}[L],{style:'currency',currency:'EUR'}).format(n)}catch(e){return n+' €'}}
+function dt(d){if(!d)return'';var p=String(d).slice(0,10).split('-');return L==='en'?p[2]+'/'+p[1]+'/'+p[0]:p[2]+'.'+p[1]+'.'+p[0]}
+function draw(){var h='';DATA.veicoli.forEach(function(v){var d=v.dati,rq=DATA.richieste.filter(function(r){return r.cid===v.cid}),dc=DATA.documenti.filter(function(x){return x.cid===v.cid});
+ var st=d.stato==='IN'?T('dentro'):d.stato==='OUT'?T('fuori'):T('nd');
+ h+='<div class="card"><h2>'+T('mezzo')+': '+E(d.mezzo)+' '+E(d.targa)+'</h2><div class="row"><span>'+E(d.nome)+'</span><span class="pill">'+st+'</span></div>';
+ if(d.area)h+='<div class="row"><span>'+T('area')+'</span><b>'+E(d.area)+'</b></div>';
+ if(d.cod)h+='<div class="row"><span>'+T('cancello')+'</span><span class="big">'+E(d.cod)+'</span></div><p class="s">'+T('cancs')+'</p>';
+ h+='</div>';
+ h+='<div class="card"><h2>'+T('conto')+' · '+T('stag')+' '+E(d.yr)+'</h2>'
+  +'<div class="row"><span>'+T('tot')+'</span><span>'+money(d.tot)+'</span></div><div class="row"><span>'+T('vers')+'</span><span>'+money(d.vers)+'</span></div>'
+  +'<div class="row"><b>'+T('dap')+'</b><b>'+money(d.dap)+'</b></div>'+(d.arr>0?'<div class="row"><span class="ko">'+T('arr')+'</span><b class="ko">'+money(d.arr)+'</b></div>':'')
+  +((d.dap+(d.arr||0))<=0.004?'<p class="ok">'+T('saldato')+'</p>':'');
+ if((d.pag||[]).length)h+='<h2 style="margin-top:8px">'+T('pagam')+'</h2>'+d.pag.map(function(p){return'<div class="row s"><span>'+dt(p.d)+'</span><span>'+money(p.imp)+'</span></div>'}).join('');
+ if(d.iban&&(d.dap+(d.arr||0))>0.004)h+='<h2 style="margin-top:8px">'+T('bonifico')+'</h2><div class="row"><span>'+T('intest')+'</span><span>'+E(d.intest)+'</span></div><div class="row"><span>'+T('iban')+'</span><span class="mono">'+E(d.iban)+'</span></div>'+(d.bic?'<div class="row"><span>'+T('bic')+'</span><span class="mono">'+E(d.bic)+'</span></div>':'')+'<div class="row"><span>'+T('caus')+'</span><span>'+E(d.caus)+'</span></div>';
+ h+='<p class="s">'+T('agg')+' '+dt(v.agg)+'</p></div>';
+ h+='<div class="card"><h2>'+T('uscita')+'</h2>';
+ if((d.usc||[]).length)h+='<p>'+T('prog')+': '+d.usc.map(dt).join(', ')+'</p>';
+ if(d.stato==='IN'){h+='<form data-u="'+v.cid+'"><label>'+T('uscd')+'</label><input type="date" name="d" required min="'+new Date(Date.now()+864e5).toISOString().slice(0,10)+'"><label>'+T('nota')+'</label><textarea name="n" rows="2" maxlength="400"></textarea><button type="submit">'+T('invia')+'</button></form>'}else h+='<p>'+T('solodentro')+'</p>';
+ if(rq.length)h+='<h2 style="margin-top:8px">'+T('rich')+'</h2>'+rq.map(function(r){return'<div class="row"><span>'+dt(r.data)+' · <span class="pill">'+T(r.stato)+'</span></span>'+(r.stato==='nuova'?'<button class="alt" data-x="'+r.id+'" data-c="'+v.cid+'" style="padding:4px 10px">'+T('annulla')+'</button>':'')+'</div>'}).join('');
+ h+='</div>';
+ h+='<div class="card"><h2>'+T('doc')+'</h2><label for="f'+v.cid+'">'+T('docs')+'</label><input id="f'+v.cid+'" type="file" accept="application/pdf,image/jpeg,image/png,image/*" data-f="'+v.cid+'"><p class="s">'+T('doctp')+'</p>'
+  +(dc.length?'<h2 style="margin-top:8px">'+T('doclist')+'</h2>'+dc.map(function(x){return'<div class="row s"><span>'+E(x.nome)+'</span><span>'+dt(x.creato)+'</span></div>'}).join(''):'')+'</div>'});
+ $('#app').innerHTML=h}
+$('#app').onsubmit=async function(e){var f=e.target.closest('[data-u]');if(!f)return;e.preventDefault();var d=f.d.value;if(!d||d<=new Date().toISOString().slice(0,10))return msg(T('datein'),1);
+ try{await api({a:'uscita',token:TK,cid:+f.dataset.u,data:d,note:f.n.value});await carica();msg(T('uscok'))}catch(x){msg(x.st===401?T('scad'):T('err'),1)}};
+$('#app').onclick=async function(e){var b=e.target.closest('[data-x]');if(!b)return;try{await api({a:'annulla',token:TK,cid:+b.dataset.c,id:+b.dataset.x});await carica()}catch(x){msg(T('err'),1)}};
+async function ridimensiona(f){if(f.type==='application/pdf')return f;var bm=await createImageBitmap(f),k=Math.min(1,2000/Math.max(bm.width,bm.height)),cv=document.createElement('canvas');cv.width=Math.round(bm.width*k);cv.height=Math.round(bm.height*k);cv.getContext('2d').drawImage(bm,0,0,cv.width,cv.height);
+ var b=await new Promise(function(r){cv.toBlob(r,'image/jpeg',.85)});b.nome=f.name.replace(/\.\w+$/,'')+'.jpg';return b}
+$('#app').onchange=async function(e){var i=e.target.closest('[data-f]');if(!i||!i.files[0])return;var f=i.files[0];
+ try{var b=await ridimensiona(f),nome=b.nome||f.name,tipo=b.type||f.type;if(b.size>6*1024*1024)return msg(T('doctp'),1);
+  var s=await new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(String(r.result).split(',')[1])};r.onerror=rej;r.readAsDataURL(b)});
+  await api({a:'doc',token:TK,cid:+i.dataset.f,nome:nome,tipo:tipo,dati:s});await carica();msg(T('docok'))}catch(x){msg(x.st===401?T('scad'):T('err'),1)}};
+(function(){document.documentElement.lang=L;paint();try{TK=sessionStorage.getItem(SK)||''}catch(e){}if(TK)carica();else show(1)})();
+</script></body></html>
