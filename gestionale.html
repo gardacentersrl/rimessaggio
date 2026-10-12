@@ -268,7 +268,13 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
 <nav><button data-v="h" class="on"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Oggi<i class="bdg" id="bd-h" hidden></i></button><button data-v="c"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14c3 0 4.5 2 4.5 5"/></svg>Clienti</button><button data-v="m"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>Movimenti</button><button data-v="p"><svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Piantina</button><button data-v="x"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Altro</button></nav>
 <div id="reg" hidden><div class="in"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b id="rg-t" style="font-size:20px"></b><button class="btn g sm" id="rg-x">Esci</button></div><div class="mut" id="rg-p"></div><div class="rbar"><i id="rg-bar"></i></div><div id="rg-b"></div></div>
  <div class="rf"><button class="btn g" id="rg-b1">Indietro</button><button class="btn" id="rg-n">Avanti</button></div></div>
-<dialog id="dlgov" style="width:min(96vw,640px)"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Dai clienti</h2><button class="btn g sm" id="ov-cl" style="margin:0;width:auto" aria-label="Chiudi">✕</button></div><div id="ov-b"></div></dialog>
+<dialog id="dlgov" style="width:min(96vw,640px)"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Dai clienti</h2><button class="btn g sm" id="ov-cl" style="margin:0;width:auto" aria-label="Chiudi">✕</button></div><div id="ov-pv" style="margin:10px 0"><h3>Vedi come un cliente</h3><div style="display:flex;gap:8px"><input id="ov-q" list="ov-dl" placeholder="Numero o nome del cliente" style="flex:1"><button class="btn sm" id="ov-go" style="margin:0;width:auto">Apri</button></div><datalist id="ov-dl"></datalist></div><div id="ov-b"></div></dialog>
+<dialog id="dlgst" style="width:min(98vw,760px)"><style>#dlgst{--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) #dlgst{--s1:#3987e5;--s2:#d95926;--s3:#199e70}}:root[data-theme="dark"] #dlgst{--s1:#3987e5;--s2:#d95926;--s3:#199e70}
+#dlgst h3{margin:18px 0 6px}.stb{display:flex;flex-direction:column;gap:6px}.str{display:grid;grid-template-columns:minmax(110px,36%) 1fr auto;gap:8px;align-items:center;font-size:.9rem}.stt{background:var(--band);border-radius:0 4px 4px 0;height:16px;overflow:hidden}.stt i{display:block;height:100%;background:var(--s1);border-radius:0 4px 4px 0}.stv{font-variant-numeric:tabular-nums;text-align:right}.stl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#st-lc{position:relative}#st-tp{position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:.8rem;display:none;white-space:nowrap}.stlg{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;margin:6px 0}.stlg i{display:inline-block;width:12px;height:3px;margin-right:6px;vertical-align:middle;border-radius:2px}</style>
+<div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Statistiche</h2><button class="btn g sm" id="st-cl" style="margin:0;width:auto" aria-label="Chiudi">✕</button></div>
+<div class="chips" id="st-bs" style="margin-top:10px"><button class="chip on" data-b="fat">Fatturato (totale stagione)</button><button class="chip" data-b="inc">Incassato (già pagato)</button></div>
+<p class="mut" id="st-n"></p><div id="st-b"></div></dialog>
 <dialog id="dlgq"><h2 id="q-t"></h2><p id="q-m"></p><button class="btn" id="q-ok">Conferma</button><button class="btn g" id="q-no">Annulla</button></dialog>
 <dialog id="dlgk"><h2 id="kx-t"></h2><button class="btn g" id="kx-no"></button><button class="btn" id="kx-ok"></button></dialog>
 <dialog id="dlg8"><h2>Modifica movimento</h2>
@@ -581,7 +587,7 @@ function home(){const t=oggi(),dm=add(1),n={IN:0,OUT:0,X:0};db.cl.forEach(c=>{if
 function menuX(){const dap=cont().reduce((a,o)=>a+o.dap,0),nr=db.tr.filter(x=>x.d>=oggi()).length;
  $('#x-l').innerHTML=`<div class="card xm" data-go="r"><div><b>Trasporti</b><div class="mut">Calendario di Enrico, passati e contabilità · ${nr} in programma${dap>0?' · da incassare '+eur(dap):''}</div></div><span class="ch">›</span></div>
  <div class="card xm" data-go="k"><div><b>Cassa, Registro pagamenti e Prima nota</b><div class="mut">Registra pagamenti, consulta il registro, conferma le fatture emesse${fatDue().length?' · '+fatDue().length+' fatture da confermare':''}</div></div><span class="ch">›</span></div>
- <div class="card xm" data-bk2="1"><div><b>Backup completo</b><div class="mut">Scarica un file con tutti i dati dell'app: serve per trasferirli nel database online e come copia di sicurezza</div></div><span class="ch">›</span></div>`+rsCard()+utCard()+mlCard()+ovCard()}
+ <div class="card xm" data-bk2="1"><div><b>Backup completo</b><div class="mut">Scarica un file con tutti i dati dell'app: serve per trasferirli nel database online e come copia di sicurezza</div></div><span class="ch">›</span></div>`+rsCard()+utCard()+mlCard()+ovCard()+stCard()}
 const rsCard=()=>(typeof window!=='undefined'&&window.SITE&&ROLE==='master')?`<div class="card xm" data-rs="1"><div><b>Sostituisci tutti i dati con un backup</b><div class="mut">Carica un file di backup (o l'importazione da Excel) al posto dei dati attuali. Prima ti scarica una copia di quelli di adesso</div></div><span class="ch">›</span></div>`:'';
 function rsOpen(){const f=document.createElement('input');f.type='file';f.accept='.json,application/json';f.onchange=async()=>{const fl=f.files[0];if(!fl)return;let o;try{o=JSON.parse(await fl.text())}catch(e){return toast('Il file non è leggibile')}
  const nd=o&&o.formato==='rimessaggio-backup'?o.db:o;if(!nd||!Array.isArray(nd.cl))return toast('Questo non sembra un backup del rimessaggio');
@@ -659,9 +665,17 @@ function mlGrab(){if(!ML)return;ML.w.txt[ML.lang]=$('#ml-ed').innerHTML;ML.w.ogg
 function mlLangSet(L,noGrab){if(!noGrab)mlGrab();ML.lang=L;$('#ml-lg').innerHTML=MLG.map(k=>`<button class="chip ${k===L?'on':''}" data-l="${k}">${MLN[k]}</button>`).join('');$('#ml-o').value=ML.w.ogg[L]||'';$('#ml-ed').innerHTML=ML.w.txt[L]||'';mlAtt();mlPrev()}
 function mlAtt(){const a=ML.w.att[ML.lang]||[];$('#ml-at').innerHTML=a.length?'Allegati ('+MLN[ML.lang]+'): '+a.map((x,i)=>`${esc(x.n)} <a href="#" data-ra="${i}">togli</a>`).join(' · '):''}
 function mlRecList(){const l=mlRecips(),sd=mlSent(),ok=l.filter(mlOk),no=l.length-ok.length;
- $('#ml-rc').innerHTML=l.map(c=>{const inv=sd.d[c.id],okk=mlOk(c);return`<label class="mlr"><input type="checkbox" data-cx="${c.id}" ${okk&&!ML.ex.has(c.id)&&!inv?'checked':''} ${okk?'':'disabled'}><span class="num">${fid(c.id)}</span><span style="flex:1">${esc(c.nome)}<span class="mut"> · ${MLN[mlLang(c)]}${okk?'':' · senza email'}${inv?' · inviata o in coda dal '+dmy(inv):''}</span></span></label>`}).join('')||'<p class="mut">Nessun cliente.</p>';
+ $('#ml-rc').innerHTML=l.map(c=>{const inv=sd.d[c.id],okk=mlOk(c);return`<label class="mlr"><input type="checkbox" data-cx="${c.id}" ${okk&&!ML.ex.has(c.id)&&!inv?'checked':''} ${okk?'':'disabled'}><span class="num">${fid(c.id)}</span><span style="flex:1">${esc(c.nome)}<span class="mut"> · ${MLN[mlLang(c)]}${okk?'':' · senza email'}${inv?' · inviata o in coda dal '+dmy(inv):''}${mlGrp(c).length>1?'<span class="mut"> · '+mlGrp(c).length+' mezzi con questa email: ricevono un\'unica email</span>':''}</span></span></label>`}).join('')||'<p class="mut">Nessun cliente.</p>';
  $('#ml-pc').innerHTML=ok.slice(0,400).map(c=>`<option value="${c.id}">${esc(fid(c.id)+' '+c.nome)}</option>`).join('');mlCount();mlPrev()}
-function mlSel(){const sd=mlSent();return mlRecips().filter(c=>mlOk(c)&&!ML.ex.has(c.id)&&!sd.d[c.id])}
+const mlEm=c=>String(c.mail||'').trim().toLowerCase();
+const mlGrp=c=>mlRecips().filter(x=>mlOk(x)&&mlEm(x)===mlEm(c));
+function mlSel(){const sd=mlSent(),seen=new Set();return mlRecips().filter(c=>mlOk(c)&&!ML.ex.has(c.id)).filter(c=>{const k=mlEm(c);if(seen.has(k))return false;seen.add(k);return!mlGrp(c).some(x=>sd.d[x.id])})}
+function mlFieldsG(c,L){const g=mlGrp(c);if(g.length<2)return mlFields(c,L);
+ const F=g.map(x=>mlFields(x,L)),base=mlFields(c,L),cf=mlCfg(),sum=k=>g.reduce((a,x,i)=>a+k(x),0),dp=x=>Math.max(0,daPagare(x)),ex=x=>50*((x.lav||0)+(x.rit||0));
+ const TT={it:'Totale complessivo',en:'Grand total',de:'Gesamtsumme',nl:'Totaal generaal'}[L],J=k=>F.map(f=>f[k]).join(' / ');
+ return Object.assign({},base,{numero:J('numero'),mezzo:J('mezzo'),targa:J('targa'),posizione:J('posizione'),
+  totale:esc(mlMoney(sum(x=>tarC(x)),L)),acconto_versato:esc(mlMoney(sum(x=>x.acconto||0),L)),da_pagare:esc(mlMoney(sum(dp),L)),arretrati:esc(mlMoney(sum(arrRest),L)),totale_dovuto:esc(mlMoney(sum(x=>arrRest(x)+dp(x)),L)),acconto:esc(mlMoney((+cf.acc||0)*g.length,L)),
+  conto:F.map(f=>`<div style="margin-top:8px"><b>${f.mezzo} ${f.targa}</b> (n. ${f.numero})${f.conto}</div>`).join('')+`<p><b>${TT}: ${esc(mlMoney(sum(x=>arrRest(x)+dp(x)),L))}</b></p>`})}
 function mlTab(n){['1','2','3'].forEach(k=>{$('#ml-p'+k).hidden=k!=n});$('#ml-tabs').querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b.dataset.s==n));if(n==3&&ML&&ML.w){mlGrab();mlCount();mlPrev()}}
 $('#ml-tabs').onclick=e=>{const b=e.target.closest('[data-s]');if(b)mlTab(+b.dataset.s)};
 function mlCount(){const n=mlSel().length,c=mlCfg(),oggiN=c.inv.d===oggi()?c.inv.n:0,res=Math.max(0,(+c.lim||100)-oggiN);
@@ -670,7 +684,7 @@ function mlCount(){const n=mlSel().length,c=mlCfg(),oggiN=c.inv.d===oggi()?c.inv
  const by={};mlSel().slice(0,res).forEach(c=>{const L=mlLang(c);by[L]=(by[L]||0)+1});const k=Math.min(n,res);
  $('#ml-sum').innerHTML=n?`Pronte <b>${n}</b> email${k<n?` (oggi partono <b>${k}</b>, le altre nei giorni successivi)`:''}: ${Object.entries(by).map(([l,v])=>v+' in '+MLN[l]).join(', ')||'—'}.`:'Nessun cliente da contattare: controlla i destinatari (passo 2).';
  $('#ml-go').textContent=n?`Invia a ${n} client${n===1?'e':'i'}`:'Nessuna email da inviare';$('#ml-go').disabled=!n}
-function mlBuild(c,t){const L=mlLang(c),f=mlFields(c,L);return{L,subject:mlRender(t.ogg[L],f).replace(/<[^>]*>/g,''),html:mlWrap(mlRender(t.txt[L],f))}}
+function mlBuild(c,t){const L=mlLang(c),f=mlFieldsG(c,L);return{L,subject:mlRender(t.ogg[L],f).replace(/<[^>]*>/g,''),html:mlWrap(mlRender(t.txt[L],f))}}
 function mlPrev(){if(!ML||!ML.w)return;mlGrab();const c=cli($('#ml-pc').value)||mlSel()[0];if(!c){$('#ml-pv').innerHTML='<span class="mut">Nessun cliente con email per l\'anteprima.</span>';return}
  const m=mlBuild(c,ML.w);$('#ml-pv').innerHTML=`<div class="mut">A: ${esc(c.mail||'')} · lingua: ${MLN[m.L]}</div><div style="margin:6px 0"><b>${esc(m.subject)}</b></div>${m.html}`+((ML.w.att[m.L]||[]).length?'<div class="mut">Allegati: '+ML.w.att[m.L].map(x=>esc(x.n)).join(', ')+'</div>':'')}
 function mlSave(){mlGrab();ML.w.filtro=$('#ml-fl').value;const i=db.mtp.findIndex(t=>t.id===ML.w.id);db.mtp[i]=JSON.parse(JSON.stringify(ML.w));save();mlT('✓ Modello salvato')}
@@ -723,7 +737,7 @@ $('#ml-go').onclick=async()=>{mlGrab();const c0=mlCfg();if(!c0.rt){$('#dlgml det
  try{await mlR('mail_cfg?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{id:1,lim}])});
   const rows=list.map(c=>{const m=mlBuild(c,t);return{invio_dal:oggi(),prio:5,cliente_id:c.id,tipo:'massivo:'+k,chiave:k+'-'+c.id,a:c.mail,oggetto:m.subject,html:m.html,allegati:(t.att[m.L]||[]).map(a=>({filename:a.n,url:a.url})),mittente:c0.nome||'Garda Center',rispondi_a:c0.rt||null}});
   for(let i=0;i<rows.length;i+=40)await mlR('coda_mail',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows.slice(i,i+40))});
-  list.forEach(c=>{sd.cids.push(c.id);sd.d[c.id]=oggi()});save();mlRecList();
+  list.forEach(c=>mlGrp(c).forEach(x=>{sd.cids.push(x.id);sd.d[x.id]=oggi()}));save();mlRecList();
   $('#ml-st').textContent='Invio in corso…';let inv=0,err=0;
   try{const r=await window.__rim.fn('invia-coda',{});inv=r.inviate||0;err=r.errori||0}catch(e){}
   await mlSrv();
@@ -775,11 +789,14 @@ async function ovCount(){if(!(typeof window!=='undefined'&&window.SITE&&ROLE==='
 if(typeof window!=='undefined'){setTimeout(ovAutoSoon,10000);setTimeout(ovCount,9000);setInterval(ovCount,300000)}
 let ovD={ric:[],doc:[]};
 const ovNm=cid=>{const c=cli(cid);return c?esc(c.nome)+' <span class="mut">('+esc(fid(c.id))+')</span>':'cliente '+cid};
-async function ovOpen(){$('#dlgov').showModal();$('#ov-b').innerHTML='<p class="mut">Carico…</p>';
+async function ovOpen(){$('#dlgov').showModal();$('#ov-dl').innerHTML=db.cl.filter(c=>c.mail).slice(0,600).map(c=>`<option value="${esc(fid(c.id)+' '+c.nome)}">`).join('');$('#ov-b').innerHTML='<p class="mut">Carico…</p>';
  try{ovD.ric=await mlR('richieste_ospiti?select=*&stato=eq.nuova&order=id.asc');ovD.doc=await mlR('documenti_ospiti?select=*&order=id.desc&limit=40');ovDraw()}catch(e){$('#ov-b').innerHTML='<p class="mut">Non riesco a leggere i dati. Hai eseguito schema7_ospiti.sql?</p>'}}
 function ovDraw(){const r=ovD.ric,d=ovD.doc;
  $('#ov-b').innerHTML='<h3>Richieste di uscita</h3>'+(r.length?r.map(x=>`<div class="card"><b>${ovNm(x.cid)}</b><div>Vuole uscire il <b>${dmy(x.data)}</b></div>${x.note?'<div class="mut">'+esc(x.note)+'</div>':''}<div style="display:flex;gap:8px"><button class="btn sm" data-ra="${x.id}">Accetta (crea l'uscita)</button><button class="btn g sm" data-rr="${x.id}">Rifiuta</button></div></div>`).join(''):'<p class="mut">Nessuna richiesta in attesa.</p>')
  +'<h3>Documenti ricevuti</h3>'+(d.length?d.map(x=>`<div class="card"><b>${ovNm(x.cid)}</b><div class="mut">${esc(x.nome)} · ${dmy(String(x.creato).slice(0,10))}${x.visto?'':' · <b>nuovo</b>'}</div><div style="display:flex;gap:8px"><button class="btn sm" data-od="${x.id}">Apri</button>${x.visto?'':`<button class="btn g sm" data-ov2="${x.id}">Segna come visto</button>`}</div></div>`).join(''):'<p class="mut">Nessun documento.</p>')}
+$('#ov-go').onclick=async()=>{const v=$('#ov-q').value.trim(),n=+(v.match(/\d+/)||[0])[0],c=db.cl.find(x=>fid(x.id)+' '+x.nome===v)||cli(n)||db.cl.find(x=>x.nome.toLowerCase().includes(v.toLowerCase()));
+ if(!c)return toast('Cliente non trovato');if(!c.mail)return toast('Questo cliente non ha un\'email');const w=window.open('','_blank');
+ try{const r=await window.__rim.fn('ospite',{a:'anteprima',cid:c.id});w.location='ospiti.html#p='+r.token}catch(e){if(w)w.close();toast(String(e.message).includes('nessun dato')?'I dati del cliente non sono ancora online: aspetta qualche secondo e riprova':'Non riesco ad aprire l\'anteprima: '+e.message)}};
 $('#ov-cl').onclick=()=>{$('#dlgov').close();ovCount()};
 $('#ov-b').onclick=async e=>{const b=e.target.closest('button');if(!b)return;const H={Prefer:'return=minimal'};
  try{
@@ -791,10 +808,45 @@ $('#ov-b').onclick=async e=>{const b=e.target.closest('button');if(!b)return;con
   else if(b.dataset.ov2){await mlR('documenti_ospiti?id=eq.'+b.dataset.ov2,{method:'PATCH',headers:H,body:JSON.stringify({visto:true})});ovOpen()}
   else if(b.dataset.od){const x=ovD.doc.find(y=>y.id===+b.dataset.od),w=window.open('','_blank');try{const u=await window.__rim.sign(x.path);w.location=u;await mlR('documenti_ospiti?id=eq.'+x.id,{method:'PATCH',headers:H,body:JSON.stringify({visto:true})})}catch(er){if(w)w.close();toast('Non riesco ad aprire il file')}}
  }catch(er){toast('Errore: '+er.message)}};
+// ======== Statistiche ========
+const stCard=()=>(typeof window!=='undefined'&&ROLE==='master')?`<div class="card xm" data-st="1"><div><b>Statistiche</b><div class="mut">Guadagni per nazionalità, mezzo, capannone e sede · mezzi in deposito giorno per giorno</div></div><span class="ch">›</span></div>`:'';
+let stBs='fat';
+const stNz={NL:'Olanda',D:'Germania',DE:'Germania',DK:'Danimarca',I:'Italia',IT:'Italia',A:'Austria',AT:'Austria',B:'Belgio',CH:'Svizzera',GB:'Regno Unito',F:'Francia',S:'Svezia',N:'Norvegia',L:'Lussemburgo',PL:'Polonia',CZ:'Rep. Ceca'};
+const stVal=c=>stBs==='fat'?tarC(c)+50*((c.lav||0)+(c.rit||0)):(c.acconto||0)+(c.pagato||0);
+function stGr(kf,top){const m={};db.cl.forEach(c=>{const k=kf(c),o=m[k]=m[k]||{k,v:0,n:0};o.v+=stVal(c);o.n++});let r=Object.values(m).sort((a,b)=>b.v-a.v);
+ if(top&&r.length>top){const rest=r.slice(top);r=r.slice(0,top).concat([{k:'Altre ('+rest.length+')',v:rest.reduce((a,x)=>a+x.v,0),n:rest.reduce((a,x)=>a+x.n,0)}])}return r}
+function stBar(r){const mx=Math.max(1,...r.map(x=>x.v));return'<div class="stb">'+r.map(x=>`<div class="str" title="${esc(x.k)}: ${e2(x.v)} · ${x.n} mezz${x.n===1?'o':'i'}"><span class="stl">${esc(x.k)}</span><span class="stt"><i style="width:${(x.v/mx*100).toFixed(1)}%"></i></span><span class="stv">${eur(x.v)} <span class="mut">· ${x.n}</span></span></div>`).join('')+'</div>'}
+function stDaily(){const y=db.yr,ds=[],ix={};for(let d=new Date(y,0,1);d.getFullYear()===y;d.setDate(d.getDate()+1)){const s=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');ix[s]=ds.length;ds.push(s)}
+ const ev={};const ad=(cid,d,t)=>{if(ix[d]==null)return;(ev[cid]=ev[cid]||[]).push([d,t==='ui'?1:0])};
+ db.mov.forEach(m=>ad(m.cid,m.d,m.t));db.cl.forEach(c=>{if(c.ui)ad(c.id,c.ui,'ui');if(c.uo)ad(c.id,c.uo,'uo')});
+ const n=ds.length,T=Array(n+1).fill(0),A=Array(n+1).fill(0),B=Array(n+1).fill(0);
+ db.cl.forEach(c=>{const e=(ev[c.id]||[]).sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:a[1]-b[1]);let cur=e.length?(e[0][1]?0:1):((c.uo&&c.uo>(c.ui||''))?0:1);const sd=sedeDi(c),X=sd==='Casalemenini'?A:sd==='Camporengo'?B:null;
+  const mv=(i,v)=>{T[i]+=v;if(X)X[i]+=v};if(cur)mv(0,1);e.forEach(([d,s])=>{if(s!==cur){mv(ix[d],s?1:-1);cur=s}})});
+ const acc=a=>{let r=[],q=0;for(let i=0;i<n;i++){q+=a[i];r.push(q)}return r};return{ds,tot:acc(T),cas:acc(A),cam:acc(B)}}
+function stLine(){const D=stDaily(),n=D.ds.length,W=700,H=250,pl=38,pr=12,pt=10,pb=24,mx=Math.max(4,...D.tot),top=Math.ceil(mx/(mx>60?20:10))*(mx>60?20:10);
+ const X=i=>pl+i/(n-1)*(W-pl-pr),Y=v=>pt+(1-v/top)*(H-pt-pb),P=a=>'M'+a.map((v,i)=>X(i).toFixed(1)+' '+Y(v).toFixed(1)).join('L');
+ const mesi=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];let g='',k=5;for(let i=0;i<=k;i++){const v=top*i/k;g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--mut)">${Math.round(v)}</text>`}
+ D.ds.forEach((d,i)=>{if(d.slice(8)==='01')g+=`<text x="${X(i)}" y="${H-6}" font-size="11" fill="var(--mut)" text-anchor="start">${mesi[+d.slice(5,7)-1]}</text>`});
+ const oi=D.ds.indexOf(oggi()),pk=D.tot.indexOf(Math.max(...D.tot));
+ const svg=`<svg id="st-sv" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Mezzi in deposito giorno per giorno">${g}${oi>=0?`<line x1="${X(oi)}" x2="${X(oi)}" y1="${pt}" y2="${H-pb}" stroke="var(--mut)" stroke-dasharray="4 3"/><text x="${X(oi)+4}" y="${pt+10}" font-size="11" fill="var(--mut)">oggi</text>`:''}
+  <path d="${P(D.cam)}" fill="none" stroke="var(--s3)" stroke-width="2"/><path d="${P(D.cas)}" fill="none" stroke="var(--s2)" stroke-width="2"/><path d="${P(D.tot)}" fill="none" stroke="var(--s1)" stroke-width="2.5"/><line id="st-cx" y1="${pt}" y2="${H-pb}" stroke="var(--mut)" style="display:none"/></svg>`;
+ const rows=D.ds.map((d,i)=>d.slice(8)==='01'?`<tr><td>${dmy(d)}</td><td>${D.tot[i]}</td><td>${D.cas[i]}</td><td>${D.cam[i]}</td></tr>`:'').join('');
+ return{html:`<div id="st-lc">${svg}<div id="st-tp"></div></div><div class="stlg"><span><i style="background:var(--s1)"></i>Totale</span><span><i style="background:var(--s2)"></i>Casalemenini</span><span><i style="background:var(--s3)"></i>Camporengo</span></div><p class="mut">Massimo dell'anno: <b>${D.tot[pk]}</b> mezzi il ${dmy(D.ds[pk])}. Dopo "oggi" è una previsione dai movimenti già inseriti.</p><details><summary>Vedi i numeri</summary><table style="width:100%;font-size:.85rem"><tr><th align="left">Data</th><th>Totale</th><th>Casalemenini</th><th>Camporengo</th></tr>${rows}</table></details>`,D}}
+function stDraw(){const cap=c=>{const l=LOC[c.pos];if(!l)return'Senza posto';return(l.cap==='13C'||l.cap==='13S')?'13 (strada + campagna)':l.cap};
+ const tot=db.cl.reduce((a,c)=>a+stVal(c),0);$('#st-n').textContent=`Stagione ${db.yr} · ${db.cl.length} clienti · totale ${e2(tot)}. ${stBs==='fat'?'Fatturato = prezzo concordato più eventuali extra.':'Incassato = acconti e pagamenti già registrati.'}`;
+ const L=stLine();
+ $('#st-b').innerHTML='<h3>Per nazionalità</h3>'+stBar(stGr(c=>stNz[String(c.naz||'').toUpperCase()]||(c.naz?String(c.naz).toUpperCase():'Non indicata'),8))+'<h3>Per tipo di mezzo</h3>'+stBar(stGr(c=>{const t=String(c.tipo||'Altro');return t.charAt(0)+t.slice(1).toLowerCase()}))+'<h3>Per capannone</h3>'+stBar(stGr(cap))+'<h3>Per sede</h3>'+stBar(stGr(c=>sedeDi(c)||'Senza sede'))+'<h3>Mezzi in deposito giorno per giorno</h3>'+L.html;
+ const sv=$('#st-sv'),tp=$('#st-tp'),cx=$('#st-cx'),D=L.D;
+ sv.onpointermove=e=>{const r=sv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*700,i=Math.max(0,Math.min(D.ds.length-1,Math.round((x-38)/(700-38-12)*(D.ds.length-1))));const px=38+i/(D.ds.length-1)*(700-38-12);cx.setAttribute('x1',px);cx.setAttribute('x2',px);cx.style.display='';
+  tp.style.display='block';tp.innerHTML=`<b>${dmy(D.ds[i])}</b><br>Totale ${D.tot[i]}<br>Casalemenini ${D.cas[i]}<br>Camporengo ${D.cam[i]}`;tp.style.left=Math.min(r.width-130,Math.max(0,px/700*r.width+8))+'px';tp.style.top='8px'};
+ sv.onpointerleave=()=>{tp.style.display='none';cx.style.display='none'}}
+function stOpen(){$('#dlgst').showModal();stDraw()}
+$('#st-bs').onclick=e=>{const b=e.target.closest('[data-b]');if(!b)return;stBs=b.dataset.b;$('#st-bs').querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b));stDraw()};
+$('#st-cl').onclick=()=>$('#dlgst').close();
 async function bkSave(){try{const d=await claude.use('downloads');if(!d)return toast('Salvataggio non disponibile qui');
  const o={formato:'rimessaggio-backup',v:1,creato:new Date().toISOString(),db:db,files:fdb()};
  await d.save({filename:'backup-rimessaggio-'+oggi()+'.json',data:new Blob([JSON.stringify(o)],{type:'application/json'})});try{localStorage.setItem('rim-bk',oggi())}catch(e){}toast('Backup salvato');render()}catch(e){if(!e||e.code!=='declined')toast('Salvataggio non riuscito')}}
-$('#x-l').onclick=e=>{if(e.target.closest&&e.target.closest('[data-bk2]'))return bkSave();if(e.target.closest&&e.target.closest('[data-rs]'))return rsOpen();if(e.target.closest&&e.target.closest('[data-ut]'))return utOpen();if(e.target.closest&&e.target.closest('[data-ml]'))return mlOpen();if(e.target.closest&&e.target.closest('[data-ov]'))return ovOpen();const b=e.target.closest&&e.target.closest('[data-go]');if(b)go(b.dataset.go);const r=e.target.closest&&e.target.closest('[data-roll]');if(r)rollOpen()};
+$('#x-l').onclick=e=>{if(e.target.closest&&e.target.closest('[data-bk2]'))return bkSave();if(e.target.closest&&e.target.closest('[data-rs]'))return rsOpen();if(e.target.closest&&e.target.closest('[data-ut]'))return utOpen();if(e.target.closest&&e.target.closest('[data-ml]'))return mlOpen();if(e.target.closest&&e.target.closest('[data-ov]'))return ovOpen();if(e.target.closest&&e.target.closest('[data-st]'))return stOpen();const b=e.target.closest&&e.target.closest('[data-go]');if(b)go(b.dataset.go);const r=e.target.closest&&e.target.closest('[data-roll]');if(r)rollOpen()};
 $('#v-h').querySelector&&0;
 document.querySelector('.qa')&&(document.querySelector('.qa').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-q]');if(!b)return;const q=b.dataset.q;if(q==='new')regOpen(false,'c');else if(q==='find')srOpen(id=>{filtro=isS(id)?'STAG':'TUTTI';$('#q').value=fid(id);aperto=id;go('c');render()});else if(q==='pay'){kt='R';go('k');pn()}else go(q)});
 $('#m-d').value=oggi();

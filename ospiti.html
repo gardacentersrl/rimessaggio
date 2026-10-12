@@ -33,6 +33,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 </style></head>
 <body><main>
 <div class="top"><h1 id="h">Area clienti</h1><div class="lg" id="lg"></div></div>
+<div id="pv" class="card" hidden style="border:2px solid var(--acc)"><b>Anteprima</b><p>Stai vedendo la pagina come la vede il cliente. I dati sono quelli dell'ultimo aggiornamento.</p></div>
 <div id="m" class="msg" role="status"></div>
 
 <section id="v1" hidden><form id="f1" class="card">
@@ -77,7 +78,7 @@ de:{h:'Kundenbereich',t1:'Geben Sie die E-Mail-Adresse ein, die Sie uns mitgetei
  doc:'Dokumente',docs:'Dokument hochladen (PDF, Foto)',docok:'Dokument gesendet, danke!',doclist:'Gesendete Dokumente',doctp:'PDF, JPG und PNG bis 6 MB werden akzeptiert.',nodoc:'Keine Dokumente.',
  datein:'Das Datum muss in der Zukunft liegen.'}};
 var $=function(s){return document.querySelector(s)},E=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]})};
-var SK='ospite-tk',L=(function(){try{var l=localStorage.getItem('ospite-l');if(l&&D[l])return l}catch(e){}var n=(navigator.language||'it').slice(0,2);return D[n]?n:'en'})(),EM='',TK='',DATA=null;
+var SK='ospite-tk',L=(function(){try{var l=localStorage.getItem('ospite-l');if(l&&D[l])return l}catch(e){}var n=(navigator.language||'it').slice(0,2);return D[n]?n:'en'})(),EM='',TK='',DATA=null,PREV=0;
 function T(k){return D[L][k]}
 function msg(t,ko){var m=$('#m');m.textContent=t||'';m.className='msg '+(ko?'ko':'ok')}
 function lang(l){L=l;try{localStorage.setItem('ospite-l',l)}catch(e){}document.documentElement.lang=l;paint()}
@@ -91,8 +92,8 @@ $('#f1').onsubmit=async function(e){e.preventDefault();EM=$('#em').value.trim().
 $('#b2x').onclick=function(){show(1);msg('')};
 $('#f2').onsubmit=async function(e){e.preventDefault();$('#b2').disabled=true;msg('');
  try{var r=await api({a:'entra',email:EM,codice:$('#cod').value});TK=r.token;try{sessionStorage.setItem(SK,TK)}catch(x){}await carica()}catch(x){msg(x.st===401?T('bad'):T('err'),1)}$('#b2').disabled=false};
-$('#ex').onclick=function(){TK='';DATA=null;try{sessionStorage.removeItem(SK)}catch(e){}show(1);msg('')};
-async function carica(){try{DATA=await api({a:'dati',token:TK});if(DATA.veicoli[0]&&DATA.veicoli[0].dati.L&&!localStorage.getItem('ospite-l'))L=DATA.veicoli[0].dati.L;paint();show(3);msg('')}
+$('#ex').onclick=function(){TK='';DATA=null;PREV=0;try{sessionStorage.removeItem('ospite-pv')}catch(e){}$('#pv').hidden=true;try{sessionStorage.removeItem(SK)}catch(e){}show(1);msg('')};
+async function carica(){try{DATA=await api({a:'dati',token:TK});if(DATA.veicoli[0]&&DATA.veicoli[0].dati.L&&(PREV||!localStorage.getItem('ospite-l')))L=DATA.veicoli[0].dati.L;$('#pv').hidden=!PREV;paint();show(3);msg('')}
  catch(x){TK='';show(1);msg(x.st===401?T('scad'):T('err'),1)}}
 function money(n,l){try{return new Intl.NumberFormat({it:'it-IT',en:'en-GB',de:'de-DE'}[L],{style:'currency',currency:'EUR'}).format(n)}catch(e){return n+' €'}}
 function dt(d){if(!d)return'';var p=String(d).slice(0,10).split('-');return L==='en'?p[2]+'/'+p[1]+'/'+p[0]:p[2]+'.'+p[1]+'.'+p[0]}
@@ -126,5 +127,5 @@ $('#app').onchange=async function(e){var i=e.target.closest('[data-f]');if(!i||!
  try{var b=await ridimensiona(f),nome=b.nome||f.name,tipo=b.type||f.type;if(b.size>6*1024*1024)return msg(T('doctp'),1);
   var s=await new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(String(r.result).split(',')[1])};r.onerror=rej;r.readAsDataURL(b)});
   await api({a:'doc',token:TK,cid:+i.dataset.f,nome:nome,tipo:tipo,dati:s});await carica();msg(T('docok'))}catch(x){msg(x.st===401?T('scad'):T('err'),1)}};
-(function(){document.documentElement.lang=L;paint();try{TK=sessionStorage.getItem(SK)||''}catch(e){}if(TK)carica();else show(1)})();
+(function(){if(/^#p=/.test(location.hash)){TK=location.hash.slice(3);PREV=1;try{sessionStorage.setItem(SK,TK);sessionStorage.setItem('ospite-pv','1')}catch(e){}history.replaceState(null,'',location.pathname)}else{try{PREV=sessionStorage.getItem('ospite-pv')?1:0}catch(e){}}document.documentElement.lang=L;paint();if(!TK)try{TK=sessionStorage.getItem(SK)||''}catch(e){}if(TK)carica();else show(1)})();
 </script></body></html>
