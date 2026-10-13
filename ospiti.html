@@ -49,6 +49,10 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .sub{border:1px dashed var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
 .foot{text-align:center;font-size:.82rem;color:var(--mut);padding:8px 0}
 #pv{border:2px solid var(--acc)}
+.alrt{background:rgba(179,49,43,.1);border:1px solid var(--ko);border-radius:10px;padding:10px 12px;color:var(--fg)}
+.box{max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--card)}
+canvas.sig{width:100%;height:auto;border:1px dashed var(--mut);border-radius:8px;background:#fff;touch-action:none}
+form[data-di],form[data-dv]{margin-bottom:6px}
 </style></head>
 <body>
 <div class="hero"><div class="in">
@@ -124,45 +128,116 @@ async function carica(){try{DATA=await api({a:'dati',token:TK});if(DATA.veicoli[
  catch(x){TK='';show(1);msg(x.st===401?T('scad'):T('err'),1)}}
 function money(n){try{return new Intl.NumberFormat({it:'it-IT',en:'en-GB',de:'de-DE'}[L],{style:'currency',currency:'EUR'}).format(n)}catch(e){return n+' €'}}
 function dt(d){if(!d)return'';var p=String(d).slice(0,10).split('-');return L==='en'?p[2]+'/'+p[1]+'/'+p[0]:p[2]+'.'+p[1]+'.'+p[0]}
+var D2={
+it:{pratica:'La tua pratica',tuttoOk:'Tutto in regola, grazie!',allerta:'Per completare la pratica mancano o sono da rinnovare:',iId:'Documento d\'identità',iVeh:'Documento del mezzo',iCtr:'Contratto firmato e privacy',iAcc:'Acconto di prenotazione',
+ sMan:'Mancante',sScad:'Scaduto il',sVal:'Valido fino al',sVer:'Ricevuto, in verifica',sOk:'Completato',sDa:'Da versare',sVers:'Versato',aCar:'Carica',aFirma:'Firma ora',aPaga:'Vedi come pagare',
+ docs2:'Documenti',idT:'Documento d\'identità',tdoc:'Tipo di documento',ndoc:'Numero del documento',sdoc:'Data di scadenza',vehT:'Documento del mezzo (libretto o carta di circolazione)',invDoc:'Invia',docScad:'Il documento è scaduto: serve un documento in corso di validità.',docDati:'Compila tipo, numero e scadenza e scegli il file.',
+ DOC:{ID:'Carta d\'identità',PASS:'Passaporto',PAT:'Patente'},
+ ctr:'Contratto di rimessaggio',ctrIn:'Leggi, compila e firma il contratto direttamente qui. Valido come firma elettronica semplice.',ctrOpen:'Compila e firma il contratto',tuoi:'I tuoi dati',nm:'Nome',cg:'Cognome',luogoN:'Luogo di nascita',nasc:'Data di nascita',via:'Indirizzo (via)',cap:'CAP',citta:'Città',
+ s1:'Contratto',s2:'Condizioni generali',s3:'Clausole specifiche',s4:'Informativa sulla privacy (GDPR)',firmaQ:'Firma qui con il dito o il mouse',cancF:'Cancella firma',invia2:'Firma e invia il contratto',ctrOk:'Contratto inviato! Lo verifichiamo e ti confermiamo.',ctrKo:'Completa tutti i dati, le caselle e le tre firme.',ctrInv:'Contratto già inviato, in verifica.',
+ acc2:'Prenotazione e acconto',accT:'Per confermare il posto versa l\'acconto di',accN:'L\'acconto viene detratto dal totale della stagione.',
+ ric:'Ricevute dei pagamenti',ricT:'Scarica la ricevuta (PDF)',ricNf:'Le ricevute non hanno valore fiscale.',nopag:'Nessun pagamento registrato.'},
+en:{pratica:'Your file',tuttoOk:'All in order, thank you!',allerta:'To complete your file the following are missing or need renewing:',iId:'Identity document',iVeh:'Vehicle document',iCtr:'Signed contract and privacy',iAcc:'Booking deposit',
+ sMan:'Missing',sScad:'Expired on',sVal:'Valid until',sVer:'Received, being checked',sOk:'Completed',sDa:'To be paid',sVers:'Paid',aCar:'Upload',aFirma:'Sign now',aPaga:'How to pay',
+ docs2:'Documents',idT:'Identity document',tdoc:'Document type',ndoc:'Document number',sdoc:'Expiry date',vehT:'Vehicle document (registration papers)',invDoc:'Send',docScad:'The document has expired: a valid document is required.',docDati:'Fill in type, number and expiry date and choose the file.',
+ DOC:{ID:'ID card',PASS:'Passport',PAT:'Driving licence'},
+ ctr:'Storage contract',ctrIn:'Read, fill in and sign the contract right here. Valid as a simple electronic signature.',ctrOpen:'Fill in and sign the contract',tuoi:'Your details',nm:'First name',cg:'Last name',luogoN:'Place of birth',nasc:'Date of birth',via:'Address (street)',cap:'Postcode',citta:'City',
+ s1:'Contract',s2:'General terms and conditions',s3:'Specific clauses',s4:'Privacy notice (GDPR)',firmaQ:'Sign here with your finger or mouse',cancF:'Clear signature',invia2:'Sign and send the contract',ctrOk:'Contract sent! We will check it and confirm.',ctrKo:'Please complete all details, boxes and the three signatures.',ctrInv:'Contract already sent, being checked.',
+ acc2:'Booking and deposit',accT:'To confirm your space please pay the deposit of',accN:'The deposit is deducted from the season total.',
+ ric:'Payment receipts',ricT:'Download receipt (PDF)',ricNf:'Receipts have no fiscal value.',nopag:'No payments recorded.'},
+de:{pratica:'Ihre Unterlagen',tuttoOk:'Alles in Ordnung, danke!',allerta:'Zur Vervollständigung fehlen bzw. müssen erneuert werden:',iId:'Ausweisdokument',iVeh:'Fahrzeugdokument',iCtr:'Unterschriebener Vertrag und Datenschutz',iAcc:'Anzahlung zur Buchung',
+ sMan:'Fehlt',sScad:'Abgelaufen am',sVal:'Gültig bis',sVer:'Erhalten, wird geprüft',sOk:'Erledigt',sDa:'Zu zahlen',sVers:'Bezahlt',aCar:'Hochladen',aFirma:'Jetzt unterschreiben',aPaga:'Zahlungsinfos',
+ docs2:'Dokumente',idT:'Ausweisdokument',tdoc:'Dokumentart',ndoc:'Dokumentnummer',sdoc:'Ablaufdatum',vehT:'Fahrzeugdokument (Fahrzeugschein)',invDoc:'Senden',docScad:'Das Dokument ist abgelaufen: ein gültiges Dokument ist erforderlich.',docDati:'Art, Nummer und Ablaufdatum ausfüllen und Datei wählen.',
+ DOC:{ID:'Personalausweis',PASS:'Reisepass',PAT:'Führerschein'},
+ ctr:'Abstellvertrag',ctrIn:'Vertrag hier lesen, ausfüllen und unterschreiben. Gültig als einfache elektronische Signatur.',ctrOpen:'Vertrag ausfüllen und unterschreiben',tuoi:'Ihre Daten',nm:'Vorname',cg:'Nachname',luogoN:'Geburtsort',nasc:'Geburtsdatum',via:'Adresse (Straße)',cap:'PLZ',citta:'Stadt',
+ s1:'Vertrag',s2:'Allgemeine Vertragsbedingungen',s3:'Besondere Klauseln',s4:'Datenschutzerklärung (DSGVO)',firmaQ:'Hier mit Finger oder Maus unterschreiben',cancF:'Unterschrift löschen',invia2:'Vertrag unterschreiben und senden',ctrOk:'Vertrag gesendet! Wir prüfen ihn und bestätigen.',ctrKo:'Bitte alle Daten, Kästchen und die drei Unterschriften ausfüllen.',ctrInv:'Vertrag bereits gesendet, wird geprüft.',
+ acc2:'Buchung und Anzahlung',accT:'Zur Bestätigung des Platzes bitte die Anzahlung leisten:',accN:'Die Anzahlung wird vom Saisonpreis abgezogen.',
+ ric:'Zahlungsbelege',ricT:'Beleg herunterladen (PDF)',ricNf:'Die Belege haben keine steuerliche Gültigkeit.',nopag:'Keine Zahlungen verbucht.'}};
+Object.keys(D2).forEach(function(l){Object.assign(D[l],D2[l])});
+var CFG=null,SIG={};
+function cl2(s){return String(s==null?'':s)}
 function trTxt(r){var x=r.dettagli;if(!x||!x.trasporto)return'';return' · '+T('trl')+(x.camp?' ('+E(x.camp)+')':'')}
+function stRow(ok,label,det,act){var ic=ok==='ok'?'✓':ok==='ver'?'…':'!',col=ok==='ok'?'var(--ok)':ok==='ver'?'var(--mut)':'var(--ko)';
+ return'<div class="row" style="align-items:center"><span><b style="color:'+col+';display:inline-block;width:1.2em">'+ic+'</b>'+label+'<span class="s" style="display:block;margin-left:1.2em;color:'+col+'">'+det+'</span></span>'+(act?'<a href="#'+act[0]+'" class="alt" style="padding:4px 10px;border:1px solid var(--line);border-radius:8px;text-decoration:none;color:var(--acc);font-weight:600;font-size:.85rem">'+act[1]+'</a>':'')+'</div>'}
+function pText(arr){return(arr||[]).map(function(x){return'<p style="color:var(--fg);margin:0 0 6px;font-size:.88rem">'+E(x)+'</p>'}).join('')}
 function draw(){var h='',nm=DATA.veicoli[0]?DATA.veicoli[0].dati.nome:'';h+='<div class="hello">'+T('ciao')+(nm?', '+E(tc(nm)):'')+'</div>';
- DATA.veicoli.forEach(function(v){var d=v.dati,rq=DATA.richieste.filter(function(r){return r.cid===v.cid}),dc=DATA.documenti.filter(function(x){return x.cid===v.cid}),due=(d.dap||0)+(d.arr||0),pc=d.tot>0?Math.min(100,Math.max(0,d.vers/d.tot*100)):0;
+ DATA.veicoli.forEach(function(v){var d=v.dati,S=d.st||{},cid=v.cid,rq=DATA.richieste.filter(function(r){return r.cid===cid}),dc=DATA.documenti.filter(function(x){return x.cid===cid}),pr=(DATA.pratiche||[]).filter(function(x){return x.cid===cid}),due=(d.dap||0)+(d.arr||0),pc=d.tot>0?Math.min(100,Math.max(0,d.vers/d.tot*100)):0,
+  prIn=pr.some(function(x){return x.stato==='inviata'}),idUp=dc.some(function(x){return x.cat==='identita'}),vhUp=dc.some(function(x){return x.cat==='mezzo'});
  var st=d.stato==='IN'?T('dentro'):d.stato==='OUT'?T('fuori'):T('nd');
+ var sI=S.id==='ok'?['ok',T('sVal')+' '+dt(S.ids)]:S.id==='scaduto'&&!idUp?['ko',T('sScad')+' '+dt(S.ids)]:idUp&&S.id!=='ok'?['ver',T('sVer')]:['ko',T('sMan')],
+  sV=S.veh==='ok'?['ok',T('sOk')]:vhUp?['ver',T('sVer')]:['ko',T('sMan')],
+  sC=S.ctr==='ok'?['ok',T('sOk')]:prIn?['ver',T('sVer')]:['ko',T('sMan')],
+  sA=S.acc==='ok'?['ok',T('sVers')]:['ko',T('sDa')+(d.accImp?' · '+money(d.accImp):'')];
+ var miss=[];if(sI[0]==='ko')miss.push(T('iId')+(S.id==='scaduto'?' ('+T('sScad').toLowerCase()+' '+dt(S.ids)+')':''));if(sV[0]==='ko')miss.push(T('iVeh'));if(sC[0]==='ko')miss.push(T('iCtr'));
  h+='<div class="card"><div class="veh"><div style="flex:1"><div class="s">'+T('mezzo')+'</div><h2 style="margin:0">'+E(d.mezzo)+'</h2></div><span class="plate">'+E(d.targa)+'</span></div>'
   +'<div><span class="pill '+(d.stato==='IN'?'in':'')+'"><span class="dot"></span>'+st+'</span></div>';
  if(d.area)h+='<div class="row"><span>'+T('area')+'</span><b>'+E(d.area)+'</b></div>';
  if(d.cod)h+='<div class="gate"><div class="s">'+T('cancello')+'</div><div class="big">'+E(d.cod)+'</div><div class="s">'+T('cancs')+'</div></div>';
  h+='</div>';
+ h+='<div class="card" id="p'+cid+'"><h2>'+T('pratica')+'</h2>'+(miss.length?'<div class="alrt"><b>'+T('allerta')+'</b><br>'+miss.map(E).join(' · ')+'</div>':'<p class="ok"><b>'+T('tuttoOk')+'</b></p>')
+  +stRow(sI[0],T('iId'),sI[1],sI[0]==='ko'?['d'+cid,T('aCar')]:null)+stRow(sV[0],T('iVeh'),sV[1],sV[0]==='ko'?['d'+cid,T('aCar')]:null)+stRow(sC[0],T('iCtr'),sC[1],sC[0]==='ko'?['c'+cid,T('aFirma')]:null)+stRow(sA[0],T('iAcc'),sA[1],sA[0]==='ko'?['a'+cid,T('aPaga')]:null)+'</div>';
  h+='<div class="card"><h2>'+T('conto')+' · '+T('stag')+' '+E(d.yr)+'</h2>'
   +'<div class="bar" aria-hidden="true"><i style="width:'+pc.toFixed(0)+'%"></i></div>'
   +'<div class="row"><span>'+T('tot')+'</span><span>'+money(d.tot)+'</span></div><div class="row"><span>'+T('vers')+'</span><span>'+money(d.vers)+'</span></div>'
   +(d.arr>0?'<div class="row"><span class="ko">'+T('arr')+'</span><b class="ko">'+money(d.arr)+'</b></div>':'')
   +(due>0.004?'<div class="row"><b>'+T('dap')+'</b><span class="due">'+money(due)+'</span></div>':'<p class="ok"><b>'+T('saldato')+'</b></p>');
- if((d.pag||[]).length)h+='<h3>'+T('pagam')+'</h3>'+d.pag.map(function(p){return'<div class="row s"><span>'+dt(p.d)+'</span><span>'+money(p.imp)+'</span></div>'}).join('');
- if(d.iban&&due>0.004)h+='<h3>'+T('bonifico')+'</h3><div class="row"><span>'+T('intest')+'</span><span>'+E(d.intest)+'</span></div><div class="row"><span>'+T('iban')+'</span><span class="mono">'+E(d.iban)+'</span></div>'+(d.bic?'<div class="row"><span>'+T('bic')+'</span><span class="mono">'+E(d.bic)+'</span></div>':'')+'<div class="row"><span>'+T('caus')+'</span><span>'+E(d.caus)+'</span></div>';
+ if(d.iban&&(due>0.004||S.acc!=='ok'))h+='<h3 id="a'+cid+'">'+(S.acc!=='ok'?T('acc2'):T('bonifico'))+'</h3>'+(S.acc!=='ok'&&d.accImp?'<p style="color:var(--fg)">'+T('accT')+' <b>'+money(d.accImp)+'</b>. <span class="s">'+T('accN')+'</span></p>':'')+'<div class="row"><span>'+T('intest')+'</span><span>'+E(d.intest)+'</span></div><div class="row"><span>'+T('iban')+'</span><span class="mono">'+E(d.iban)+'</span></div>'+(d.bic?'<div class="row"><span>'+T('bic')+'</span><span class="mono">'+E(d.bic)+'</span></div>':'')+'<div class="row"><span>'+T('caus')+'</span><span>'+E(d.caus)+'</span></div>';
  h+='<p class="s">'+T('agg')+' '+dt(v.agg)+'</p></div>';
+ // ricevute
+ h+='<div class="card"><h2>'+T('ric')+'</h2>'+((d.rec||[]).length?d.rec.map(function(p){return'<div class="row" style="align-items:center"><span>'+dt(p.d)+' · <b>'+money(p.imp)+'</b><span class="s"> · '+E(p.op||'')+'</span></span><button class="alt" data-rc="'+p.i+'" data-c="'+cid+'" style="padding:4px 10px;font-size:.85rem">PDF</button></div>'}).join('')+'<p class="s">'+T('ricNf')+'</p>':'<p>'+T('nopag')+'</p>')+'</div>';
+ // uscita
  h+='<div class="card"><h2>'+T('uscita')+'</h2>';
  if((d.usc||[]).length)h+='<p>'+T('prog')+': <b>'+d.usc.map(dt).join(', ')+'</b></p>';
- if(d.stato==='IN'){h+='<form data-u="'+v.cid+'"><label>'+T('uscd')+'</label><input type="date" name="d" required min="'+new Date(Date.now()+864e5).toISOString().slice(0,10)+'">'
+ if(d.stato==='IN'){h+='<form data-u="'+cid+'"><label>'+T('uscd')+'</label><input type="date" name="d" required min="'+new Date(Date.now()+864e5).toISOString().slice(0,10)+'">'
    +'<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="t" data-tt="1"> '+T('trasp')+'</label>'
    +'<div class="sub" data-sub hidden><label>'+T('camp')+'</label><input name="camp" maxlength="60"><label>'+T('piaz')+'</label><input name="piaz" maxlength="30"><label>'+T('ora')+'</label><select name="ora"><option value="">'+T('oraDef')+'</option>'+SLOT.map(function(x){return'<option value="'+x+'">'+x+':00</option>'}).join('')+'</select>'
    +(d.trp?'<p class="s">'+T('cost')+': <b>'+money(d.trp)+'</b></p>':'')+'<p class="s">'+T('trn')+' '+WA+'.</p></div>'
    +'<label>'+T('nota')+'</label><textarea name="n" rows="2" maxlength="400"></textarea><button class="pri" type="submit">'+T('invia')+'</button></form>'}else h+='<p>'+T('solodentro')+'</p>';
- if(rq.length)h+='<h3>'+T('rich')+'</h3>'+rq.map(function(r){return'<div class="row"><span>'+dt(r.data)+' · <span class="pill">'+T(r.stato)+'</span><span class="s">'+trTxt(r)+'</span></span>'+(r.stato==='nuova'?'<button class="alt" data-x="'+r.id+'" data-c="'+v.cid+'" style="padding:4px 10px">'+T('annulla')+'</button>':'')+'</div>'}).join('');
+ if(rq.length)h+='<h3>'+T('rich')+'</h3>'+rq.map(function(r){return'<div class="row"><span>'+dt(r.data)+' · <span class="pill">'+T(r.stato)+'</span><span class="s">'+trTxt(r)+'</span></span>'+(r.stato==='nuova'?'<button class="alt" data-x="'+r.id+'" data-c="'+cid+'" style="padding:4px 10px">'+T('annulla')+'</button>':'')+'</div>'}).join('');
  h+='</div>';
- h+='<div class="card"><h2>'+T('doc')+'</h2><label for="f'+v.cid+'">'+T('docs')+'</label><input id="f'+v.cid+'" type="file" accept="application/pdf,image/jpeg,image/png,image/*" data-f="'+v.cid+'"><p class="s">'+T('doctp')+'</p>'
-  +(dc.length?'<h3>'+T('doclist')+'</h3>'+dc.map(function(x){return'<div class="row s"><span>'+E(x.nome)+'</span><span>'+dt(x.creato)+'</span></div>'}).join(''):'')+'</div>'});
+ // documenti
+ h+='<div class="card" id="d'+cid+'"><h2>'+T('docs2')+'</h2>'
+  +'<form data-di="'+cid+'"><h3 style="margin-top:0">'+T('idT')+'</h3><label>'+T('tdoc')+'</label><select name="td"><option value="ID">'+T('DOC').ID+'</option><option value="PASS">'+T('DOC').PASS+'</option><option value="PAT">'+T('DOC').PAT+'</option></select><label>'+T('ndoc')+'</label><input name="nd" maxlength="30"><label>'+T('sdoc')+'</label><input type="date" name="sd" min="'+new Date(Date.now()+864e5).toISOString().slice(0,10)+'"><input type="file" name="f" accept="application/pdf,image/jpeg,image/png,image/*"><button class="pri" type="submit">'+T('invDoc')+'</button></form>'
+  +'<form data-dv="'+cid+'"><h3>'+T('vehT')+'</h3><input type="file" name="f" accept="application/pdf,image/jpeg,image/png,image/*"><button class="pri" type="submit">'+T('invDoc')+'</button></form><p class="s">'+T('doctp')+'</p>'
+  +(dc.length?'<h3>'+T('doclist')+'</h3>'+dc.map(function(x){return'<div class="row s"><span>'+E(x.cat==='identita'?T('iId'):x.cat==='mezzo'?T('iVeh'):'')+' · '+E(x.nome)+'</span><span>'+dt(x.creato)+'</span></div>'}).join(''):'')+'</div>';
+ // contratto
+ h+='<div class="card" id="c'+cid+'"><h2>'+T('ctr')+'</h2>'+(S.ctr==='ok'?'<p class="ok"><b>'+T('sOk')+'</b></p>':prIn?'<p>'+T('ctrInv')+'</p>':'<p>'+T('ctrIn')+'</p><button class="pri" data-co="'+cid+'">'+T('ctrOpen')+'</button><div data-cw="'+cid+'"></div>')+'</div>'});
  $('#app').innerHTML=h}
-$('#app').onchange=async function(e){var t=e.target.closest('[data-tt]');if(t){t.closest('form').querySelector('[data-sub]').hidden=!t.checked;return}
- var i=e.target.closest('[data-f]');if(!i||!i.files[0])return;var f=i.files[0];
- try{var b=await ridimensiona(f),nome=b.nome||f.name,tipo=b.type||f.type;if(b.size>6*1024*1024)return msg(T('doctp'),1);
-  var s=await new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(String(r.result).split(',')[1])};r.onerror=rej;r.readAsDataURL(b)});
-  await api({a:'doc',token:TK,cid:+i.dataset.f,nome:nome,tipo:tipo,dati:s});await carica();msg(T('docok'))}catch(x){msg(x.st===401?T('scad'):T('err'),1)}};
-$('#app').onsubmit=async function(e){var f=e.target.closest('[data-u]');if(!f)return;e.preventDefault();var d=f.d.value;if(!d||d<=new Date().toISOString().slice(0,10))return msg(T('datein'),1);
- var b={a:'uscita',token:TK,cid:+f.dataset.u,data:d,note:f.n.value};
- if(f.t.checked){if(!f.camp.value.trim())return msg(T('cmp'),1);b.tr={camp:f.camp.value.trim(),piaz:f.piaz.value.trim(),ora:f.ora.value}}
- try{await api(b);await carica();msg(T('uscok'))}catch(x){msg(x.st===401?T('scad'):T('err'),1)}};
-$('#app').onclick=async function(e){var b=e.target.closest('[data-x]');if(!b)return;try{await api({a:'annulla',token:TK,cid:+b.dataset.c,id:+b.dataset.x});await carica()}catch(x){msg(T('err'),1)}};
+function contrattoForm(cid){var v=DATA.veicoli.filter(function(x){return x.cid===cid})[0],A=v.dati.anag||{},C=CFG&&CFG.t&&CFG.t[L],S=CFG&&CFG.s;if(!C)return'<p class="ko">'+T('err')+'</p>';
+ var sg=function(k,lab){return'<div><div class="s">'+lab+' · '+T('firmaQ')+'</div><canvas class="sig" data-sg="'+k+'" width="360" height="204"></canvas><button type="button" class="alt" data-cs="'+k+'" style="padding:4px 10px;font-size:.85rem">'+T('cancF')+'</button></div>'};
+ var ck=function(k,t){return'<label style="display:flex;gap:8px;align-items:flex-start;font-weight:400"><input type="checkbox" name="'+k+'" style="margin-top:3px"> <span>'+E((S&&S[k]&&S[k][L])||t)+'</span></label>'};
+ var f=function(n,lab,val,t){return'<label>'+lab+'</label><input name="'+n+'" value="'+E(val||'')+'" '+(t==='date'?'type="date"':'')+' required>'};
+ return'<form data-cf="'+cid+'" class="sub" style="margin-top:10px"><h3 style="margin-top:0">'+T('tuoi')+'</h3>'+f('nm',T('nm'),A.nm)+f('cg',T('cg'),A.cg)+f('luogoN',T('luogoN'),A.luogoN)+f('nasc',T('nasc'),A.nasc,'date')+f('via',T('via'),A.via)+f('cap',T('cap'),A.cap)+f('citta',T('citta'),A.citta)
+  +'<h3>'+T('s1')+'</h3><div class="box">'+pText(C.h)+pText(C.b)+'</div>'+ck('acc','')+sg('s1',T('s1'))
+  +'<h3>'+T('s2')+'</h3><div class="box">'+pText(C.g)+'</div>'+ck('gen','')
+  +'<h3>'+T('s3')+'</h3><div class="box">'+pText(C.v)+'</div>'+ck('ves','')+sg('sv',T('s3'))
+  +'<h3>'+T('s4')+'</h3><div class="box">'+pText([C.pr,(S&&S.pnote&&S.pnote[L])||''])+'</div>'+ck('pri','')+sg('sp',T('s4'))
+  +'<button class="pri" type="submit">'+T('invia2')+'</button></form>'}
+function sigInit(root){root.querySelectorAll('canvas.sig').forEach(function(c){var x=c.getContext('2d'),dr=false,k=c.dataset.sg;x.lineWidth=2.4;x.lineCap='round';x.strokeStyle='#111';SIG[k]=0;
+ function pt(e){var r=c.getBoundingClientRect();return[(e.clientX-r.left)*c.width/r.width,(e.clientY-r.top)*c.height/r.height]}
+ c.onpointerdown=function(e){dr=true;c.setPointerCapture(e.pointerId);var p=pt(e);x.beginPath();x.moveTo(p[0],p[1]);e.preventDefault()};
+ c.onpointermove=function(e){if(!dr)return;var p=pt(e);x.lineTo(p[0],p[1]);x.stroke();SIG[k]=1};
+ c.onpointerup=c.onpointercancel=function(){dr=false}})}
+$('#app').onclick=async function(e){
+ var co=e.target.closest('[data-co]');if(co){co.disabled=true;try{if(!CFG){var r=await api({a:'cfg',token:TK});CFG=r.cfg}var w=co.parentNode.querySelector('[data-cw]');w.innerHTML=contrattoForm(+co.dataset.co);sigInit(w);co.hidden=true}catch(x){msg(T('err'),1);co.disabled=false}return}
+ var cs=e.target.closest('[data-cs]');if(cs){var c=cs.parentNode.querySelector('canvas');c.getContext('2d').clearRect(0,0,c.width,c.height);SIG[cs.dataset.cs]=0;return}
+ var rc=e.target.closest('[data-rc]');if(rc){try{var r2=await api({a:'ricevuta',token:TK,cid:+rc.dataset.c,pid:+rc.dataset.rc}),a=document.createElement('a');a.href='data:application/pdf;base64,'+r2.pdf;a.download=r2.nome;document.body.appendChild(a);a.click();a.remove()}catch(x){msg(T('err'),1)}return}
+ var b=e.target.closest('[data-x]');if(!b)return;try{await api({a:'annulla',token:TK,cid:+b.dataset.c,id:+b.dataset.x});await carica()}catch(x){msg(T('err'),1)}};
+async function fileB64(f){var b=await ridimensiona(f);if(b.size>6*1024*1024)throw new Error('size');var s=await new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(String(r.result).split(',')[1])};r.onerror=rej;r.readAsDataURL(b)});return{nome:b.nome||f.name,tipo:b.type||f.type,dati:s}}
+$('#app').onchange=function(e){var t=e.target.closest('[data-tt]');if(t)t.closest('form').querySelector('[data-sub]').hidden=!t.checked};
+$('#app').onsubmit=async function(e){e.preventDefault();var f;
+ if(f=e.target.closest('[data-u]')){var d=f.d.value;if(!d||d<=new Date().toISOString().slice(0,10))return msg(T('datein'),1);
+  var b={a:'uscita',token:TK,cid:+f.dataset.u,data:d,note:f.n.value};
+  if(f.t.checked){if(!f.camp.value.trim())return msg(T('cmp'),1);b.tr={camp:f.camp.value.trim(),piaz:f.piaz.value.trim(),ora:f.ora.value}}
+  try{await api(b);await carica();msg(T('uscok'))}catch(x){msg(x.st===401?T('scad'):T('err'),1)}return}
+ if(f=e.target.closest('[data-di]')){if(!f.f.files[0]||!f.nd.value.trim()||!f.sd.value)return msg(T('docDati'),1);if(f.sd.value<=new Date().toISOString().slice(0,10))return msg(T('docScad'),1);
+  try{var o=await fileB64(f.f.files[0]);await api({a:'doc',token:TK,cid:+f.dataset.di,nome:o.nome,tipo:o.tipo,dati:o.dati,cat:'identita',scad:f.sd.value,num:f.nd.value.trim(),tdoc:f.td.value});await carica();msg(T('docok'))}catch(x){msg(x.message==='scaduto'?T('docScad'):x.st===401?T('scad'):T('err'),1)}return}
+ if(f=e.target.closest('[data-dv]')){if(!f.f.files[0])return msg(T('docDati'),1);
+  try{var o2=await fileB64(f.f.files[0]);await api({a:'doc',token:TK,cid:+f.dataset.dv,nome:o2.nome,tipo:o2.tipo,dati:o2.dati,cat:'mezzo'});await carica();msg(T('docok'))}catch(x){msg(x.st===401?T('scad'):T('err'),1)}return}
+ if(f=e.target.closest('[data-cf]')){var cid=+f.dataset.cf,an={};['nm','cg','luogoN','nasc','via','cap','citta'].forEach(function(k){an[k]=f[k].value.trim()});
+  if(!f.acc.checked||!f.gen.checked||!f.ves.checked||!f.pri.checked||!SIG.s1||!SIG.sv||!SIG.sp||Object.keys(an).some(function(k){return!an[k]}))return msg(T('ctrKo'),1);
+  var fr={};f.querySelectorAll('canvas.sig').forEach(function(c){fr[c.dataset.sg]=c.toDataURL('image/png')});
+  try{await api({a:'pratica',token:TK,cid:cid,anag:an,consensi:{acc:1,gen:1,ves:1,pri:1},firme:fr,lingua:L});await carica();msg(T('ctrOk'))}catch(x){msg(x.st===401?T('scad'):T('err'),1)}}};
 async function ridimensiona(f){if(f.type==='application/pdf')return f;var bm=await createImageBitmap(f),k=Math.min(1,2000/Math.max(bm.width,bm.height)),cv=document.createElement('canvas');cv.width=Math.round(bm.width*k);cv.height=Math.round(bm.height*k);cv.getContext('2d').drawImage(bm,0,0,cv.width,cv.height);
  var b=await new Promise(function(r){cv.toBlob(r,'image/jpeg',.85)});b.nome=f.name.replace(/\.\w+$/,'')+'.jpg';return b}
 (function(){if(/^#p=/.test(location.hash)){TK=location.hash.slice(3);PREV=1;try{sessionStorage.setItem(SK,TK);sessionStorage.setItem('ospite-pv','1')}catch(e){}history.replaceState(null,'',location.pathname)}else{try{PREV=sessionStorage.getItem('ospite-pv')?1:0}catch(e){}}
