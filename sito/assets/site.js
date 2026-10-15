@@ -39,10 +39,8 @@
       ev.preventDefault();
       var type = ty.value, len = parseFloat(String(ln.value).replace(",", "."));
       if (type !== "carrello" && !(len >= 2 && len <= 20)) { out.textContent = T.need || ""; ln.focus(); return; }
-      var a = GC.annual(type, len, dx.checked), t = GC.transport(type, len, dx.checked);
-      var h = "<div>" + T.r_ann + ": <b>" + B.m(a) + "</b></div>";
-      h += t != null ? "<div>" + T.r_tr + ": <b>" + B.m(t) + "</b></div>" : "<div>" + (T.tr_none || "") + "</div>";
-      out.innerHTML = h;
+      var a = GC.annual(type, len, dx.checked);
+      out.innerHTML = "<div>" + T.r_ann + ": <b>" + B.m(a) + "</b></div>";
     });
   }
 

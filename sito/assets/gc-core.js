@@ -49,7 +49,7 @@
     roulotte: /roulott|caravan|wohnwagen|woonwagen/,
     barca: /\bbarc|motoscaf|gommon|\bboat|speedboat|motorboat|\bboot|motorboot|schlauchboot|bootje|sloep|rubberboot/,
     carrello: /moto d.?acqua|motodacqua|jet ?ski|jetski|waterscooter|wetbike|personal watercraft|carrello|\bwave ?runner/,
-    camper: /\bcamper|wohnmobil|motorhome|motor home|kampeerauto|campervan|\bvan\b|furgon/,
+    camper: /\bcamper|wohnmobil|motorhome|motor home|kampeerauto|campervan|furgon/,
     vela: /\bvela\b|barca a vela|sailboat|sailing|segelboot|zeilboot|zeiljacht/,
     dx: /asse doppio|doppio asse|due assi|2 assi|\btandem|double axle|dual axle|two axle|2 axle|doppelachs|zwei achsen|2 achsen|dubbele as|tweeas|2 assen|twee assen/,
     sx: /asse singolo|singolo asse|un asse|single axle|einachs|enkele as/
@@ -59,23 +59,23 @@
     ["thanks", /grazie|thank|danke|bedankt|dank je|dankjewel|merci/],
     ["price", /prezz|quot[ae]|annual[ei]?\b|costo|costa|costi|quanto|tariff|retta|canone|\bprice|\bcost|how much|\bfee\b|annual fee|jahrespreis|jaarprijs|\bfees\b|\brate\b|preis|kosten|wieviel|wie viel|gebuhr|prijs|prijzen|\bkost\b|tarief|hoeveel/],
     ["season", /stagional|seasonal|saison|seizoen|settiman|\bmese\b|\bmesi\b|\bweeks?\b|\bmonths?\b|woche|monat|maand|\bweken\b/],
-    ["transport", /trasport|trasferi|navett|transport|shuttle|transfer|abhol|vervoer|ophalen|consegn|delivery|campeggio|camping|campsite|campingplatz|peschiera|\bgarda\b.*(porta|bring)/],
+    ["transport", /trasport|trasferi|navett|transport|shuttle|transfer|vervoer|campeggio|camping|campsite|campingplatz|peschiera|\bgarda\b.*(porta|bring)/],
     ["insurance", /assicur|polizza|insur|coverage|versicher|verzeker|furto|theft|diebstahl|diefstal|\bdann[oi]\b|damage|risarc|massimal|schaden|schade|compensation/],
     ["hours", /(?<!all['’ ]?)apert|chius|orari|gennaio|febbraio|marzo|novembre|dicembre|january|february|march|november|december|januar|februar|marz|dezember|januari|februari|maart|\bopen\b|closed|opening|hours|offen|offnet|geschlossen|offnungs|geopend|gesloten|openingstijd|1 ottobre|1 aprile|1 october|1 april|1 oktober|inverno|winter|seasonal opening|periodo|period/],
-    ["pickup", /ritir|prelev|uscit|uscire|portar(e)? via|pick ?up|collect|take (it|my|the).{0,12}out|get my|abhol|\bhol(e|en)\b|herausnehm|ophaal|uit de stalling|preavviso|notice|vorlauf|wegbrengen/],
-    ["return", /riconsegn|rientr|ripor|consegnar|bring (it )?back|drop ?off|return|zuruck|abgeben|anliefern|terugbrengen|inleveren|binnenbrengen/],
-    ["payment", /pagament|pagare|bonifico|\bcarta\b|\biban\b|saldo|acconto|caparra|scadenz|payment|\bpay\b|deposit|balance|bank|\bideal\b|zahlung|bezahl|uberweis|anzahlung|kreditkarte|creditcard|kaart|betal|storting|aanbetaling|saldo|stripe/],
-    ["booking", /prenot|riserv|disponibil|\bbook|reserve|reservation|availab|buche|reservier|verfugbar|boeken|reserveer|beschikbaar|diventare cliente|become a customer|nuovo cliente|new customer|posto (per|libero)|space for|spot for|plek voor|platz fur/],
+    ["pickup", /ritir|prelev|uscit|uscire|portar(e)? via|pick ?up|collect|take (it|my|the).{0,12}out|get my|abhol|\bhaal\b|ophal|\bhol(e|en)\b|herausnehm|ophaal|uit de stalling|preavviso|notice|vorlauf|wegbrengen/],
+    ["return", /riconsegn|rientr|ripor|consegnar|bring (it )?back|drop ?off|return|zuruck|abgeben|anliefern|terugbrengen|breng.{0,12}terug|inleveren|binnenbrengen/],
+    ["payment", /pagament|pagare|bonifico|\bcarta\b|\biban\b|saldo|acconto|caparra|scadenz|payment|\bpay\b|\bdeposit\b|balance|bank|\bideal\b|zahlung|bezahl|uberweis|anzahlung|kreditkarte|creditcard|kaart|betal|storting|aanbetaling|saldo|stripe/],
+    ["booking", /prenot|riserv|disponibil|\bbook|reserve|reservation|availab|buche|reservier|verfugbar|boeken|\bboek\b|reserveer|beschikbaar|diventare cliente|become a customer|nuovo cliente|new customer|posto (per|libero)|space for|spot for|plek voor|platz fur/],
     ["documents", /document|libretto|identita|passaporto|patente|contratto|firma|contract|passport|licen[cs]e|registration|papers|vertrag|ausweis|fahrzeugschein|unterschrift|papieren|identiteitsbewijs|kenteken|kentekenbewijs|handtekening/],
     ["included", /includ|compres|cosa offr|inclus|what do i get|what.s in|enthalt|inklusive|leistung|inbegrepen|diensten|servizi/],
-    ["security", /sicurez|sorveglian|allarm|telecamer|security|\bsafe\b|alarm|camera|surveillance|sicherheit|beveiliging|bewaking|veilig/],
+    ["security", /protett|protect|beschermd|geschutzt|sicurez|sorveglian|allarm|telecamer|security|\bsafe\b|alarm|camera|surveillance|sicherheit|beveiliging|bewaking|veilig/],
     ["gas", /bombol|\bgas\b|infiammab|gasflasche|gasfles|flammable|propane|\blpg\b|gasbottle|gas bottle/],
     ["location", /\bdove\b|indirizz|\bsede\b|\bsedi\b|come arrivare|mappa|raggiung|\bwhere\b|address|location|find you|directions|\bmap\b|\bwo\b|adresse|standort|anfahrt|\bwaar\b|adres|locatie|route|navigat/],
     ["contact", /telefon|chiam|e-?mail|\bmail\b|contatt|numero|whatsapp|\bphone\b|\bcall\b|contact|reach you|kontakt|anrufen|nummer|bellen|contacteren/],
     ["washing", /lavagg|lavare|\bwash|clean|reinig|waschen|wassen|schoonmaak/],
     ["extras", /extra|zusatz|supplement|penale|penalt|late fee|surcharge|zuschlag|aufpreis|toeslag|boete|in ritardo|ritardo/],
     ["indoor", /all['’ ]?aperto|im freien|coperto|\binterno\b|inside|indoor|outdoor|esterno|overdekt|\bbinnen\b|\bbuiten\b|drinnen|\bhalle|\binnen\b|aussen|capannon|shed|warehouse|hangar/],
-    ["login", /area clienti|login|accedi|accesso|\bentra|account|password|\bcodice\b|customer area|client area|portal|kundenbereich|anmelden|inloggen|klantenpagina|klantenportaal|my area/],
+    ["login", /area clienti|login|accedi|accesso|\bentra|account|password|\bcodice\b|customer area|client area|portal|kundenbereich|anmelden|inloggen|klantengebied|klantenomgeving|klantenzone|klantenpagina|klantenportaal|my area/],
     ["size", /dimension|altezza|larghezza|massim|height|width|max(imum)? size|how big|how large|largest|\bhohe\b|breite|grosse|maximal|hoogte|breedte|afmeting|\bpeso\b|weight|gewicht/],
     ["about", /chi siete|who are you|about you|uber uns|over ons|chi e garda/]
   ];
@@ -117,18 +117,19 @@
     if (pend && !(specific && isNew.hits[isNew.best] > 0 && !/^\d/.test(t))) {
       fill(t, ctx, pend === "len" ? "len" : null);
       if (JSON.stringify([ctx.type, ctx.len, ctx.dx, ctx.dur]) !== before) return answerPrice(ctx.intent || "price");
-      if (RX.camper.test(t) || RX.vela.test(t)) { handoff(B.noTariff); return out; }
+      if (RX.camper.test(t) && !RX.roulotte.test(t)) { say(B.camper); chips({ label: B.chips[0][0], send: B.chips[0][1] }); return out; }
+      if (RX.vela.test(t)) { handoff(B.noTariff); return out; }
       // niente di nuovo: continua con l'analisi normale
     }
     var d = detect(t), intent = d.best, h = d.hits;
-    if (RX.camper.test(t) && !RX.roulotte.test(t)) { ctx.type = null; handoff(B.noTariff); return out; }
+    if (RX.camper.test(t) && !RX.roulotte.test(t)) { ctx.type = null; say(B.camper); chips({ label: B.chips[0][0], send: B.chips[0][1] }); return out; }
     if (RX.vela.test(t)) { handoff(B.noTariff); return out; }
     var hadType = fill(t, ctx, null);
     var hasData = hadType || parseLen(t, false) != null;
     // intenti di prezzo
     if (h.extras > 0 && h.extras >= (h.price || 0) && !hasData && !(h.season > 0)) intent = "extras";
     else if (h.season > 0 && (h.price > 0 || hasData || ctx.intent === "price")) intent = "season";
-    else if (h.transport > 0 && h.transport >= (h.price || 0)) intent = "transport";
+    else if (h.transport > 0) intent = "transport";
     else if (h.price > 0 && (h.price >= (h.insurance || 0)) && !(h.extras > 0 && h.price === h.extras && !hasData)) intent = "price";
     if (!intent && hasData) intent = ctx.intent && /price|season|transport/.test(ctx.intent) ? ctx.intent : "price";
     if (intent === "price" || intent === "season" || intent === "transport") { ctx.intent = intent; return answerPrice(intent); }
@@ -144,25 +145,20 @@
     return out;
 
     function answerPrice(kind) {
+      if (kind === "transport") { say(B.transportInfo); chips({ label: B.chipOtherRoute, href: "#form", primary: true }, { label: B.chipAnnual, send: B.chipAnnual }); return out; }
       var ty = ctx.type, len = ctx.len;
       if (!ty) { ask("type"); return out; }
       var T = B.types[ty];
       if (kind === "season") {
         if (!ctx.dur) { ask("dur"); return out; }
         if (ctx.dur === "long") { say(B.seasonLong); chips({ label: B.chipAnnual, send: B.chipAnnual }); return out; }
-        say(B.f.season(T, B.dur[ctx.dur], P.sea[ty][ctx.dur])); chips({ label: B.chipAnnual, send: B.chipAnnual }, { label: B.chipTransport, send: B.chipTransport }); return out;
+        say(B.f.season(T, B.dur[ctx.dur], P.sea[ty][ctx.dur])); chips({ label: B.chipAnnual, send: B.chipAnnual }); return out;
       }
       if (ty !== "carrello" && len == null) { ask("len"); return out; }
-      if (kind === "transport") {
-        var tp = transport(ty, len, ctx.dx);
-        if (tp == null) { handoff(B.f.noTransport(T)); return out; }
-        var extra = ty === "roulotte" && ctx.dx == null ? B.f.dxTr(tp + P.tr.dx) : "";
-        say(B.f.transport(T, len, tp, extra)); chips({ label: B.chipAnnual, send: B.chipAnnual }, { label: B.chipOtherRoute, href: "#form", primary: true }); return out;
-      }
       var p = annual(ty, len, ctx.dx);
       if (p == null) { handoff(B.fallback); return out; }
       var dxNote = ty === "roulotte" && ctx.dx == null ? B.f.dxAnnual(p + P.dx) : "";
-      say(B.f.annual(T, len, p, dxNote)); chips({ label: B.chipTransport, send: B.chipTransport }, { label: B.chipIncluded, send: B.chipIncluded }, { label: B.chipBook, send: B.chipBook });
+      say(B.f.annual(T, len, p, dxNote)); chips({ label: B.chipIncluded, send: B.chipIncluded }, { label: B.chipBook, send: B.chipBook });
       return out;
     }
   }

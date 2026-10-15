@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import os, re, json, html, shutil, sys
+from urllib.parse import quote
 sys.path.insert(0, os.path.dirname(__file__))
-from content import *
+from content2 import *
 
 OUT = "/home/claude/rimessaggio/sito"
 PAGES = ["index", "prices", "faq", "location", "contact", "privacy"]
@@ -40,7 +41,7 @@ ART = '''<svg viewBox="0 0 560 440" role="img" aria-label="%s" fill="none" strok
 
 def head(L, c, page, depth=1):
     t = c["title"][page]; d = c["desc"][page]
-    alts = "".join('<link rel="alternate" hreflang="%s" href="../%s/%s.html">' % (l, l, page if page != "index" else "index") for l in ("it", "en", "de"))
+    alts = "".join('<link rel="alternate" hreflang="%s" href="../%s/%s.html">' % (l, l, page if page != "index" else "index") for l in LANGS)
     return ('<!doctype html><html lang="%s"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             '<title>%s</title><meta name="description" content="%s"><meta name="robots" content="noindex,nofollow">'
             '<meta property="og:title" content="%s"><meta property="og:description" content="%s"><meta property="og:type" content="website">'
@@ -50,7 +51,7 @@ def head(L, c, page, depth=1):
 def top(L, c, page):
     n = c["nav"]
     links = "".join('<a href="%s.html"%s>%s</a>' % (p, ' aria-current="page"' if p == page else "", e(n[k])) for p, k in NAVP)
-    lang = "".join('<a href="../%s/%s.html" lang="%s" hreflang="%s"%s>%s</a>' % (l, page, l, l, ' aria-current="true"' if l == L else "", l.upper()) for l in ("it", "en", "de"))
+    lang = "".join('<a href="../%s/%s.html" lang="%s" hreflang="%s"%s>%s</a>' % (l, page, l, l, ' aria-current="true"' if l == L else "", l.upper()) for l in LANGS)
     login = '<a class="btn s" href="%s">%s</a>' % (AREA, e(n["login"]))
     return ('<a class="skip" href="#main">%s</a><header class="top"><div class="wrap"><a class="brand" href="index.html"><img src="../assets/logo-120.png" alt="" width="44" height="44"><span><b>Garda Center</b><span>%s</span></span></a>'
             '<nav class="nav" aria-label="Menu">%s%s<span class="lang" aria-label="%s">%s</span></nav>'
@@ -100,6 +101,16 @@ def sedi_html(c, mapload=False):
         out += '<p style="margin-top:12px"><a href="https://www.google.com/maps/search/?api=1&amp;query=%s" rel="noopener">%s</a></p></div>' % (q, e(c["W"]["maps"] if mapload else c["sedi"]["go"]))
     return out
 
+GAL = {
+ "it": ("Dentro i capannoni", ["Roulotte, barca coperta da un telo e barca a vela in un capannone", "Barche su carrello in un capannone ad arco", "Barche a vela su carrello sotto il tetto del capannone", "Una barca coperta entra nel capannone giallo", "Roulotte allineate sotto le travi di un capannone", "File di roulotte nel capannone, viste dall'alto"]),
+ "en": ("Inside the sheds", ["Caravan, a covered boat and a sailing boat inside a shed", "Boats on trailers in an arched shed", "Sailing boats on trailers under the shed roof", "A covered boat entering the yellow shed", "Caravans lined up under the beams of a shed", "Rows of caravans in the shed seen from above"]),
+ "de": ("In den Hallen", ["Wohnwagen, abgedecktes Boot und Segelboot in einer Halle", "Boote auf Anhängern in einer Bogenhalle", "Segelboote auf Anhängern unter dem Hallendach", "Ein abgedecktes Boot fährt in die gelbe Halle", "Wohnwagen in einer Reihe unter den Balken einer Halle", "Wohnwagenreihen in der Halle von oben gesehen"]),
+ "nl": ("In de hallen", ["Caravan, afgedekte boot en zeilboot in een hal", "Boten op trailers in een tongewelfhal", "Zeilboten op trailers onder het dak van de hal", "Een afgedekte boot rijdt de gele hal in", "Caravans op een rij onder de balken van een hal", "Rijen caravans in de hal van bovenaf gezien"])}
+def gallery(L):
+    h, alts = GAL[L]
+    figs = "".join('<figure><img src="../assets/img/g%d.jpg" alt="%s" loading="lazy" decoding="async" width="%d" height="%d"></figure>' % (i + 1, e(a), w, hh) for i, (a, (w, hh)) in enumerate(zip(alts, [(1400, 1149), (1400, 860), (1400, 955), (1080, 1080), (1400, 1050), (1400, 1052)])))
+    return '<section><div class="wrap"><h2>%s</h2><div class="gal">%s</div></div></section>' % (e(h), figs)
+
 def page_index(L, c):
     h = c["hero"]; i = c["inc"]; pr = c["pr"]; st = c["steps"]
     o = head(L, c, "index") + top(L, c, "index")
@@ -107,6 +118,7 @@ def page_index(L, c):
           '<div class="wrap">%s</div></section>') % (e(h["h1"]), e(h["lede"]), e(h["c1"]), e(h["c2"]), ART % e(h["art"]), build_ribbon(c))
     o += '<section class="band"><div class="wrap two w"><div><h2>%s</h2><p>%s</p></div><div><h3>%s</h3><ul class="list">%s</ul><p style="margin-top:20px"><b style="font-family:var(--f-t)">%s.</b> %s</p></div></div></section>' % (
         e(c["indoor"]["h"]), e(c["indoor"]["p"]), e(i["h"]), "".join("<li><b>%s</b><span>%s</span></li>" % (e(a), e(b)) for a, b in i["items"]), e(i["sec_h"]), e(i["sec"]))
+    o += gallery(L)
     o += '<section><div class="wrap two w"><div><h2>%s</h2><p class="sub">%s</p></div><div class="prezzi-mini">%s</div></div></section>' % (
         e(pr["h"]), e(pr["sub"]), "".join('<a href="prices.html"><span class="n">%s<small>%s</small></span><span class="v">%s %s</span></a>' % (e(a), e(d), e(pr["from_"]), e(b)) for a, b, d in pr["rows"]) + '<p style="margin-top:16px"><a href="prices.html">%s</a></p>' % e(pr["all"]))
     o += '<section class="band"><div class="wrap two w"><h2>%s</h2><ol class="steps">%s</ol></div></section>' % (e(st["h"]), "".join("<li><b>%s</b><span>%s</span></li>" % (e(a), e(b)) for a, b in st["items"]))
@@ -126,13 +138,13 @@ def page_prices(L, c):
           '<button class="btn p" type="submit">%s</button></div><div class="chk" id="cdxw"><input type="checkbox" id="cdx"><label for="cdx">%s</label></div><div class="out" id="cout" aria-live="polite"></div></form>') % (
           e(cc["h"]), e(cc["t"]), opts, e(cc["l"]), e(cc["go"]), e(cc["dx"]))
     o += '</div></section>'
-    a = P_["ann"]; s = P_["sea"]; ex = P_["ex"]; tr = P_["tr"]; inc = c["inc"]
+    a = P_["ann"]; s = P_["sea"]; ex = P_["ex"]; inc = c["inc"]
     o += '<section class="band"><div class="wrap two"><div>%s</div><div>%s<p class="nota">%s</p></div></div></section>' % (table2(a["cap"], a["rows"]), table(s["cap"], s["col"], s["rows"]), e(s["note"]))
     o += '<section><div class="wrap two"><div><h2>%s</h2><ul class="list">%s</ul></div><div>%s</div></div></section>' % (
         e(P_["inc"]["h"]), "".join("<li><b>%s</b><span>%s</span></li>" % (e(x), e(y)) for x, y in inc["items"]), table2(ex["cap"], ex["rows"]))
-    o += '<section class="band"><div class="wrap">%s<p class="nota">%s</p><p class="nota">%s</p><div class="cta" style="margin-top:20px"><a class="btn p" href="contact.html?m=posto">%s</a></div></div></section>' % (
-        table(tr["cap"], tr["col"], tr["rows"]), e(tr["note"]), e(P_["foot"]), e(c["hero"]["c1"]))
-    return o + foot(L, c) + tail(L, "prices", '<script>window.GCP=%s</script>' % json.dumps({k: cc[k] for k in ("r_ann","r_tr","need","tr_none")}, ensure_ascii=False))
+    o += '<section class="band"><div class="wrap two"><div><h2>%s</h2><p>%s</p><div class="cta"><a class="btn" href="contact.html?m=info&amp;q=%s">%s</a></div></div><div><p class="nota">%s</p><div class="cta" style="margin-top:20px"><a class="btn p" href="contact.html?m=posto">%s</a></div></div></div></section>' % (
+        e(P_["trn"]["h"]), e(P_["trn"]["p"]), quote(P_["trn"]["h"]), e(P_["trn"]["c"]), e(P_["foot"]), e(c["hero"]["c1"]))
+    return o + foot(L, c) + tail(L, "prices", '<script>window.GCP=%s</script>' % json.dumps({k: cc[k] for k in ("r_ann","need")}, ensure_ascii=False))
 
 def page_faq(L, c):
     o = head(L, c, "faq") + top(L, c, "faq")
@@ -189,10 +201,10 @@ def bot_js():
                  "B.f=(function(f){var r={};for(var k in f){r[k]=f[k]}return r})(B.f);" \
                  "GCB." + L + "=B;})();"
     # le funzioni f usano B: le ricreiamo dentro la chiusura sopra (B è locale)
-    return "var GCB={};\n" + "\n".join(out[l] for l in ("it", "en", "de")) + "\n"
+    return "var GCB={};\n" + "\n".join(out[l] for l in LANGS) + "\n"
 
 def main():
-    for L in ("it", "en", "de"):
+    for L in LANGS:
         os.makedirs(os.path.join(OUT, L), exist_ok=True)
         c = C[L]
         for p in PAGES:
@@ -201,7 +213,7 @@ def main():
     open(os.path.join(OUT, "assets", "bot-data.js"), "w", encoding="utf-8").write(bot_js())
     open(os.path.join(OUT, "index.html"), "w", encoding="utf-8").write(
         '<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">'
-        '<title>Garda Center</title><link rel="icon" href="assets/favicon.png"><script>var l=(navigator.language||"it").slice(0,2).toLowerCase();location.replace((l==="de"||l==="en"?l:"it")+"/index.html")</script>'
-        '<noscript><meta http-equiv="refresh" content="0;url=it/index.html"></noscript></head><body><p><a href="it/index.html">Italiano</a> · <a href="en/index.html">English</a> · <a href="de/index.html">Deutsch</a></p></body></html>')
+        '<title>Garda Center</title><link rel="icon" href="assets/favicon.png"><script>var l=(navigator.language||"it").slice(0,2).toLowerCase();location.replace((l==="de"||l==="en"||l==="nl"?l:"it")+"/index.html")</script>'
+        '<noscript><meta http-equiv="refresh" content="0;url=it/index.html"></noscript></head><body><p><a href="it/index.html">Italiano</a> · <a href="en/index.html">English</a> · <a href="de/index.html">Deutsch</a> · <a href="nl/index.html">Nederlands</a></p></body></html>')
     print("ok")
 main()
