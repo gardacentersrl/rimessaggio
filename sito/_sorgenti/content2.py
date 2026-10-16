@@ -38,11 +38,11 @@ TXT = {
   f_about=None,
   fannual="function(T,len,p,dx){return '<b>'+B.m(p)+'</b> (IVA inclusa) per la quota annuale di una '+T.toLowerCase()+(len?' di '+B.n(len)+' m':'')+'. Comprende assicurazione, 1 lavaggio e 2 uscite.'+dx}",
   chipTr="Organizzate il trasporto?", chipOther="Chiedi un trasporto",
-  priv=["**Chi tratta i tuoi dati.** Garda Center S.r.l., P.IVA 03578820239, sede operativa a Camporengo, Cavaion Veronese (VR). Email: " + EMAIL + ".",
+  priv=["**Chi tratta i tuoi dati.** Garda Center S.r.l., P.IVA 03578820239, sede legale in Via Galileo Galilei, Cavaion Veronese (VR). Email: " + EMAIL + ".",
    "**Quali dati raccogliamo.** Se scrivi dal modulo di contatto: nome, email, telefono (facoltativo), tipo e lunghezza del mezzo, il tuo messaggio e la lingua del sito. Per limitare gli invii automatici conserviamo anche un codice anonimo ricavato dal tuo indirizzo IP (non l'indirizzo stesso). Le domande che scrivi all'assistente restano nel tuo browser: non vengono inviate né salvate da noi.",
    "**Perché li usiamo e su quale base.** Per rispondere alla tua richiesta e, se lo desideri, proporti un posto (art. 6.1.b GDPR, misure precontrattuali su richiesta dell'interessato). Il codice anti-spam serve a proteggere il modulo (art. 6.1.f, legittimo interesse). Dare i dati è facoltativo, ma senza nome, email e messaggio non possiamo risponderti.",
    "**Per quanto tempo.** Le richieste che non diventano un contratto sono cancellate dopo 12 mesi. Se diventi cliente, i dati seguono il contratto e gli obblighi di legge (per esempio quelli fiscali, 10 anni); per i clienti vale l'informativa allegata al contratto.",
-   "**Chi li riceve.** Solo fornitori tecnici che li trattano per nostro conto: Supabase (database e funzioni del sito), Resend (invio delle email) e GitHub (ospita le pagine del sito, può registrare l'indirizzo IP dei visitatori per sicurezza). Alcuni di questi fornitori hanno sede o server fuori dall'Unione europea (Stati Uniti): il trasferimento avviene con le garanzie previste dal GDPR (clausole contrattuali standard o Data Privacy Framework). Non vendiamo né cediamo i dati a terzi per scopi commerciali.",
+   "**Chi li riceve.** Solo fornitori tecnici che li trattano per nostro conto: Supabase (database, che si trova in Italia, e funzioni del sito), Resend (invio delle email) e GitHub (ospita le pagine del sito, può registrare l'indirizzo IP dei visitatori per sicurezza). Alcuni di questi fornitori hanno sede o server fuori dall'Unione europea (Stati Uniti): il trasferimento avviene con le garanzie previste dal GDPR (clausole contrattuali standard o Data Privacy Framework). Non vendiamo né cediamo i dati a terzi per scopi commerciali.",
    "**Cookie e mappe.** Questo sito non usa cookie di profilazione né strumenti di statistica. Le mappe di Google si caricano solo se premi il pulsante: in quel momento Google riceve il tuo indirizzo IP e può usare i propri cookie, secondo la sua informativa.",
    "**I tuoi diritti.** Puoi chiedere accesso, correzione, cancellazione, limitazione o portabilità dei dati e opporti al trattamento scrivendo a " + EMAIL + ". Se pensi che i tuoi dati non siano trattati correttamente puoi presentare reclamo al Garante per la protezione dei dati personali (garanteprivacy.it).",
    "Ultimo aggiornamento: ottobre 2026."]),
@@ -62,11 +62,11 @@ TXT = {
   f_loc="We have two sites: **Camporengo**, Via Galileo Galilei, Cavaion Veronese (VR), and **Casalmenini**, Località Casalmenini 4, Rivoli Veronese (VR). We will tell you which site your vehicle is at.",
   fannual="function(T,len,p,dx){return '<b>'+B.m(p)+'</b> (VAT included) for the annual fee of a '+T.toLowerCase()+(len?' of '+B.n(len)+' m':'')+'. It includes insurance, 1 wash and 2 exits.'+dx}",
   chipTr="Do you arrange transport?", chipOther="Ask for transport",
-  priv=["**Who processes your data.** Garda Center S.r.l., VAT no. IT03578820239, operating site at Camporengo, Cavaion Veronese (VR), Italy. Email: " + EMAIL + ".",
+  priv=["**Who processes your data.** Garda Center S.r.l., VAT no. IT03578820239, registered office at Via Galileo Galilei, Cavaion Veronese (VR), Italy. Email: " + EMAIL + ".",
    "**What we collect.** If you write through the contact form: name, email, phone (optional), type and length of your vehicle, your message and the site language. To limit automated submissions we also keep an anonymous code derived from your IP address (not the address itself). Questions you type to the assistant stay in your browser: we neither receive nor store them.",
    "**Why and on what basis.** To answer your request and, if you wish, offer you a space (art. 6(1)(b) GDPR, steps taken at your request before a contract). The anti-spam code protects the form (art. 6(1)(f), legitimate interest). Providing the data is optional, but without name, email and message we cannot reply.",
    "**How long.** Requests that do not become a contract are deleted after 12 months. If you become a customer, the data follows the contract and legal obligations (for example tax records, 10 years); customers are covered by the notice attached to the contract.",
-   "**Who receives it.** Only technical providers processing it on our behalf: Supabase (database and site functions), Resend (sending emails) and GitHub (hosts the site pages and may log visitors' IP addresses for security). Some of them are based or have servers outside the European Union (United States): transfers rely on the safeguards required by the GDPR (standard contractual clauses or the Data Privacy Framework). We do not sell or pass on data to third parties for marketing.",
+   "**Who receives it.** Only technical providers processing it on our behalf: Supabase (database, located in Italy, and site functions), Resend (sending emails) and GitHub (hosts the site pages and may log visitors' IP addresses for security). Some of them are based or have servers outside the European Union (United States): transfers rely on the safeguards required by the GDPR (standard contractual clauses or the Data Privacy Framework). We do not sell or pass on data to third parties for marketing.",
    "**Cookies and maps.** This site uses no profiling cookies and no analytics. Google Maps loads only if you press the button: at that point Google receives your IP address and may use its own cookies, under its own policy.",
    "**Your rights.** You can ask for access, correction, deletion, restriction or portability of your data and object to processing by writing to " + EMAIL + ". If you believe your data is not handled correctly you can complain to the Italian data protection authority (Garante per la protezione dei dati personali, garanteprivacy.it).",
    "Last updated: October 2026."]),
@@ -86,11 +86,11 @@ TXT = {
   f_loc="Wir haben zwei Standorte: **Camporengo**, Via Galileo Galilei, Cavaion Veronese (VR), und **Casalmenini**, Località Casalmenini 4, Rivoli Veronese (VR). Wir sagen Ihnen, an welchem Standort Ihr Fahrzeug steht.",
   fannual="function(T,len,p,dx){return '<b>'+B.m(p)+'</b> (inkl. MwSt.) Jahrespreis für '+(T==='Boot'?'ein ':'einen ')+T+(len?' mit '+B.n(len)+' m':'')+'. Enthalten sind Versicherung, 1 Wäsche und 2 Ausfahrten.'+dx}",
   chipTr="Organisieren Sie den Transport?", chipOther="Transport anfragen",
-  priv=["**Verantwortlicher.** Garda Center S.r.l., USt-IdNr. IT03578820239, Betriebsstätte in Camporengo, Cavaion Veronese (VR), Italien. E-Mail: " + EMAIL + ".",
+  priv=["**Verantwortlicher.** Garda Center S.r.l., USt-IdNr. IT03578820239, Sitz in Via Galileo Galilei, Cavaion Veronese (VR), Italien. E-Mail: " + EMAIL + ".",
    "**Welche Daten wir erfassen.** Wenn Sie das Kontaktformular nutzen: Name, E-Mail, Telefon (optional), Art und Länge Ihres Fahrzeugs, Ihre Nachricht und die Sprache der Seite. Um automatische Absendungen zu begrenzen, speichern wir außerdem einen anonymen Code, der aus Ihrer IP-Adresse abgeleitet wird (nicht die Adresse selbst). Fragen, die Sie dem Assistenten schreiben, bleiben in Ihrem Browser: Wir erhalten oder speichern sie nicht.",
    "**Wozu und auf welcher Grundlage.** Um Ihre Anfrage zu beantworten und Ihnen auf Wunsch einen Platz anzubieten (Art. 6 Abs. 1 lit. b DSGVO, vorvertragliche Maßnahmen auf Ihre Anfrage). Der Spam-Schutzcode sichert das Formular (Art. 6 Abs. 1 lit. f, berechtigtes Interesse). Die Angabe ist freiwillig, aber ohne Name, E-Mail und Nachricht können wir nicht antworten.",
    "**Wie lange.** Anfragen, aus denen kein Vertrag wird, löschen wir nach 12 Monaten. Wenn Sie Kunde werden, folgen die Daten dem Vertrag und den gesetzlichen Pflichten (z. B. steuerlich, 10 Jahre); für Kunden gilt die dem Vertrag beigefügte Erklärung.",
-   "**Wer sie erhält.** Nur technische Dienstleister, die sie in unserem Auftrag verarbeiten: Supabase (Datenbank und Funktionen der Seite), Resend (E-Mail-Versand) und GitHub (hostet die Seiten und kann IP-Adressen der Besucher aus Sicherheitsgründen protokollieren). Einige haben ihren Sitz oder Server außerhalb der Europäischen Union (USA): Die Übermittlung stützt sich auf die von der DSGVO vorgesehenen Garantien (Standardvertragsklauseln oder Data Privacy Framework). Wir verkaufen oder geben Daten nicht zu Werbezwecken an Dritte weiter.",
+   "**Wer sie erhält.** Nur technische Dienstleister, die sie in unserem Auftrag verarbeiten: Supabase (Datenbank, die sich in Italien befindet, und Funktionen der Seite), Resend (E-Mail-Versand) und GitHub (hostet die Seiten und kann IP-Adressen der Besucher aus Sicherheitsgründen protokollieren). Einige haben ihren Sitz oder Server außerhalb der Europäischen Union (USA): Die Übermittlung stützt sich auf die von der DSGVO vorgesehenen Garantien (Standardvertragsklauseln oder Data Privacy Framework). Wir verkaufen oder geben Daten nicht zu Werbezwecken an Dritte weiter.",
    "**Cookies und Karten.** Diese Website verwendet keine Profiling-Cookies und keine Statistik-Tools. Google Maps wird nur geladen, wenn Sie die Schaltfläche drücken: Dann erhält Google Ihre IP-Adresse und kann eigene Cookies nutzen, gemäß seiner eigenen Erklärung.",
    "**Ihre Rechte.** Sie können Auskunft, Berichtigung, Löschung, Einschränkung oder Übertragbarkeit Ihrer Daten verlangen und der Verarbeitung widersprechen, indem Sie an " + EMAIL + " schreiben. Wenn Sie meinen, dass Ihre Daten nicht korrekt verarbeitet werden, können Sie sich bei der italienischen Datenschutzbehörde beschweren (Garante per la protezione dei dati personali, garanteprivacy.it).",
    "Letzte Aktualisierung: Oktober 2026."]),
@@ -179,11 +179,11 @@ nl["K"] = dict(h1="Contact", sub="Schrijf ons: wij antwoorden zo snel mogelijk. 
   err="Het bericht is niet verzonden. Controleer uw verbinding en probeer het opnieuw, of schrijf naar " + EMAIL + ".", bad="Controleer de gemarkeerde velden: wij hebben uw naam, een geldig e-mailadres, een bericht en uw toestemming nodig.",
   direct="Liever bellen?", hint="Wij antwoorden op het e-mailadres dat u invult.")
 nl["PV"] = dict(h1="Privacyverklaring", body=[
-  "**Wie uw gegevens verwerkt.** Garda Center S.r.l., btw-nr. IT03578820239, bedrijfslocatie in Camporengo, Cavaion Veronese (VR), Italië. E-mail: " + EMAIL + ".",
+  "**Wie uw gegevens verwerkt.** Garda Center S.r.l., btw-nr. IT03578820239, statutaire zetel in Via Galileo Galilei, Cavaion Veronese (VR), Italië. E-mail: " + EMAIL + ".",
   "**Welke gegevens wij verzamelen.** Als u het contactformulier gebruikt: naam, e-mail, telefoon (optioneel), soort en lengte van uw voertuig, uw bericht en de taal van de site. Om geautomatiseerde verzendingen te beperken bewaren wij ook een anonieme code die is afgeleid van uw IP-adres (niet het adres zelf). Vragen die u aan de assistent schrijft blijven in uw browser: wij ontvangen of bewaren ze niet.",
   "**Waarom en op welke grondslag.** Om uw verzoek te beantwoorden en u, indien gewenst, een plek aan te bieden (art. 6 lid 1 sub b AVG, maatregelen vóór een overeenkomst op uw verzoek). De anti-spamcode beschermt het formulier (art. 6 lid 1 sub f, gerechtvaardigd belang). Het verstrekken van gegevens is vrijwillig, maar zonder naam, e-mail en bericht kunnen wij niet antwoorden.",
   "**Hoe lang.** Verzoeken die geen overeenkomst worden, verwijderen wij na 12 maanden. Als u klant wordt, volgen de gegevens het contract en de wettelijke verplichtingen (bijvoorbeeld fiscaal, 10 jaar); voor klanten geldt de verklaring die bij het contract is gevoegd.",
-  "**Wie ze ontvangt.** Alleen technische dienstverleners die ze in onze opdracht verwerken: Supabase (database en functies van de site), Resend (verzenden van e-mail) en GitHub (host de pagina's en kan IP-adressen van bezoekers om veiligheidsredenen registreren). Sommige hebben hun zetel of servers buiten de Europese Unie (Verenigde Staten): de doorgifte berust op de waarborgen van de AVG (standaardcontractbepalingen of het Data Privacy Framework). Wij verkopen of verstrekken geen gegevens aan derden voor commerciële doeleinden.",
+  "**Wie ze ontvangt.** Alleen technische dienstverleners die ze in onze opdracht verwerken: Supabase (database, die zich in Italië bevindt, en functies van de site), Resend (verzenden van e-mail) en GitHub (host de pagina's en kan IP-adressen van bezoekers om veiligheidsredenen registreren). Sommige hebben hun zetel of servers buiten de Europese Unie (Verenigde Staten): de doorgifte berust op de waarborgen van de AVG (standaardcontractbepalingen of het Data Privacy Framework). Wij verkopen of verstrekken geen gegevens aan derden voor commerciële doeleinden.",
   "**Cookies en kaarten.** Deze site gebruikt geen profileringscookies en geen statistiekprogramma's. Google Maps wordt alleen geladen als u op de knop drukt: dan ontvangt Google uw IP-adres en kan het eigen cookies gebruiken, volgens zijn eigen verklaring.",
   "**Uw rechten.** U kunt vragen om inzage, correctie, verwijdering, beperking of overdraagbaarheid van uw gegevens en bezwaar maken tegen de verwerking door te schrijven naar " + EMAIL + ". Als u denkt dat uw gegevens niet correct worden verwerkt, kunt u een klacht indienen bij de Italiaanse toezichthouder (Garante per la protezione dei dati personali, garanteprivacy.it).",
   "Laatst bijgewerkt: oktober 2026."])
@@ -236,3 +236,42 @@ nl["FAQ"] = [
 ]
 C["nl"] = nl
 LANGS = ("it", "en", "de", "nl")
+
+
+# ---------------- lunghezza = con il timone (ovunque compaia la domanda sulla lunghezza)
+LENW = {"it": "con il timone", "en": "including the drawbar", "de": "einschließlich der Deichsel", "nl": "inclusief dissel"}
+def lenpatch():
+    it, en, de, nl = C["it"], C["en"], C["de"], C["nl"]
+    for L, c in C.items():
+        w = LENW[L]
+        K = c["K"]; K["len"] = K["len"].replace("(m)", "(m, " + w + ")")
+        cc = c["P"]["calc"]; cc["l"] = cc["l"].replace("(m)", "(m, " + w + ")")
+    it["P"]["sub"] += " Le lunghezze si intendono con il timone."; en["P"]["sub"] += " Lengths include the drawbar."
+    de["P"]["sub"] += " Die Längenangaben verstehen sich einschließlich der Deichsel."; nl["P"]["sub"] += " Lengtes zijn inclusief dissel."
+    it["pr"]["sub"] += " Lunghezze con il timone."; en["pr"]["sub"] += " Lengths include the drawbar."; de["pr"]["sub"] += " Längen einschließlich Deichsel."; nl["pr"]["sub"] += " Lengtes inclusief dissel."
+    it["B"]["ask"]["len"] = "Quanto è lungo, con il timone? Scrivi la misura in metri (per esempio 6,5)."
+    en["B"]["ask"]["len"] = "How long is it, including the drawbar? Give the length in metres (for example 6.5)."
+    de["B"]["ask"]["len"] = "Wie lang ist es, einschließlich der Deichsel? Geben Sie die Länge in Metern an (zum Beispiel 6,5)."
+    nl["B"]["ask"]["len"] = "Hoe lang is het, inclusief dissel? Geef de lengte in meters (bijvoorbeeld 6,5)."
+    it["B"]["f"]["annual"] = it["B"]["f"]["annual"].replace("' m'", "' m (con il timone)'")
+    en["B"]["f"]["annual"] = en["B"]["f"]["annual"].replace("' m'", "' m (including the drawbar)'")
+    de["B"]["f"]["annual"] = de["B"]["f"]["annual"].replace("' m'", "' m (einschließlich Deichsel)'")
+    nl["B"]["f"]["annual"] = nl["B"]["f"]["annual"].replace("' m'", "' m (inclusief dissel)'")
+    it["steps"]["items"][0] = ("Scrivici", "Dicci che mezzo hai e quanto è lungo, con il timone. Ti rispondiamo con prezzo e disponibilità.")
+    en["steps"]["items"][0] = ("Write to us", "Tell us what vehicle you have and how long it is, including the drawbar. We reply with price and availability.")
+    de["steps"]["items"][0] = ("Schreiben Sie uns", "Sagen Sie uns, welches Fahrzeug Sie haben und wie lang es ist, einschließlich der Deichsel. Wir antworten mit Preis und Verfügbarkeit.")
+    nl["steps"]["items"][0] = ("Schrijf ons", "Vertel welk voertuig u heeft en hoe lang het is, inclusief dissel. Wij antwoorden met prijs en beschikbaarheid.")
+    for L, a in (("it", "e quanto è lungo"), ("en", "and how long it is"), ("de", "und wie lang es ist"), ("nl", "en hoe lang het is")):
+        lst = C[L]["FAQ"]
+        for i, (k, q, an) in enumerate(lst):
+            if k == "booking":
+                assert a in an, (L, a)
+                lst[i] = (k, q, an.replace(a, a + ", " + LENW[L], 1))
+    for L in C:
+        for k in ("size", "noTariff"):
+            pass
+    it["B"]["size"] = it["B"]["size"].replace("misure del tuo mezzo", "misure del tuo mezzo (lunghezza con il timone)")
+    en["B"]["size"] = en["B"]["size"].replace("measurements of your vehicle", "measurements of your vehicle (length including the drawbar)")
+    de["B"]["size"] = de["B"]["size"].replace("Maße Ihres Fahrzeugs", "Maße Ihres Fahrzeugs (Länge einschließlich Deichsel)")
+    nl["B"]["size"] = nl["B"]["size"].replace("afmetingen van uw voertuig", "afmetingen van uw voertuig (lengte inclusief dissel)")
+lenpatch()
