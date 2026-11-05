@@ -459,7 +459,8 @@ function c12(){const cells=[],tt=[],bl=[];
  [1,2].forEach(S=>{const b=S===1?4:6,t=S===1?'y':'o';T('STANZA '+S,b,3,2);[[0,4],[1,4],[0,5],[1,5],[0,6]].forEach(([dx,dy],k)=>cell(`STANZA ${S} POS${k+1}`,b+dx,dy,1,1,t));bl.push({c:b+1,r:6,t})});
  for(let i=0;i<6;i++)cell(`C12 CORRIDOIO AGRI POS${6-i}`,4+i,2,1,1,'m');
  [...'ABCD'].forEach((X,i)=>{cell(`C12 CORRIDOIO C13 ${X}2`,4+i,9,1,1,'t');cell(`C12 CORRIDOIO C13 ${X}1`,4+i,10,1,1,'t');T(X,4+i,11,1)});
- [...'ABC'].forEach((X,i)=>{cell(`C12 AGRI ${X}1`,8+i,3,1,4,'b');cell(`C12 AGRI ${X}2`,8+i,7,1,4,'b');T(X,8+i,11,1)});
+ [...'BC'].forEach((X,i)=>{cell(`C12 AGRI ${X}1`,9+i,3,1,4,'b');cell(`C12 AGRI ${X}2`,9+i,7,1,4,'b');T(X,9+i,11,1)});
+ [1,2,3,4].forEach(n=>cell(`C12 AGRI A${n}`,8,1+2*n,1,2,'b'));T('A',8,11,1);
  cell('C12 AGRI D1',11,3,1,2,'b');cell('C12 AGRI D2',11,5,1,2,'b');cell('C12 AGRI D3',11,7,1,4,'b');T('D',11,11,1);
  T('PORTONE LATO C13',1,3,3);T('CORRIDOIO LATO AGRI',4,1,6);T('CORRIDOIO LATO C13',4,8,4);T('C12 LATO AGRI',8,12,4);
  // vecchie etichette della macro -> nuove (stessa cella fisica)
