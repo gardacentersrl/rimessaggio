@@ -440,7 +440,7 @@ const CAP=[
 ['13C','Casalemenini',[{p:'13C',k:'f',r:27,n:6,d:true}]],
 ['13S','Casalemenini',[{p:'13S',k:'f',r:24,n:3,d:true},{p:'C13 CORRIDOIO',r:'ABC',n:8}]],
 ['C12','Casalemenini',[{p:'C12',k:'p'}]],
-['Casalmenini Esterno','Casalemenini',[{p:'CASALMENINI ESTERNO',k:'s',n:6,v:1}]],
+['Esterno','Casalemenini',[{p:'CASALMENINI ESTERNO',k:'s',n:10,v:1}]],
 ['Roulotte Olanda','Camporengo',[{p:'R.OLANDA',r:'ABCDE',n:5,d:1,v:1}]],
 ['Gelio Porta stretta','Camporengo',[{p:'GELIO PORTA STRETTA',old:'GELIO PS',r:'ABCDE',n:5,d:1,v:1}]],
 ['Gelio Porta larga','Camporengo',[{p:'GELIO PORTA LARGA',old:'GELIO PL',r:'ABCDE',n:5,d:1,v:1}]],
@@ -461,13 +461,14 @@ function c12(){const cells=[],tt=[],bl=[];
  [...'ABCD'].forEach((X,i)=>{cell(`C12 CORRIDOIO C13 ${X}2`,4+i,9,1,1,'t');cell(`C12 CORRIDOIO C13 ${X}1`,4+i,10,1,1,'t');T(X,4+i,11,1)});
  [...'BC'].forEach((X,i)=>{cell(`C12 AGRI ${X}1`,9+i,3,1,4,'b');cell(`C12 AGRI ${X}2`,9+i,7,1,4,'b');T(X,9+i,11,1)});
  [1,2,3,4].forEach(n=>cell(`C12 AGRI A${n}`,8,1+2*n,1,2,'b'));T('A',8,11,1);
- cell('C12 AGRI D1',11,3,1,2,'b');cell('C12 AGRI D2',11,5,1,2,'b');cell('C12 AGRI D3',11,7,1,4,'b');T('D',11,11,1);
+ cell('C12 AGRI D1',11,3,1,4,'b');cell('C12 AGRI D2',11,7,1,4,'b');T('D',11,11,1);
  T('PORTONE LATO C13',1,3,3);T('CORRIDOIO LATO AGRI',4,1,6);T('CORRIDOIO LATO C13',4,8,4);T('C12 LATO AGRI',8,12,4);
  // vecchie etichette della macro -> nuove (stessa cella fisica)
  for(const X of'ABC')for(const n of[1,2])ALIAS[`C12 LATO C13 ${X}${n}`]=`C12 PORTONE ${X}${n}`;
  for(const[o,w]of Object.entries({D:'A',E:'B',F:'C',G:'D'}))for(const n of[1,2])ALIAS[`C12 LATO C13 ${o}${n}`]=`C12 CORRIDOIO C13 ${w}${n}`;
  for(let n=1;n<=5;n++)ALIAS[`C12 LATO AGRI CORRIDOIO${n}`]=`C12 CORRIDOIO AGRI POS${n+1}`;
  for(const[o,w]of Object.entries({D:'A',C:'B',B:'C',A:'D'}))for(const n of o==='A'?[1,2,3]:[1,2])ALIAS[`C12 LATO AGRI ${o}${n}`]=`C12 AGRI ${w}${n}`;
+ ALIAS['C12 LATO AGRI A3']='C12 AGRI D2'; // la colonna D ora ha 2 posti
  return{cells,tt,bl}}
 CAP.forEach(([cap,luogo,zs])=>zs.forEach(z=>{const righe=[];let items=null;
  if(z.k==='f')for(let r=1;r<=z.r;r++){const dv=z.d===true||(z.d||[]).includes(r),nn=z.n+(dv?1:0),c=[];for(let q=1;q<=nn;q++)c.push(`${z.p} F${r} POS${q}`);if(dv)ALIAS[`${z.p} F${r} DAVANTI`]=`${z.p} F${r} POS${nn}`;righe.push({t:'F'+r,c,g:Math.floor((r-1)/4)%2})}
