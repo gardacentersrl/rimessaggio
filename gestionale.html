@@ -620,7 +620,7 @@ function rimExcel(XLSX,buf,ctx){
   const g=n=>r[ix(n)];
   const nome=s(g('COGNOME_NOME')).replace(/\s+/g,' ').trim();
   const sede=s(g('LUOGO')).split('Casalmenini').join('Casalemenini');
-  if(!sede){rep.senzaSede.push(cid)}
+  
   let tipo=(s(g('MEZZO')).toUpperCase())||'ROULOTTE';if(!['ROULOTTE','MOTOSCAFO','CARRELLO',"MOTO D'ACQUA"].includes(tipo))tipo='ALTRO';
   let dt=s(g('DOC')).toUpperCase();if(!['ID','PATENTE','PASSAPORTO'].includes(dt))dt=dt?'ALTRO':'ID';
   const c={id:cid,nome,nm:s(g('NOME')),cg:s(g('COGNOME')),mail:s(g('MAIL')).toLowerCase(),naz:s(g('NAZ.')).toUpperCase()||'NL',
@@ -762,6 +762,7 @@ function rimExcel(XLSX,buf,ctx){
   for(const c of cl){const x=o[c.id];if(!x)continue;for(const k of['ct','dasse','dk','reg'])if(x[k]!==undefined)c[k]=x[k]}}
  const keep=k=>old&&old[k]!==undefined?old[k]:(k==='yr'?2026:k==='rd'?'2027-01-01':k==='rl'?null:[]);
  const db={cl,mov,pag,pn,tmp:keep('tmp'),tr:keep('tr'),trp:keep('trp'),trc:keep('trc'),rit:keep('rit'),pren:keep('pren'),pc:keep('pc'),sto:stoL,yr:keep('yr'),rd:keep('rd'),rl:keep('rl')};
+ rep.senzaSede=cl.filter(c=>!c.sede).map(c=>c.id);
  rep.tot={clienti:cl.length,pagamenti:pag.length,fatture:pn.length,movimenti:mov.length,conPosto:cl.filter(c=>c.pos).length,senzaPosto:cl.filter(c=>!c.pos).map(c=>c.id)};
  return{db,rep};
 }
