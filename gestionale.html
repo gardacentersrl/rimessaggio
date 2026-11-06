@@ -591,11 +591,209 @@ function menuX(){const dap=cont().reduce((a,o)=>a+o.dap,0),nr=db.tr.filter(x=>x.
  $('#x-l').innerHTML=`<div class="card xm" data-go="r"><div><b>Trasporti</b><div class="mut">Calendario di Enrico, passati e contabilità · ${nr} in programma${dap>0?' · da incassare '+eur(dap):''}</div></div><span class="ch">›</span></div>
  <div class="card xm" data-go="k"><div><b>Cassa, Registro pagamenti e Prima nota</b><div class="mut">Registra pagamenti, consulta il registro, conferma le fatture emesse${fatDue().length?' · '+fatDue().length+' fatture da confermare':''}</div></div><span class="ch">›</span></div>
  `}
-const rsCard=()=>(typeof window!=='undefined'&&window.SITE&&ROLE==='master')?`<div class="card xm" data-rs="1"><div><b>Sostituisci tutti i dati con un backup</b><div class="mut">Carica un file di backup (o l'importazione da Excel) al posto dei dati attuali. Prima ti scarica una copia di quelli di adesso</div></div><span class="ch">›</span></div>`:'';
-function rsOpen(){const f=document.createElement('input');f.type='file';f.accept='.json,application/json';f.onchange=async()=>{const fl=f.files[0];if(!fl)return;let o;try{o=JSON.parse(await fl.text())}catch(e){return toast('Il file non è leggibile')}
- const nd=o&&o.formato==='rimessaggio-backup'?o.db:o;if(!nd||!Array.isArray(nd.cl))return toast('Questo non sembra un backup del rimessaggio');
- const ok=await askQ('Sostituire tutti i dati?',`Il file contiene <b>${nd.cl.length} clienti</b>. Dopo aver scaricato una copia dei dati attuali, tutti i dati online verranno sostituiti con quelli del file. Quello che hai inserito nel frattempo andrà perso.`,'Sostituisci tutto');if(!ok)return;
- await bkSave();toast('Sostituzione in corso…');try{await window.__rim.restore(o)}catch(e){toast('Non riuscito: '+(e.message||e))}};f.click()}
+const rsCard=()=>(typeof window!=='undefined'&&window.SITE&&ROLE==='master')?`<div class="card xm" data-rs="1"><div><b>Carica i dati dall'Excel</b><div class="mut">Carica il file Excel del rimessaggio (o un backup) al posto dei dati attuali. Prima ti scarica una copia di quelli di adesso</div></div><span class="ch">›</span></div>`:'';
+/* ===== Importazione dal file Excel del rimessaggio (RUL_2026) =====
+   rimExcel(XLSX, buffer, ctx) -> {db, rep}
+   ctx = {LOC:{chiave:..}, oggi:'AAAA-MM-GG', old:{...dati attuali dell'app o null}} */
+function rimExcel(XLSX,buf,ctx){
+ const OGGI=ctx.oggi,LOC=ctx.LOC,old=ctx.old||null;
+ const NEED=['Database','Uscite','Carico_scarico','Registro_Pagamenti','Prima_Nota','Piantina'];
+ const wb=XLSX.read(buf,{type:'array',sheets:NEED});
+ for(const n of NEED)if(!wb.Sheets[n])throw new Error('Nel file manca il foglio "'+n+'". Questo non sembra il file RUL del rimessaggio.');
+ const D0=Date.UTC(1899,11,30);
+ const iso=v=>{if(typeof v==='number'&&v>=1000&&v<80000)return new Date(D0+Math.floor(v)*864e5).toISOString().slice(0,10);return''};
+ const s=v=>v===null||v===undefined?'':typeof v==='boolean'?(v?'True':'False'):String(v).trim();
+ const num=v=>{const x=Number(String(v===null||v===undefined?'':v).replace(',','.'));return Number.isFinite(x)?x:0};
+ const r2=x=>Math.round(x*100)/100;
+ const toId=v=>{if(v===null||v===undefined||v==='')return null;const x=Number(String(v));return Number.isFinite(x)?Math.trunc(x):null};
+ const rows=(n,maxc)=>{const ws=wb.Sheets[n],ref=XLSX.utils.decode_range(ws['!ref']),out=[];
+  for(let r=0;r<=ref.e.r;r++){const row=[];for(let c=0;c<maxc;c++){const x=ws[XLSX.utils.encode_cell({r,c})];row.push(x&&x.t!=='e'&&x.v!==undefined?x.v:null)}out.push(row)}return out};
+ const rep={avvisi:[],pagNonImportati:[],pagTolti:[],crediti:[],senzaSede:[],doppi:[],senzaCliente:[],senzaPosto:[],rientri:[],n:{}};
+ const cnt=(k)=>{rep.n[k]=(rep.n[k]||0)+1};
+ // ---- clienti
+ const D=rows('Database',52),h=D[0].map(s);
+ const ix=n=>{const i=h.indexOf(n);if(i<0)throw new Error('Nel foglio Database manca la colonna "'+n+'"');return i};
+ ['COGNOME_NOME','NOME','COGNOME','MAIL','NAZ.','CITTA','INDIRIZZO','CAP','DOC','NUM DOC','SCADE','NATO IL','NATO A','MARCA','TARGA','MT','MEZZO','LUOGO','COD','TOT','LAVAGGIO EXTRA','LATE NOTIFICATION','ARRETRATI','TOT PAGATO','DATA ULTIMA USCITA','INIZIO'].forEach(ix);
+ const cl=[],rowsDB={};
+ for(const r of D.slice(1)){
+  if(r[1]===null||r[1]==='')continue;const cid=toId(r[1]);if(cid===null)continue;
+  const g=n=>r[ix(n)];
+  const nome=s(g('COGNOME_NOME')).replace(/\s+/g,' ').trim();
+  const sede=s(g('LUOGO')).split('Casalmenini').join('Casalemenini');
+  if(!sede){rep.senzaSede.push(cid)}
+  let tipo=(s(g('MEZZO')).toUpperCase())||'ROULOTTE';if(!['ROULOTTE','MOTOSCAFO','CARRELLO',"MOTO D'ACQUA"].includes(tipo))tipo='ALTRO';
+  let dt=s(g('DOC')).toUpperCase();if(!['ID','PATENTE','PASSAPORTO'].includes(dt))dt=dt?'ALTRO':'ID';
+  const c={id:cid,nome,nm:s(g('NOME')),cg:s(g('COGNOME')),mail:s(g('MAIL')).toLowerCase(),naz:s(g('NAZ.')).toUpperCase()||'NL',
+   citta:s(g('CITTA')),via:s(g('INDIRIZZO')),cap:s(g('CAP')),doc:{t:dt,n:s(g('NUM DOC')),s:iso(g('SCADE'))},
+   nasc:iso(g('NATO IL')),luogoN:s(g('NATO A')),marca:s(g('MARCA')),targa:s(g('TARGA')).toUpperCase(),tipo,lung:num(g('MT')),
+   ct:'A',dasse:false,cod:s(g('COD')),acconto:0,pagato:0,lav:0,rit:0,pos:'',sede,
+   b:{ui:'',uo:'',lav:0,rit:0},dk:{id:false,veh:false},reg:{d:OGGI,stato:'ok',fonte:'import'}};
+  if(!c.nm&&!c.cg)c.cg=nome;
+  cl.push(c);rowsDB[cid]=r;
+ }
+ const byid={};cl.forEach(c=>byid[c.id]=c);
+ // ---- storico uscite: quello già nell'app + quello del file
+ const sto=new Map();
+ if(old&&Array.isArray(old.sto))old.sto.forEach(x=>sto.set(x.d+'|'+x.c,{c:x.c,d:x.d,n:x.n}));
+ for(const r of rows('Uscite',3).slice(1)){const d=iso(r[0]);if(!d||r[1]===null||r[1]==='')continue;const n=toId(r[1]);if(n===null)continue;const k=d+'|'+n;if(!sto.has(k))sto.set(k,{c:n,d,n:s(r[2]).replace(/\s+/g,' ').trim()})}
+ for(const r of rows('Carico_scarico',6).slice(1)){const d=iso(r[0]);if(!d||s(r[1]).toUpperCase()!=='OUT'||r[5]===null||r[5]==='')continue;const n=toId(r[5]);if(n===null)continue;const k=d+'|'+n;if(!sto.has(k))sto.set(k,{c:n,d,n:s(r[2]).replace(/\s+/g,' ').trim()})}
+ const stoL=[...sto.values()].filter(x=>x.d<=OGGI).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.c-b.c);
+ // ---- conti
+ for(const c of cl){const r=rowsDB[c.id],T=num(r[ix('TOT')]);if(T>0)c.tp=T;
+  c.b.lav=Math.trunc(num(r[ix('LAVAGGIO EXTRA')]));c.b.rit=Math.trunc(num(r[ix('LATE NOTIFICATION')]));
+  const ar=num(r[ix('ARRETRATI')]);if(ar>0)c.arr=[{y:2025,imp:ar,pag:0}]}
+ // ---- pagamenti (dal 1/12/2025)
+ const RP=[];
+ for(const r of rows('Registro_Pagamenti',8).slice(1)){const d=iso(r[0]);if(!d||d<'2025-12-01')continue;
+  const cid=toId(r[1]);if(cid===null){rep.pagNonImportati.push([d,r[1],s(r[2]),s(r[3])]);continue}
+  if(!byid[cid]){rep.pagNonImportati.push([d,cid,s(r[2]),s(r[3])]);continue}
+  RP.push([d,cid,num(r[3]),s(r[4]).toUpperCase(),s(r[5]).toUpperCase(),s(r[6]),s(r[7])])}
+ RP.sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:a[1]-b[1]);
+ let pag=[];const nY={},ratas={};
+ for(const[d,cid,imp,op,modx,rf,nt]of RP){const c=byid[cid],y=d.slice(0,4);nY[y]=(nY[y]||0)+1;let mod=modx;
+  if(!mod){mod='BONIFICO';cnt('pagamenti senza modalità (messo bonifico)')}
+  let o;
+  if(op.startsWith('ACCONTO')){o='ACCONTO';c.acconto=r2(c.acconto+imp)}
+  else{c.pagato=r2(c.pagato+imp);const tp=c.tp||0,done=c.acconto+c.pagato>=tp-0.005&&tp>0;o=(op.startsWith('SALDO')||done)?'SALDO':'RATA'}
+  const pg={id:pag.length+1,n:nY[y],y,d,cid,nome:c.nome,imp,op:o,mod,note:'',mail:true,s:2026};
+  if(nt&&nt.toLowerCase()!=='none')pg.note=nt;
+  if(o==='RATA'){ratas[cid]=(ratas[cid]||0)+1;pg.rata=ratas[cid]}
+  if(rf)pg.rf=rf;pag.push(pg)}
+ const KW=['extra','trasport','ruote','late comm'];
+ const togli=p=>{pag=pag.filter(x=>x!==p);byid[p.cid].pagato=r2(byid[p.cid].pagato-p.imp);rep.pagTolti.push(p)};
+ pag.filter(p=>p.op!=='ACCONTO'&&KW.some(k=>p.note.toLowerCase().includes(k))).forEach(togli);
+ for(const c of cl){if(!c.tp)continue;let ex=r2(c.acconto+c.pagato-c.tp);
+  const L=pag.filter(p=>p.cid===c.id&&p.op!=='ACCONTO').sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:b.id-a.id);
+  for(const p of L){if(ex>0.01&&ex<=250&&p.imp<=ex+0.01){togli(p);ex=r2(ex-p.imp)}}}
+ const nY2={};[...pag].sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.id-b.id).forEach((p,i)=>{nY2[p.y]=(nY2[p.y]||0)+1;p.id=i+1;p.n=nY2[p.y]});
+ pag.sort((a,b)=>a.id-b.id);
+ // ---- prima nota (fatture)
+ const pn=[];
+ for(const r of rows('Prima_Nota',11).slice(1)){if(!r[0])continue;const d=iso(r[1]),numd=s(r[0]);
+  const cid=toId(r[4]);if(cid===null){cnt('prima nota con codice non numerico (saltata)');continue}
+  if(!byid[cid]||!d){cnt("prima nota di clienti non in elenco (saltata)");continue}
+  const pays=pag.filter(p=>p.cid===cid&&p.rf===numd);
+  if(num(r[5])>0){const ac=pag.filter(p=>p.cid===cid&&p.op==='ACCONTO'&&!('fat'in p));if(ac.length)pays.push(ac[0])}
+  const x={id:pn.length+1,y:d.slice(0,4),d,due:d,cid,nome:byid[cid].nome,imp:num(r[7])||num(r[6]),pays:pays.map(p=>p.id),stato:'emessa',de:d,num:numd};
+  pays.forEach(p=>p.fat=x.id);if(!pays.length)cnt('fatture senza pagamento collegato');pn.push(x)}
+ // ---- movimenti (carico/scarico + uscite 2026)
+ const U26=new Map();
+ for(const r of rows('Uscite',9).slice(1)){const d=iso(r[0]);if(!d||r[1]===null||r[1]==='')continue;const n=toId(r[1]);if(n===null)continue;
+  if(d.startsWith('2026'))U26.set(d+'|'+n,[s(r[5]).toUpperCase(),s(r[7]).toLowerCase()==='si'])}
+ const CS=new Map();
+ for(const r of rows('Carico_scarico',6).slice(1)){const d=iso(r[0]),t=s(r[1]).toUpperCase();if(!d||r[5]===null||r[5]===''||!['IN','OUT'].includes(t))continue;const n=toId(r[5]);if(n===null)continue;
+  const tt=t==='IN'?'ui':'uo';CS.set(d+'|'+n+'|'+tt,[d,n,tt])}
+ for(const k of U26.keys()){const[d,n]=k.split('|');const kk=d+'|'+n+'|uo';if(!CS.has(kk))CS.set(kk,[d,+n,'uo'])}
+ const CSL=[...CS.values()].sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:a[1]!==b[1]?a[1]-b[1]:a[2]<b[2]?-1:a[2]>b[2]?1:0);
+ const mov=[];
+ for(const[d,n,t]of CSL){if(!byid[n]){cnt('movimenti di clienti non in elenco (saltati)');continue}
+  const p=t==='uo'?(U26.get(d+'|'+n)||['',false])[0]:'';
+  mov.push({id:mov.length+1,d,t,cid:n,pos:LOC[p]?p:'',sede:byid[n].sede,lav:false,rit:false,note:''})}
+ for(const c of cl){const ms=mov.filter(m=>m.cid===c.id),mx=t=>ms.filter(m=>m.t===t).reduce((a,m)=>m.d>a?m.d:a,'');
+  c.ui=mx('ui');c.uo=mx('uo');c.lav=c.b.lav;c.rit=c.b.rit}
+ // ---- piantina: posto di ogni cliente
+ const CAS='Casalemenini',CAM='Camporengo',ws=wb.Sheets['Piantina'],ref=XLSX.utils.decode_range(ws['!ref']);
+ const CI=a=>XLSX.utils.decode_col(a),LT=c=>XLSX.utils.encode_col(c);
+ const cells=[],txt={};
+ for(let r=0;r<=ref.e.r;r++)for(let c=0;c<=ref.e.c;c++){const x=ws[XLSX.utils.encode_cell({r,c})];if(!x||x.v===undefined||x.t==='e')continue;
+  const v=x.v,R1=r+1,C1=c+1;
+  if(typeof v==='number'&&Number.isInteger(v))cells.push([LT(c)+R1,R1,C1,v]);
+  else if(typeof v==='string'){txt[R1+'|'+C1]=v;if(/^\s*\d{1,3}\s*$/.test(v))cells.push([LT(c)+R1,R1,C1,parseInt(v,10)])}}
+ const pos={},put=(co,k,z,sd)=>{pos[co]=[k,z,sd]};
+ const col1=a=>CI(a)+1;
+ const regular=(prefix,zona,sede,cols,bottom,step,maxpos)=>{for(const[co,r,c,n]of cells){if(cols[c]&&r<=bottom&&(bottom-r)%step===0){const p=(bottom-r)/step+1;if(p<=maxpos)put(co,prefix+' '+cols[c]+p,zona,sede)}}};
+ const cc=(arr,letters)=>{const o={};arr.forEach((x,i)=>o[col1(x)]=letters[i]);return o};
+ regular('R.OLANDA','Roulotte Olanda',CAM,cc(['C','D','E','F','G'],'ABCDE'),15,2,6);
+ regular('GELIO PORTA STRETTA','Gelio porta stretta',CAM,cc(['C','D','E','F','G'],'ABCDE'),32,2,6);
+ regular('GELIO PORTA LARGA','Gelio porta larga',CAM,cc(['C','D','E','F','G'],'ABCDE'),50,2,6);
+ regular('CHIOCCIOLA','Chiocciola',CAM,cc(['AW','AX','AY','AZ'],'ABCD'),18,2,7);
+ regular('MOTOSCAFI OL','Motoscafi Olanda',CAM,cc(['BE','BF','BG','BH'],'ABCD'),14,2,5);
+ regular('APPARTAMENTI','Appartamenti',CAM,cc(['K','L','M'],'ABC'),12,2,4);
+ regular('ANTONIA','Antonia',CAM,cc(['R','U','V','W','X'],'ABCDE'),13,2,4);
+ const fixed={S7:['ANTONIA DRITTE LATO SALVA POS1','Antonia',CAM],T7:['ANTONIA DRITTE LATO SALVA POS2','Antonia',CAM],Y7:['ANTONIA DRITTE LATO NEBA POS1','Antonia',CAM],Z7:['ANTONIA DRITTE LATO NEBA POS2','Antonia',CAM],
+  BW9:['C12 AGRI A1','C12',CAS],BW16:['C12 AGRI A2','C12',CAS],BW22:['C12 AGRI A3','C12',CAS],BT9:['C12 AGRI D1','C12',CAS],BT22:['C12 AGRI D2','C12',CAS],
+  BU9:['C12 AGRI C1','C12',CAS],BU22:['C12 AGRI C2','C12',CAS],BV9:['C12 AGRI B1','C12',CAS],BV22:['C12 AGRI B2','C12',CAS]};
+ const sal={CA:{14:1,12:2,10:3,8:4,6:5},CB:{10:1,6:2},CC:{10:1,6:2},CD:{10:1,6:2},CE:{10:1,6:2},CF:{10:1,6:2}},salK=Object.keys(sal);
+ for(const[co,r,c,n]of cells){const cl_=LT(c-1);
+  if(fixed[co])put(co,...fixed[co]);
+  if(sal[cl_]&&sal[cl_][r])put(co,'SALVA '+'ABCDEF'[salK.indexOf(cl_)]+sal[cl_][r],'Salva',CAM);
+  if(c>=col1('AN')&&c<=col1('AP')&&r>=43&&r<=48)put(co,'C13 CORRIDOIO '+'ABC'[c-col1('AN')]+(49-r),'C13 corridoio',CAS);
+  if(c>=col1('BM')&&c<=col1('BO')&&(r===11||r===24))put(co,'C12 PORTONE '+'ABC'[c-col1('BM')]+(r===11?2:1),'C12 portone',CAS);
+  if(r===5&&c>=col1('BP')&&c<=col1('BU'))put(co,'C12 CORRIDOIO AGRI POS'+(6-(c-col1('BP'))),'C12 corridoio lato Agri',CAS);
+  if(c>=col1('BP')&&c<=col1('BS')&&(r===27||r===32))put(co,'C12 CORRIDOIO C13 '+'ABCD'[c-col1('BP')]+(r===27?2:1),'C12 corridoio lato C13',CAS);
+  if(r>=11&&r<=13){
+   if(cl_==='BQ')put(co,'STANZA 1 POS'+(1+2*(r-11)),'C12 stanze',CAS);
+   if(cl_==='BP'&&r<=12)put(co,'STANZA 1 POS'+(2+2*(r-11)),'C12 stanze',CAS);
+   if(cl_==='BS')put(co,'STANZA 2 POS'+(1+2*(r-11)),'C12 stanze',CAS);
+   if(cl_==='BR'&&r<=12)put(co,'STANZA 2 POS'+(2+2*(r-11)),'C12 stanze',CAS)}
+  if(r===32&&c>=col1('K')&&c<=col1('P'))put(co,'TETTOIA POS'+(c-col1('K')+1),'Tettoia',CAM);
+  if(c===col1('K')&&r>=40&&r<=58&&(r-40)%2===0)put(co,'CASALMENINI ESTERNO POS'+((r-40)/2+1),'Esterno',CAS)}
+ const blocks=(c1,c2,tag,end,zona)=>{const lab={};
+  for(let r=1;r<60;r++)for(let c=c1;c<=c2;c++){const v=txt[r+'|'+c];if(v){const m=/^\s*fila\s*(\d+)/i.exec(v);if(m){(lab[r]=lab[r]||{})[c]=+m[1]}}}
+  const rs=Object.keys(lab).map(Number).sort((a,b)=>a-b);
+  rs.forEach((r,i)=>{const nxt=i+1<rs.length?rs[i+1]:end,c0=Math.min(...Object.keys(lab[r]).map(Number)),n0=lab[r][c0];
+   for(const[co,rr,c,n]of cells){if(c>=c1&&c<=c2&&rr>=r&&rr<nxt)put(co,tag+' F'+(n0+(c-c0))+' POS'+(nxt-rr),zona,CAS)}})};
+ blocks(col1('AE'),col1('AI'),'13C',49,'13 lato C');
+ blocks(col1('AN'),col1('AR'),'13S',33,'13 lato Strada');
+ const cellsof=new Map();for(const[co,r,c,n]of cells){if(!cellsof.has(n))cellsof.set(n,[]);cellsof.get(n).push(co)}
+ for(const n of [...cellsof.keys()].sort((a,b)=>a-b)){const cs=cellsof.get(n);
+  if(!byid[n]){rep.senzaCliente.push([n,cs.join(', ')]);continue}
+  if(cs.length>1){rep.doppi.push([n,cs.join(', ')]);continue}
+  const p=pos[cs[0]];if(!p){rep.senzaPosto.push([n,cs[0]]);continue}
+  byid[n].sede=p[2];if(LOC[p[0]])byid[n].pos=p[0];else rep.senzaPosto.push([n,cs[0]])}
+ // ---- rientri automatici: mezzo in piantina ma risulta fuori o senza movimenti
+ const stato=c=>{const z='2000-01-01',uo=c.uo||z,ui=c.ui||z;if(uo===z&&ui===z)return'X';if(uo<ui)return uo<OGGI?(ui>OGGI?'OUT':'IN'):'IN';if(uo>ui)return uo<OGGI?'OUT':'IN';return'IN'};
+ const add=(d,k)=>{const x=new Date(d+'T00:00:00Z');x.setUTCDate(x.getUTCDate()+k);return x.toISOString().slice(0,10)};
+ for(const[n,cs]of cellsof){if(!byid[n]||cs.length!==1||!pos[cs[0]])continue;
+  const c=byid[n],st=stato(c);if(st!=='OUT'&&st!=='X')continue;
+  const r=rowsDB[n],base=c.uo||iso(r[ix('DATA ULTIMA USCITA')])||iso(r[ix('INIZIO')]);
+  if(!base){rep.rientri.push([n,'',''],);continue}
+  const off=8+((n*7919+parseInt(base.replace(/-/g,''),10)*104729)%21);let d=add(base,off);
+  if(d>OGGI)d=OGGI;if(d<=base)d=add(base,1);
+  mov.push({id:mov.length+1,d,t:'ui',cid:n,pos:'',sede:c.sede,lav:false,rit:false,note:'Rientro registrato in automatico (mezzo presente in piantina)'});
+  if(d>c.ui)c.ui=d;rep.rientri.push([n,base,d])}
+ // ---- arretrati
+ for(const c of cl){if(c.arr&&c.tp){let ex=r2(c.acconto+c.pagato-c.tp);const ar=c.arr[0];
+  for(const p of pag.filter(p=>p.cid===c.id&&p.op!=='ACCONTO').sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0)){
+   if(ex>0.01&&p.imp<=ex+0.01&&ar.imp-ar.pag>=p.imp-0.01){p.ay=2025;p.s=2025;ar.pag=r2(ar.pag+p.imp);c.pagato=r2(c.pagato-p.imp);ex=r2(ex-p.imp);cnt('pagamenti attribuiti agli arretrati')}}}}
+ for(const c of cl)if(c.tp){const ex=r2(c.acconto+c.pagato-c.tp);if(ex>0.01)rep.crediti.push([c.id,c.nome,ex])}
+ // ---- dati dell'app che l'Excel non contiene
+ if(old&&Array.isArray(old.cl)){const o={};old.cl.forEach(x=>o[x.id]=x);
+  for(const c of cl){const x=o[c.id];if(!x)continue;for(const k of['ct','dasse','dk','reg'])if(x[k]!==undefined)c[k]=x[k]}}
+ const keep=k=>old&&old[k]!==undefined?old[k]:(k==='yr'?2026:k==='rd'?'2027-01-01':k==='rl'?null:[]);
+ const db={cl,mov,pag,pn,tmp:keep('tmp'),tr:keep('tr'),trp:keep('trp'),trc:keep('trc'),rit:keep('rit'),pren:keep('pren'),pc:keep('pc'),sto:stoL,yr:keep('yr'),rd:keep('rd'),rl:keep('rl')};
+ rep.tot={clienti:cl.length,pagamenti:pag.length,fatture:pn.length,movimenti:mov.length,conPosto:cl.filter(c=>c.pos).length,senzaPosto:cl.filter(c=>!c.pos).map(c=>c.id)};
+ return{db,rep};
+}
+
+async function xlLoad(){if(window.XLSX)return window.XLSX;await new Promise((ok,ko)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=ok;s.onerror=()=>ko(new Error('non riesco a caricare il lettore di Excel: controlla la connessione'));document.head.appendChild(s)});return window.XLSX}
+function rimRelazione(r){const t=r.tot,L=['RELAZIONE DELL\'IMPORTAZIONE DALL\'EXCEL ('+oggi()+')','',
+ 'Clienti '+t.clienti+' · pagamenti '+t.pagamenti+' · fatture '+t.fatture+' · movimenti '+t.movimenti+' · clienti con posto '+t.conPosto,''];
+ L.push('CLIENTI SENZA POSTO IN PIANTINA ('+t.senzaPosto.length+'): '+(t.senzaPosto.join(', ')||'nessuno'));
+ L.push('NUMERI IN PIÙ CELLE DELLA PIANTINA, NON ASSEGNATI ('+r.doppi.length+'):');r.doppi.forEach(x=>L.push('  '+x[0]+' → '+x[1]));
+ L.push('NUMERI IN PIANTINA CHE NON SONO NEL DATABASE ('+r.senzaCliente.length+'):');r.senzaCliente.forEach(x=>L.push('  '+x[0]+' → '+x[1]));
+ L.push('NUMERI IN CELLE CHE NON CORRISPONDONO A UN POSTO ('+r.senzaPosto.length+'):');r.senzaPosto.forEach(x=>L.push('  '+x[0]+' → '+x[1]));
+ L.push('CLIENTI SENZA SEDE ('+r.senzaSede.length+'): '+(r.senzaSede.join(', ')||'nessuno'));
+ L.push('','RIENTRI REGISTRATI IN AUTOMATICO ('+r.rientri.length+') (cliente, ultima uscita o inizio, rientro):');r.rientri.forEach(x=>L.push('  '+x[0]+'  '+(x[1]||'-')+'  '+(x[2]||'NON REGISTRATO: manca la data')));
+ L.push('','PAGAMENTI NON IMPORTATI ('+r.pagNonImportati.length+') (cliente non in elenco):');r.pagNonImportati.forEach(x=>L.push('  '+x.join('  ')));
+ L.push('','PAGAMENTI TOLTI PERCHÉ TRASPORTI O EXTRA ('+r.pagTolti.length+'):');r.pagTolti.forEach(p=>L.push('  '+p.d+' cliente '+p.cid+' '+p.nome+' '+p.imp+' € '+p.note));
+ L.push('','CLIENTI IN CREDITO ('+r.crediti.length+'):');r.crediti.forEach(x=>L.push('  '+x[0]+' '+x[1]+' '+x[2]+' €'));
+ return L.join('\n')}
+function rsOpen(){const f=document.createElement('input');f.type='file';f.accept='.xlsx,.xlsb,.xlsm,.xls,.json,application/json';f.onchange=async()=>{const fl=f.files[0];if(!fl)return;let o,rep=null;
+ if(/\.json$/i.test(fl.name)){try{o=JSON.parse(await fl.text())}catch(e){return toast('Il file non è leggibile')}}
+ else{toast('Leggo il file Excel…');try{const X=await xlLoad(),r=rimExcel(X,new Uint8Array(await fl.arrayBuffer()),{LOC,oggi:oggi(),old:db});o={formato:'rimessaggio-backup',v:1,db:r.db,files:fdb()};rep=r.rep}catch(e){return toast('Il file Excel non è valido: '+(e.message||e))}}
+ const nd=o&&o.formato==='rimessaggio-backup'?o.db:o;if(!nd||!Array.isArray(nd.cl))return toast('Questo non sembra né un file Excel del rimessaggio né un backup');
+ let m;if(rep){const t=rep.tot;m=`Dall'Excel arrivano <b>${t.clienti} clienti</b>, ${t.pagamenti} pagamenti, ${t.fatture} fatture e ${t.movimenti} movimenti. <b>${t.conPosto}</b> clienti hanno il posto letto dalla piantina.`
+  +`<br><br><b>${rep.rientri.length}</b> mezzi sono in piantina ma risultavano fuori o senza movimenti: registro il loro rientro in automatico, da 8 a 28 giorni dopo l'ultima uscita.`
+  +(t.senzaPosto.length?`<br><br>Senza posto in piantina (${t.senzaPosto.length}): ${t.senzaPosto.join(', ')}.`:'')
+  +(rep.doppi.length?`<br><br>Numeri in più celle, non assegnati: ${rep.doppi.map(x=>x[0]).join(', ')}.`:'')
+  +(rep.senzaCliente.length?`<br><br>Numeri in piantina che non sono nel database: ${rep.senzaCliente.map(x=>x[0]).join(', ')}.`:'')
+  +`<br><br>Clienti, movimenti, pagamenti e fatture vengono sostituiti con quelli dell'Excel; storico, prenotazioni e ritirati restano. Prima scarico una copia dei dati attuali: quello che hai inserito nell'app e non è nell'Excel andrà perso.`}
+ else m=`Il file contiene <b>${nd.cl.length} clienti</b>. Dopo aver scaricato una copia dei dati attuali, tutti i dati online verranno sostituiti con quelli del file. Quello che hai inserito nel frattempo andrà perso.`;
+ const ok=await askQ('Sostituire tutti i dati?',m,'Sostituisci tutto');if(!ok)return;
+ await bkSave();
+ if(rep){try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rimRelazione(rep)],{type:'text/plain'}));a.download='relazione_importazione_'+oggi()+'.txt';document.body.appendChild(a);a.click();a.remove()}catch(e){}}
+ toast('Sostituzione in corso…');try{await window.__rim.restore(o)}catch(e){toast('Non riuscito: '+(e.message||e))}};f.click()}
 const utCard=()=>(typeof window!=='undefined'&&window.SITE&&ROLE==='master')?`<div class="card xm" data-ut="1"><div><b>Utenti e permessi</b><div class="mut">Chi può entrare e cosa vede: Enrico, operai</div></div><span class="ch">›</span></div>`:'';
 const RUOLO_T={master:'Titolare',trasportatore:'Trasportatore',operaio:'Operaio'};
 async function utLoad(){const b=$('#ut-l');b.innerHTML='<p class="mut">Carico…</p>';
