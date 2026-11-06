@@ -559,7 +559,9 @@ $('#ps-lens').onclick=()=>srOpen(id=>{$('#ps-q').value=fid(id);pv('#ps-pv',$('#p
 $('#ps-ok').onclick=async()=>{const r=ref($('#ps-q').value),p=psPos;if(!r)return toast('Numero cliente non trovato');
  if(r.o.pos&&r.o.pos!==p){$('#dlgpos').close();const ok=await askQ('Spostare il mezzo?',`${esc(r.o.nome||tag(r))} è già in <b>${esc(r.o.pos)}</b>. Vuoi spostarlo in <b>${esc(p)}</b>?`,'Sposta');if(!ok)return}
  else $('#dlgpos').close();
- r.o.pos=p;save();render();det(p);toast(`${tag(r)} in ${p}`)};
+ r.o.pos=p;let au='';
+ if(!r.tmp){const c=r.o,s0=stato(c);if(s0==='OUT'||s0==='X'){db.mov.push({id:1+Math.max(0,...db.mov.map(y=>y.id||0)),d:oggi(),t:'ui',cid:c.id,pos:'',sede:sedeDi(c),lav:false,rit:false,note:'Rientro registrato in automatico (mezzo messo in piantina)'});recalc(c.id);au=' · rientro registrato'}}
+ save();render();det(p);toast(`${tag(r)} in ${p}${au}`)};
 $('#p-d').onclick=e=>{const x=e.target.dataset.x,r=occ()[$('#p-d').dataset.p];if(!x||!r)return;
  if(x==='lib')r.o.pos='';else db.tmp=db.tmp.filter(t=>t!==r.o);
  save();$('#p-d').hidden=true;render();toast(x==='lib'?'Posto liberato':'Provvisorio eliminato')};
@@ -625,7 +627,7 @@ function rimExcel(XLSX,buf,ctx){
   let dt=s(g('DOC')).toUpperCase();if(!['ID','PATENTE','PASSAPORTO'].includes(dt))dt=dt?'ALTRO':'ID';
   const c={id:cid,nome,nm:s(g('NOME')),cg:s(g('COGNOME')),mail:s(g('MAIL')).toLowerCase(),naz:s(g('NAZ.')).toUpperCase()||'NL',
    citta:s(g('CITTA')),via:s(g('INDIRIZZO')),cap:s(g('CAP')),doc:{t:dt,n:s(g('NUM DOC')),s:iso(g('SCADE'))},
-   nasc:iso(g('NATO IL')),luogoN:s(g('NATO A')),marca:s(g('MARCA')),targa:s(g('TARGA')).toUpperCase(),tipo,lung:num(g('MT')),
+   ini:iso(g('INIZIO')),nasc:iso(g('NATO IL')),luogoN:s(g('NATO A')),marca:s(g('MARCA')),targa:s(g('TARGA')).toUpperCase(),tipo,lung:num(g('MT')),
    ct:'A',dasse:false,cod:s(g('COD')),acconto:0,pagato:0,lav:0,rit:0,pos:'',sede,
    b:{ui:'',uo:'',lav:0,rit:0},dk:{id:false,veh:false},reg:{d:OGGI,stato:'ok',fonte:'import'}};
   if(!c.nm&&!c.cg)c.cg=nome;
@@ -1097,9 +1099,21 @@ function stOpen(){$('#dlgst').showModal();stDraw()}
 $('#st-bs').onclick=e=>{const b=e.target.closest('[data-b]');if(!b)return;stBs=b.dataset.b;$('#st-bs').querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b));stDraw()};
 $('#st-cl').onclick=()=>$('#dlgst').close();
 $('#sys-cl').onclick=()=>$('#dlgsys').close();
+// ---- Rientri automatici: tutti i clienti fuori o senza movimenti, con eccezioni
+function arCalc(c){const base=c.uo||c.ini||'';if(!base)return null;
+ const T=oggi(),off=8+((c.id*7919+parseInt(base.replace(/-/g,''),10)*104729)%21),add=(d,k)=>{const x=new Date(d+'T00:00:00Z');x.setUTCDate(x.getUTCDate()+k);return x.toISOString().slice(0,10)};
+ let d=add(base,off);if(d>T)d=T;if(d<=base)d=add(base,1);return d}
+async function arOpen(){let sv='';try{sv=localStorage.getItem('rim-arex')||''}catch(e){}
+ const s=prompt('Numeri cliente da ESCLUDERE (quelli che non hanno il mezzo nel capannone), separati da virgola. Lascia vuoto se nessuno.',sv);if(s===null)return;
+ try{localStorage.setItem('rim-arex',s)}catch(e){}
+ const ex=new Set((s.match(/\d+/g)||[]).map(Number)),l=db.cl.filter(c=>!isS(c.id)&&!ex.has(c.id)&&['OUT','X'].includes(stato(c))),ok1=l.filter(c=>arCalc(c)),no=l.filter(c=>!arCalc(c));
+ if(!l.length)return toast('Nessun cliente da sistemare: tutti hanno già un rientro');
+ const go=await askQ('Registrare i rientri?',`<b>${ok1.length} mezzi</b> risultano fuori o senza movimenti${ex.size?` (esclusi ${ex.size} numeri)`:''}. Registro il rientro con una data a caso tra 8 e 28 giorni dopo l'ultima uscita, mai dopo oggi. I rientri compaiono in Carico/Scarico.`+(no.length?`<br><br>${no.length} clienti non hanno nessuna data di uscita e restano come sono: ${no.map(c=>fid(c.id)).join(', ')}.`:''),'Registra i rientri');if(!go)return;
+ ok1.forEach(c=>{db.mov.push({id:1+Math.max(0,...db.mov.map(y=>y.id||0)),d:arCalc(c),t:'ui',cid:c.id,pos:'',sede:sedeDi(c),lav:false,rit:false,note:'Rientro registrato in automatico (impostazione rientri)'});recalc(c.id)});
+ save();render();toast(`${ok1.length} rientri registrati`)}
 function sysOpen(){const M=typeof window!=='undefined'&&window.SITE&&ROLE==='master';
- $('#sys-b').innerHTML=`<div class="card xm" data-bk2="1"><div><b>Backup completo</b><div class="mut">Scarica un file con tutti i dati: copia di sicurezza</div></div><span class="ch">›</span></div>`+rsCard()+(M?utCard():'');$('#dlgsys').showModal()}
-$('#sys-b').onclick=e=>{const c=e.target.closest('.xm');if(!c)return;$('#dlgsys').close();if(c.dataset.bk2)bkSave();else if(c.dataset.rs)rsOpen();else if(c.dataset.ut)utOpen()};
+ $('#sys-b').innerHTML=`<div class="card xm" data-bk2="1"><div><b>Backup completo</b><div class="mut">Scarica un file con tutti i dati: copia di sicurezza</div></div><span class="ch">›</span></div>`+rsCard()+(M?`<div class="card xm" data-ar="1"><div><b>Rientri automatici dei mezzi</b><div class="mut">Per tutti i clienti fuori o senza movimenti registra il rientro (da 8 a 28 giorni dopo l'ultima uscita), con la possibilità di escludere dei numeri</div></div><span class="ch">›</span></div>`:'')+(M?utCard():'');$('#dlgsys').showModal()}
+$('#sys-b').onclick=e=>{const c=e.target.closest('.xm');if(!c)return;$('#dlgsys').close();if(c.dataset.bk2)bkSave();else if(c.dataset.rs)rsOpen();else if(c.dataset.ar)arOpen();else if(c.dataset.ut)utOpen()};
 async function bkSave(){try{const d=await claude.use('downloads');if(!d)return toast('Salvataggio non disponibile qui');
  const o={formato:'rimessaggio-backup',v:1,creato:new Date().toISOString(),db:db,files:fdb()};
  await d.save({filename:'backup-rimessaggio-'+oggi()+'.json',data:new Blob([JSON.stringify(o)],{type:'application/json'})});try{localStorage.setItem('rim-bk',oggi())}catch(e){}toast('Backup salvato');render()}catch(e){if(!e||e.code!=='declined')toast('Salvataggio non riuscito')}}
@@ -1274,8 +1288,10 @@ function askQ(title,msg,okLabel){return new Promise(res=>{$('#q-t').textContent=
 $('#q-ok').onclick=()=>{$('#dlgq').close();if(askRes)askRes(true);askRes=null};
 $('#q-no').onclick=()=>{$('#dlgq').close();if(askRes)askRes(false);askRes=null};
 // ---- Stato del cliente ricalcolato dai movimenti (date di entrata/uscita ed extra): base = valori già presenti prima dei movimenti
+const fuoriOggi=c=>!!c.uo&&c.uo<=oggi()&&c.uo>(c.ui||''); // ultima uscita già avvenuta (anche oggi) e dopo l'ultimo rientro
 function recalc(cid){const c=cli(cid);if(!c)return;const b=c.b||(c.b={ui:'',uo:'',lav:0,rit:0}),ms=db.mov.filter(m=>m.cid===c.id),mx=t=>ms.filter(m=>m.t===t).reduce((a,m)=>m.d>a?m.d:a,'');
- c.ui=mx('ui')||b.ui||'';c.uo=mx('uo')||b.uo||'';const my=ms.filter(m=>String(m.d).slice(0,4)===String(db.yr));c.lav=b.lav+my.filter(m=>m.lav).length;c.rit=b.rit+my.filter(m=>m.rit).length}
+ c.ui=mx('ui')||b.ui||'';c.uo=mx('uo')||b.uo||'';if(c.pos&&fuoriOggi(c))c.pos=''; // mezzo uscito: libera il posto in piantina
+ const my=ms.filter(m=>String(m.d).slice(0,4)===String(db.yr));c.lav=b.lav+my.filter(m=>m.lav).length;c.rit=b.rit+my.filter(m=>m.rit).length}
 // ---- Lista movimenti registrati + modifica / eliminazione
 let mvF='';
 function mvList(){const q=mvF.trim().toLowerCase();let l=db.mov.slice().sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:(b.id||0)-(a.id||0));
@@ -1306,7 +1322,7 @@ function emApply(id,f){const m=db.mov.find(x=>x.id===id);if(!m)return'Movimento 
  db.tr=db.tr.filter(x=>x.mid!==id);
  if(tr){tr.id=old?old.id:1+Math.max(0,...db.tr.map(t=>t.id));tr.mid=id;tr.cid=c.id;tr.d=f.d;tr.tipo=f.t==='uo'?'Uscita':'Rientro';tr.pos=c.pos||'';db.tr.push(tr);c.sede=tr.sede;if(c.tipo==='ROULOTTE')c.dasse=tr.dx}
  recalc(c.id);if(oc!==c.id)recalc(oc);save();render();return''}
-function emDelete(id){const m=db.mov.find(x=>x.id===id);if(!m)return;db.mov=db.mov.filter(x=>x.id!==id);db.tr=db.tr.filter(x=>x.mid!==id);recalc(m.cid);save();render()}
+function emDelete(id){const m=db.mov.find(x=>x.id===id);if(!m)return;db.mov=db.mov.filter(x=>x.id!==id);db.tr=db.tr.filter(x=>x.mid!==id);recalc(m.cid);const c=cli(m.cid);if(c&&m.t==='uo'&&m.pos&&!c.pos&&!fuoriOggi(c)&&LOC[m.pos]&&!occ()[m.pos])c.pos=m.pos;save();render()}
 $('#dlg8').oninput=e=>{if(e.target.id==='em-d')emSlots($('#em-ora').value);emUp()};$('#dlg8').onchange=$('#dlg8').oninput;
 $('#em-c').onclick=()=>$('#dlg8').close();
 $('#em-s').onclick=()=>{const f={cid:$('#em-n').value,t:$('#em-t').value,d:$('#em-d').value,lav:$('#em-l').checked,rit:$('#em-r').checked,note:$('#em-o').value,tr:$('#em-tr').checked?{camp:$('#em-camp').value,piaz:$('#em-piaz').value,ora:$('#em-ora').value,sede:$('#em-sede').value,dx:$('#em-dx').checked,imp:$('#em-imp').value}:null};
@@ -1955,6 +1971,7 @@ $('#tr-ok').onclick=()=>{const c=cli($('#tr-n').value),d=$('#tr-d').value,imp=+$
 if(ROLE!=='master'){document.body.classList.add('role-'+ROLE);render();go(ROLE==='operaio'?'u':'r')}
 db.cl.forEach(c=>{if(!c.b){const ms=db.mov.filter(m=>m.cid===c.id);c.b={ui:ms.some(m=>m.t==='ui')?'':(c.ui||''),uo:ms.some(m=>m.t==='uo')?'':(c.uo||''),lav:Math.max(0,(c.lav||0)-ms.filter(m=>m.lav).length),rit:Math.max(0,(c.rit||0)-ms.filter(m=>m.rit).length)};recalc(c.id)}});
 trp();
+(function(){let n=0;db.cl.forEach(c=>{if(c.pos&&fuoriOggi(c)){c.pos='';n++}});if(n)save()})();
 render();
 </script>
 <script>(function(){
