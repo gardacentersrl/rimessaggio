@@ -374,7 +374,7 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
  <div id="ut-l"></div>
  <label for="ut-e">Email</label><input id="ut-e" type="email" autocomplete="off" inputmode="email">
  <label for="ut-n">Nome</label><input id="ut-n" autocomplete="off" placeholder="es. Enrico">
- <label for="ut-r">Cosa può fare</label><select id="ut-r"><option value="trasportatore">Trasportatore: vede solo i Trasporti (le sue aggiunte restano da confermare)</option><option value="operaio">Operaio: vede solo le Uscite</option></select>
+ <label for="ut-r">Cosa può fare</label><select id="ut-r"><option value="master">Titolare: vede e fa tutto come te (per es. tua sorella)</option><option value="trasportatore">Trasportatore: vede solo i Trasporti (le sue aggiunte restano da confermare)</option><option value="operaio">Operaio: vede solo le Uscite</option></select>
  <button class="btn" id="ut-ok">Aggiungi</button><button class="btn g" id="ut-no">Chiudi</button></dialog>
 <dialog id="dlgtr"><h2>Nuovo trasporto</h2>
  <p class="mut">Resta "da confermare" finché l'ufficio non lo approva.</p>
@@ -873,10 +873,10 @@ function rsOpen(){const f=document.createElement('input');f.type='file';f.accept
  await bkSave();
  if(rep){try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rimRelazione(rep)],{type:'text/plain'}));a.download='relazione_importazione_'+oggi()+'.txt';document.body.appendChild(a);a.click();a.remove()}catch(e){}}
  toast('Sostituzione in corso…');try{await window.__rim.restore(o)}catch(e){toast('Non riuscito: '+(e.message||e))}};f.click()}
-const utCard=()=>(typeof window!=='undefined'&&window.SITE&&ROLE==='master')?`<div class="card xm" data-ut="1"><div><b>Utenti e permessi</b><div class="mut">Chi può entrare e cosa vede: Enrico, operai</div></div><span class="ch">›</span></div>`:'';
-const RUOLO_T={master:'Titolare',trasportatore:'Trasportatore',operaio:'Operaio'};
+const utCard=()=>(typeof window!=='undefined'&&window.SITE&&ROLE==='master')?`<div class="card xm" data-ut="1"><div><b>Utenti e permessi</b><div class="mut">Chi può entrare e cosa vede: titolari, Enrico, operai</div></div><span class="ch">›</span></div>`:'';
+const RUOLO_T={master:'Titolare (accesso completo)',trasportatore:'Trasportatore',operaio:'Operaio'};
 async function utLoad(){const b=$('#ut-l');b.innerHTML='<p class="mut">Carico…</p>';
- try{const l=await window.__rim.rpc('utenti_elenco',{});b.innerHTML=l.map(u=>`<div class="row" style="margin:8px 0"><div><b>${esc(u.nome||u.email)}</b><div class="mut">${esc(u.email)} · ${RUOLO_T[u.ruolo]||esc(u.ruolo)}${u.attesa?' · invitato, non è ancora entrato':''}</div></div>${u.ruolo==='master'?'':`<div style="flex:none"><button class="btn g sm" style="margin:0" data-ur="${u.id||''}|${esc(u.email)}">Togli</button></div>`}</div>`).join('')||'<p class="mut">Nessun utente.</p>'}
+ try{const l=await window.__rim.rpc('utenti_elenco',{});b.innerHTML=l.map(u=>`<div class="row" style="margin:8px 0"><div><b>${esc(u.nome||u.email)}</b><div class="mut">${esc(u.email)} · ${RUOLO_T[u.ruolo]||esc(u.ruolo)}${u.attesa?' · invitato, non è ancora entrato':''}</div></div>${u.ruolo==='master'&&String(u.email).toLowerCase()===String((window.__rim.me&&window.__rim.me())||'').toLowerCase()?'':`<div style="flex:none"><button class="btn g sm" style="margin:0" data-ur="${u.id||''}|${esc(u.email)}">Togli</button></div>`}</div>`).join('')||'<p class="mut">Nessun utente.</p>'}
  catch(e){b.innerHTML='<p class="mut">Non riesco a leggere gli utenti. Hai eseguito il file schema4_utenti.sql in Supabase?</p>'}}
 function utOpen(){$('#ut-e').value='';$('#ut-n').value='';$('#dlgut').showModal();utLoad()}
 $('#ut-no').onclick=()=>$('#dlgut').close();
