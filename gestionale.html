@@ -47,7 +47,7 @@ nav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;st
 #al-line{display:block;margin:6px 16px 0;max-width:640px;padding:9px 12px;border-radius:8px;background:rgba(214,69,69,.14);color:var(--out);font-weight:700;font-size:14px;cursor:pointer}#al-line[hidden]{display:none}
 #seg{max-width:640px;margin:auto;padding:0 16px}#seg .chips{margin:8px 0 0}
 .qa{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.qa button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;font-weight:700;color:var(--ink);width:100%;margin:0}.qa button span{font-weight:400;font-size:12px;color:var(--mut)}.qa svg{width:22px;height:22px;fill:none;stroke:var(--acc);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.mon.six{grid-template-columns:repeat(3,1fr)}.mon div b{font-size:22px}
+.mon.six{grid-template-columns:repeat(3,1fr)}.mon.four{grid-template-columns:repeat(2,1fr)}.mon div b{font-size:22px}
 .h-green{background:#3fa66b;color:#fff}.cell.f.h-green{background:#3fa66b;color:#fff}.hb{display:inline-block;padding:2px 9px;border-radius:10px;font-weight:700;font-size:12px}.h-red{background:#d64545;color:#fff}.h-orange{background:#f08c2e;color:#1b1b1b}.h-yellow{background:#f2d024;color:#1b1b1b}.h-blue{background:#5bb3e6;color:#10222b}.cell.f.h-red{background:#d64545;color:#fff}.cell.f.h-orange{background:#f08c2e;color:#1b1b1b}.cell.f.h-yellow{background:#f2d024;color:#1b1b1b}.cell.f.h-blue{background:#5bb3e6;color:#10222b}
 .xm{display:flex;align-items:center;gap:12px;cursor:pointer}.xm b{font-size:17px;display:block}.xm .ch{margin-left:auto;color:var(--mut);font-size:22px}
 @media(min-width:900px){
@@ -117,6 +117,7 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
   <button data-q="find"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>Cerca cliente<span>Per nome, targa o numero</span></button>
   <button data-q="p"><svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Piantina<span>Dove si trova ogni mezzo</span></button>
  </div>
+ <div class="card" id="h-m" style="margin:12px 0"></div>
  <div class="mon six" id="h-t"></div>
  <h3>Uscite di oggi e domani</h3><div id="h-u"></div>
  <h3>Trasporti di oggi e domani</h3><div id="h-r"></div>
@@ -496,11 +497,11 @@ let filtro='TUTTI',aperto=null;
 function render(){
  const q=$('#q').value.toLowerCase(),n={IN:0,OUT:0,X:0};db.cl.forEach(c=>{if(!isS(c.id))n[stato(c)]++});const nS=db.cl.filter(c=>isS(c.id)).length,nR=db.cl.length-nS;
  $('#sum').textContent=`Stagione ${db.yr} · ${nR} clienti: ${n.IN} dentro, ${n.OUT} fuori, ${n.X} senza movimenti${nS?' · '+nS+' stagionali':''}${db.rit.length?' · '+db.rit.length+' ritirati':''}`;
- $('#chips').innerHTML=histY()?'':['TUTTI','IN','OUT','X','STAG','ARR','RIT'].map(f=>`<button class="chip ${f===filtro?'on':''}" data-f="${f}">${f==='TUTTI'?'Tutti':f==='RIT'?'Ritirati ('+db.rit.length+')':f==='STAG'?'Stagionali ('+nS+')':f==='ARR'?'Arretrati ('+db.cl.filter(c=>arrOpen(c)>.004).length+')':f}</button>`).join('');
- const l=db.cl.filter(c=>(filtro==='ARR'?arrOpen(c)>.004:filtro==='STAG'?isS(c.id):!isS(c.id)&&(filtro==='TUTTI'||stato(c)===filtro))&&(!q||(c.nome+c.targa+fid(c.id)).toLowerCase().includes(q)));
+ $('#chips').innerHTML=histY()?'':['TUTTI','IN','OUT','X','STAG','ARR','RITP','RIT'].map(f=>`<button class="chip ${f===filtro?'on':''}" data-f="${f}">${f==='TUTTI'?'Tutti':f==='RIT'?'Ritirati ('+db.rit.length+')':f==='RITP'?'Si ritirano ('+db.cl.filter(c=>c.rtp).length+')':f==='STAG'?'Stagionali ('+nS+')':f==='ARR'?'Arretrati ('+db.cl.filter(c=>arrOpen(c)>.004).length+')':f}</button>`).join('');
+ const l=db.cl.filter(c=>(filtro==='ARR'?arrOpen(c)>.004:filtro==='RITP'?!!c.rtp:filtro==='STAG'?isS(c.id):!isS(c.id)&&(filtro==='TUTTI'||stato(c)===filtro))&&(!q||(c.nome+c.targa+fid(c.id)).toLowerCase().includes(q)));
  $('#list').innerHTML=histY()?histList(q):l.length?l.map(c=>{const s=stato(c),d=daPagare(c)+arrOpen(c);return`<div class="card ${aperto===c.id?'open':''}" data-id="${c.id}">
- <div class="row"><span class="num">${fid(c.id)}</span><div><b>${esc(c.nome)}</b>${c.ct&&c.ct!=='A'?' <span class="b X">STAGIONALE</span>':''}<div class="mut">${esc(c.tipo)}${c.marca?' '+esc(c.marca):''} ${c.lung||''} m · ${esc(c.targa)}</div></div><div style="flex:none;text-align:right"><span class="b ${s}">${s}</span><div class="due" style="color:${d>0?'var(--out)':'var(--in)'}">${d>0?eur(d):'Saldato'}</div></div></div>
- <div class="det mut">Tariffa ${eur(tarC(c))}${c.ct&&c.ct!=='A'?' ('+CTR[c.ct]+')':''} · acconto ${eur(c.acconto||0)} · pagato ${eur(c.pagato||0)}${arrOpen(c)>0?' · <b style="color:var(--out)">arretrati '+arrTxt(c)+'</b>':''}<br>Lavaggi extra ${c.lav||0} · ritardi ${c.rit||0}<br>Ultima entrata ${c.ui||'-'} · ultima uscita ${c.uo||'-'}<br>Registrazione: ${c.reg?(c.reg.stato==='ok'?'completa':'DA VERIFICARE')+' · '+c.reg.d:'dati precedenti'}${c.reg&&!(c.dk&&c.dk.id&&c.dk.veh)?' · <span style="color:var(--out)">documenti mancanti</span>':''} <button class="btn g sm" data-doc="${c.id}">Documenti e contratto</button> <button class="btn g sm" data-ed="${c.id}">Modifica cliente</button> <button class="btn g sm" data-of="${c.id}">Apri in ufficio</button> <button class="btn g sm" data-sh="${c.id}">Storico</button> <button class="btn g sm" data-rt="${c.id}">Ritiro mezzo</button>${c.per&&c.per.dal?'<br>Periodo: '+c.per.dal+' → '+c.per.al:''}<br>Posizione: ${c.pos?esc(descr(c.pos)+' ('+c.pos+')'):'non assegnata'}</div></div>`}).join(''):'<p class="mut">Nessun cliente trovato. Cambia la ricerca o il filtro.</p>';
+ <div class="row"><span class="num">${fid(c.id)}</span><div><b>${esc(c.nome)}</b>${c.ct&&c.ct!=='A'?' <span class="b X">STAGIONALE</span>':''}${c.rtp?' <span class="b OUT">SI RITIRA</span>':''}<div class="mut">${esc(c.tipo)}${c.marca?' '+esc(c.marca):''} ${c.lung||''} m · ${esc(c.targa)}</div></div><div style="flex:none;text-align:right"><span class="b ${s}">${s}</span><div class="due" style="color:${d>0?'var(--out)':'var(--in)'}">${d>0?eur(d):'Saldato'}</div></div></div>
+ <div class="det mut">Tariffa ${eur(tarC(c))}${c.ct&&c.ct!=='A'?' ('+CTR[c.ct]+')':''} · acconto ${eur(c.acconto||0)} · pagato ${eur(c.pagato||0)}${arrOpen(c)>0?' · <b style="color:var(--out)">arretrati '+arrTxt(c)+'</b>':''}<br>Lavaggi extra ${c.lav||0} · ritardi ${c.rit||0}<br>Ultima entrata ${c.ui||'-'} · ultima uscita ${c.uo||'-'}<br>Registrazione: ${c.reg?(c.reg.stato==='ok'?'completa':'DA VERIFICARE')+' · '+c.reg.d:'dati precedenti'}${c.reg&&!(c.dk&&c.dk.id&&c.dk.veh)?' · <span style="color:var(--out)">documenti mancanti</span>':''} <button class="btn g sm" data-doc="${c.id}">Documenti e contratto</button> <button class="btn g sm" data-ed="${c.id}">Modifica cliente</button> <button class="btn g sm" data-of="${c.id}">Apri in ufficio</button> <button class="btn g sm" data-sh="${c.id}">Storico</button> <button class="btn g sm" data-rt="${c.id}">Ritiro mezzo</button> <button class="btn g sm" data-rp="${c.id}">${c.rtp?'Resta cliente':'Dice che si ritira'}</button>${c.rtp?'<br><b>Ha detto che si ritira</b> dal '+c.rtp.d+(c.rtp.n?' · '+esc(c.rtp.n):'')+' (resta nell\'elenco finché non ritira il mezzo)':''}${c.per&&c.per.dal?'<br>Periodo: '+c.per.dal+' → '+c.per.al:''}<br>Posizione: ${c.pos?esc(descr(c.pos)+' ('+c.pos+')'):'non assegnata'}</div></div>`}).join(''):'<p class="mut">Nessun cliente trovato. Cambia la ricerca o il filtro.</p>';
  if(filtro==='RIT')ritList();mvList();bkList();grid();pn();us();trv();al();home();menuX()}
 let capSel='13C',uf='P';
 function descr(l){let m;
@@ -540,7 +541,7 @@ $('#u-ch').onclick=e=>{if(e.target.dataset.u){uf=e.target.dataset.u;us()}};
 $('#caps').onclick=e=>{const c=e.target.closest('[data-c]');if(c){capSel=c.dataset.c;grid()}};
 $('#chips').onclick=e=>{if(e.target.dataset.f){filtro=e.target.dataset.f;render()}};
 $('#list').onclick=e=>{const bt=e.target.closest&&e.target.closest('button'),d=bt?bt.dataset:(e.target.dataset||{});
- if(d.sh){shOpen(+d.sh);return}if(d.doc){docOpen('c',+d.doc);return}if(d.ed){ecOpen('c',+d.ed);return}if(d.rt){ritOpen(+d.rt);return}
+ if(d.sh){shOpen(+d.sh);return}if(d.doc){docOpen('c',+d.doc);return}if(d.ed){ecOpen('c',+d.ed);return}if(d.rt){ritOpen(+d.rt);return}if(d.rp){rtpToggle(+d.rp);return}
  if(d.rdoc){docOpen('r',+d.rdoc);return}if(d.of){ofOpen(+d.of);return}
  if(d.rund){const r=db.rit.find(x=>x.rid===+d.rund);askQ('Annullare il ritiro?',`${esc(r.cl.nome)} tornerà tra i clienti${cli(r.id)?' con un nuovo numero (il '+fid(r.id)+' è già stato riassegnato)':' con il numero '+fid(r.id)}.`,'Ripristina').then(ok=>{if(ok){const n=ritUndo(r.rid);toast('Cliente ripristinato con il numero '+fid(n))}});return}
  const c=e.target.closest('.card');if(c&&c.dataset.id){aperto=aperto==c.dataset.id*1?null:c.dataset.id*1;render()}};
@@ -582,7 +583,24 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{const g=b.data
 $('#seg').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-go]');if(b)go(b.dataset.go)};
 $('#al-line').onclick=()=>go('h');
 // ---- Pagina "Oggi" e menu "Altro"
+// ---- Chi ha detto che si ritira (resta cliente finché non ritira il mezzo) e misuratore in home
+function rtpToggle(id){const c=cli(id);if(!c)return;
+ if(c.rtp){delete c.rtp;save();render();return toast(`${c.nome}: resta cliente`)}
+ const n=prompt('Nota facoltativa (per esempio il motivo o quando riporta il mezzo)','');if(n===null)return;
+ c.rtp={d:oggi(),n:n.trim()};save();render();toast(`${c.nome}: segnato che si ritira. Resta nell'elenco finché non ritira il mezzo`)}
+function rinnoviSet(){const v=prompt("Quanti clienti annuali vuoi avere in tutto? (obiettivo, per sapere quanti nuovi puoi ancora accettare). Lascia vuoto o 0 per toglierlo.",db.obj||'');if(v===null)return;db.obj=Math.max(0,Math.round(+String(v).replace(',','.'))||0);save();home()}
+function rinnoviHtml(){const ann=db.cl.filter(c=>!isS(c.id)),N=ann.length,A=ann.filter(c=>c.rtp).length,st=(db.yr-1)+'-12-01',rr=db.rit.filter(r=>r.d>=st&&!isS(r.id)),R=rr.length,Ra=rr.filter(r=>r.cl&&r.cl.rtp).length,
+ pa=db.pren.filter(p=>p.stato==='attiva'),P=pa.length,inc=pa.filter(p=>bkMissing(p).length).length,rest=N-A,fut=rest+P,obj=+db.obj||0,libero=obj-fut,max=Math.max(obj,N+P,1),w=x=>(100*x/max).toFixed(1);
+ const box=(n,l,s)=>`<div><b>${n}</b>${l}${s?'<br><span class="mut">'+s+'</span>':''}</div>`;
+ return`<h3 style="margin:0 0 4px">Posti e rinnovi · stagione ${db.yr}</h3>
+ <div class="mon four">${box(N,'Clienti','annuali in elenco')}${box(A,'Dicono di ritirarsi','ancora in elenco')}${box(R,'Già ritirati','in questa stagione'+(Ra?' · '+Ra+' l\'avevano annunciato':''))}${box(P,'Nuove prenotazioni',inc?inc+' incomplete':'da trasformare in clienti')}</div>
+ <div style="display:flex;height:14px;border-radius:7px;overflow:hidden;margin:10px 0 6px;background:rgba(128,128,128,.18)" title="Verde: restano · Arancione: si ritirano · Blu: nuove prenotazioni">
+  <span style="width:${w(rest)}%;background:var(--in)"></span><span style="width:${w(A)}%;background:#d99a2b"></span><span style="width:${w(P)}%;background:#3b82c4"></span></div>
+ <div class="mut" style="font-size:.85rem"><span style="color:var(--in)">■</span> restano ${rest} · <span style="color:#d99a2b">■</span> si ritirano ${A} · <span style="color:#3b82c4">■</span> prenotazioni ${P}</div>
+ <p style="margin:8px 0 0">Se si ritirano tutti quelli che l'hanno detto, restano <b>${rest}</b> clienti; con le prenotazioni arrivano a <b>${fut}</b>. In uscita in totale: <b>${A+R}</b> (${R} già ritirati + ${A} annunciati).</p>
+ <p style="margin:6px 0 0">${obj?(libero>=0?`Obiettivo ${obj} clienti: puoi ancora accettare <b>${libero}</b> nuovi clienti.`:`Obiettivo ${obj} clienti: sei oltre di <b>${-libero}</b>.`):'Imposta un obiettivo per sapere quanti nuovi clienti puoi ancora accettare.'} <a href="#" id="h-obj">${obj?'Cambia obiettivo':'Imposta obiettivo'}</a></p>`}
 function home(){const t=oggi(),dm=add(1),n={IN:0,OUT:0,X:0};db.cl.forEach(c=>{if(!isS(c.id))n[stato(c)]++});const nS=db.cl.filter(c=>isS(c.id)).length,pa=db.pren.filter(p=>p.stato==='attiva'),inc=pa.filter(p=>bkMissing(p).length).length,dap=cont().reduce((a,o)=>a+o.dap,0);
+ const hm=$('#h-m');if(hm){hm.innerHTML=rinnoviHtml();const a=$('#h-obj');if(a)a.onclick=e=>{e.preventDefault();rinnoviSet()}}
  $('#h-d').textContent=new Date(t+'T12:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
  $('#h-t').innerHTML=`<div>Dentro<b>${n.IN}</b></div><div>Fuori<b>${n.OUT}</b></div><div>Stagionali<b>${nS}</b></div><div>Prenotazioni<b>${pa.length}</b>${inc?inc+' incomplete':''}</div><div>Uscite oggi<b>${db.mov.filter(m=>m.t==='uo'&&m.d===t).length}</b></div><div>Trasporti da incassare<b>${eur(dap)}</b></div>`;
  const u=db.mov.filter(m=>m.t==='uo'&&(m.d===t||m.d===dm)).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.cid-b.cid);
@@ -762,9 +780,10 @@ function rimExcel(XLSX,buf,ctx){
  for(const c of cl)if(c.tp){const ex=r2(c.acconto+c.pagato-c.tp);if(ex>0.01)rep.crediti.push([c.id,c.nome,ex])}
  // ---- dati dell'app che l'Excel non contiene
  if(old&&Array.isArray(old.cl)){const o={};old.cl.forEach(x=>o[x.id]=x);
-  for(const c of cl){const x=o[c.id];if(!x)continue;for(const k of['ct','dasse','dk','reg'])if(x[k]!==undefined)c[k]=x[k]}}
- const keep=k=>old&&old[k]!==undefined?old[k]:(k==='yr'?2026:k==='rd'?'2027-01-01':k==='rl'?null:[]);
- const db={cl,mov,pag,pn,tmp:keep('tmp'),tr:keep('tr'),trp:keep('trp'),trc:keep('trc'),rit:keep('rit'),pren:keep('pren'),pc:keep('pc'),sto:stoL,yr:keep('yr'),rd:keep('rd'),rl:keep('rl')};
+  for(const c of cl){const x=o[c.id];if(!x)continue;for(const k of['ct','dasse','dk','reg','rtp'])if(x[k]!==undefined)c[k]=x[k]}}
+ const db=Object.assign({},old||{});db.cl=cl;db.mov=mov;db.pag=pag;db.pn=pn;db.sto=stoL;
+ for(const k of['tmp','tr','trp','trc','rit','pren','pc'])if(!Array.isArray(db[k]))db[k]=[];
+ if(db.yr===undefined)db.yr=2026;if(db.rd===undefined)db.rd='2027-01-01';if(db.rl===undefined)db.rl=null;
  rep.senzaSede=cl.filter(c=>!c.sede).map(c=>c.id);
  rep.tot={clienti:cl.length,pagamenti:pag.length,fatture:pn.length,movimenti:mov.length,conPosto:cl.filter(c=>c.pos).length,senzaPosto:cl.filter(c=>!c.pos).map(c=>c.id)};
  return{db,rep};
@@ -1772,7 +1791,7 @@ $('#n-x').onclick=()=>{const y=$('#n-y').value;expXlsx(`prima-nota-${y}.xlsx`,'P
   return[{d:p.d},p.stato==='emessa'?'Emessa':'Da emettere',p.num||'',p.de?{d:p.de}:'',xnum(p.cid),p.nome,{m:p.imp},{m:ac},{m:r2(p.imp-ac)},[...new Set(ps.map(x=>x.mod))].join(' + '),ps.map(x=>`${opLab(x)} ${x.imp.toFixed(2)} ${x.mod} ${x.d}`).join(' + ')]}))};
 $('#c-x').onclick=()=>{const q=$('#q').value.toLowerCase();
  if(filtro==='RIT')return expXlsx('clienti-ritirati.xlsx','Ritirati',['N. CLIENTE','NOME E COGNOME','MEZZO','TARGA','DATA RITIRO','SALDO ALLA DATA'],db.rit.map(r=>[xnum(r.id),r.cl.nome,r.cl.tipo,r.cl.targa,{d:r.d},{m:r.sum||0}]));
- const l=db.cl.filter(c=>(filtro==='ARR'?arrOpen(c)>.004:filtro==='STAG'?isS(c.id):!isS(c.id)&&(filtro==='TUTTI'||stato(c)===filtro))&&(!q||(c.nome+c.targa+fid(c.id)).toLowerCase().includes(q)));
+ const l=db.cl.filter(c=>(filtro==='ARR'?arrOpen(c)>.004:filtro==='RITP'?!!c.rtp:filtro==='STAG'?isS(c.id):!isS(c.id)&&(filtro==='TUTTI'||stato(c)===filtro))&&(!q||(c.nome+c.targa+fid(c.id)).toLowerCase().includes(q)));
  expXlsx('clienti-'+oggi()+'.xlsx','Clienti',['N. CLIENTE','NOME E COGNOME','TIPO','MARCA','LUNGHEZZA','TARGA','STATO','POSIZIONE','SEDE','TARIFFA','ACCONTO','PAGATO','EXTRA','DA PAGARE','ULTIMA ENTRATA','ULTIMA USCITA','EMAIL','NAZIONALITÀ','COD. CANCELLO'],
   l.map(c=>[xnum(c.id),c.nome,c.tipo,c.marca||'',c.lung||'',c.targa,stato(c),c.pos||'',sedeDi(c),{m:tarC(c)},{m:c.acconto||0},{m:c.pagato||0},{m:50*((c.lav||0)+(c.rit||0))},{m:daPagare(c)},c.ui?{d:c.ui}:'',c.uo?{d:c.uo}:'',c.mail||'',c.naz||'',c.cod||'']))};
 $('#u-x').onclick=()=>{const t=oggi(),l=db.mov.filter(m=>m.t==='uo'&&(uf==='P'?m.d>=t:m.d<t)).sort((a,b)=>a.d>b.d?1:a.d<b.d?-1:a.cid-b.cid);
@@ -1920,7 +1939,7 @@ $('#c-x').onclick=()=>{const q=$('#q').value.toLowerCase();
  if(histY())return expXlsx(`clienti-stagione-${cy}.xlsx`,'Clienti '+cy,['N. CLIENTE','NOME E COGNOME','TIPO','TARGA','STAGIONE','TARIFFA','ACCONTO','EXTRA','PAGATO','RESIDUO A FINE STAGIONE','ANCORA DA INCASSARE'],
   db.cl.map(c=>({c,h:(c.hist||[]).find(x=>String(x.y)===cy)})).filter(x=>x.h).map(({c,h})=>{const a=(c.arr||[]).find(x=>String(x.y)===cy);return[xnum(c.id),c.nome,c.tipo,c.targa,h.y,{m:h.tar},{m:h.acc},{m:h.ext},{m:h.pag},{m:h.res},{m:a?r2(a.imp-(a.pag||0)):0}]}));
  if(filtro==='RIT')return expXlsx('clienti-ritirati.xlsx','Ritirati',['N. CLIENTE','NOME E COGNOME','MEZZO','TARGA','DATA RITIRO','SALDO ALLA DATA'],db.rit.map(r=>[xnum(r.id),r.cl.nome,r.cl.tipo,r.cl.targa,{d:r.d},{m:r.sum||0}]));
- const l=db.cl.filter(c=>(filtro==='ARR'?arrOpen(c)>.004:filtro==='STAG'?isS(c.id):!isS(c.id)&&(filtro==='TUTTI'||stato(c)===filtro))&&(!q||(c.nome+c.targa+fid(c.id)).toLowerCase().includes(q)));
+ const l=db.cl.filter(c=>(filtro==='ARR'?arrOpen(c)>.004:filtro==='RITP'?!!c.rtp:filtro==='STAG'?isS(c.id):!isS(c.id)&&(filtro==='TUTTI'||stato(c)===filtro))&&(!q||(c.nome+c.targa+fid(c.id)).toLowerCase().includes(q)));
  expXlsx('clienti-stagione-'+cur()+'.xlsx','Clienti '+cur(),['N. CLIENTE','NOME E COGNOME','TIPO','MARCA','LUNGHEZZA','TARGA','STATO','POSIZIONE','SEDE','STAGIONE','TARIFFA','ACCONTO','PAGATO','EXTRA','DA PAGARE STAGIONE','ARRETRATI','ANNI ARRETRATI','ULTIMA ENTRATA','ULTIMA USCITA','EMAIL','NAZIONALITÀ','COD. CANCELLO'],
   l.map(c=>[xnum(c.id),c.nome,c.tipo,c.marca||'',c.lung||'',c.targa,stato(c),c.pos||'',sedeDi(c),db.yr,{m:tarC(c)},{m:c.acconto||0},{m:c.pagato||0},{m:50*((c.lav||0)+(c.rit||0))},{m:daPagare(c)},{m:arrOpen(c)},arrList(c).map(x=>x.y).join(', '),c.ui?{d:c.ui}:'',c.uo?{d:c.uo}:'',c.mail||'',c.naz||'',c.cod||'']))};
 $('#u-x').onclick=()=>{expXlsx(`uscite-${uy}-${uy===cur()?(uf==='P'?'prossime':'passate'):'anno'}.xlsx`,'Uscite '+uy,['DATA','N. CLIENTE','NOME E COGNOME','MEZZO','TARGA','POSIZIONE','SEDE','LAVAGGIO EXTRA','RITARDO','NOTE'],
