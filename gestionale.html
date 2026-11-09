@@ -298,7 +298,7 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
  <label>Note</label><input id="em-o">
  <button class="btn" id="em-s">Salva modifiche</button><button class="btn g" id="em-del" style="color:var(--out)">Elimina movimento</button><button class="btn g" id="em-c">Annulla</button></dialog>
 <dialog id="dlg9"><h2 id="ec-t"></h2><div id="ec-b"></div><button class="btn" id="ec-s">Salva modifiche</button><button class="btn g" id="ec-c">Annulla</button></dialog>
-<dialog id="dlg10"><h2>Ritiro del mezzo</h2><div id="rt-i"></div><label>Data del ritiro</label><input id="rt-d" type="date"><button class="btn" id="rt-s">Conferma ritiro</button><button class="btn g" id="rt-c">Annulla</button></dialog>
+<dialog id="dlg10"><h2>Ritiro del mezzo</h2><div id="rt-i"></div><label id="rt-l">Data del ritiro</label><input id="rt-d" type="date"><button class="btn" id="rt-s">Conferma ritiro</button><button class="btn g" id="rt-c">Annulla</button></dialog>
 <dialog id="dlgpos"><h2 id="ps-t">Assegna posto</h2><p class="mut" id="ps-d"></p><label for="ps-q">Numero cliente (o T1 per un provvisorio)</label><input id="ps-q" type="text" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="Es. 123"><button class="btn g sm lens" type="button" id="ps-lens">🔍 Non ricordi il numero? Cerca per nome o targa</button><div id="ps-pv" class="prev" hidden></div><button class="btn" id="ps-ok">Assegna posto</button><button class="btn g" id="ps-no">Annulla</button></dialog>
 <dialog id="dlgsh"><h2 id="sh-t"></h2><div id="sh-b"></div><button class="btn g" id="sh-x">Chiudi</button></dialog>
 <dialog id="dlgml" style="width:min(96vw,720px)">
@@ -501,8 +501,8 @@ function render(){
  const l=db.cl.filter(c=>(filtro==='ARR'?arrOpen(c)>.004:filtro==='RITP'?!!c.rtp:filtro==='STAG'?isS(c.id):!isS(c.id)&&(filtro==='TUTTI'||stato(c)===filtro))&&(!q||(c.nome+c.targa+fid(c.id)).toLowerCase().includes(q)));
  $('#list').innerHTML=histY()?histList(q):l.length?l.map(c=>{const s=stato(c),d=daPagare(c)+arrOpen(c);return`<div class="card ${aperto===c.id?'open':''}" data-id="${c.id}">
  <div class="row"><span class="num">${fid(c.id)}</span><div><b>${esc(c.nome)}</b>${c.ct&&c.ct!=='A'?' <span class="b X">STAGIONALE</span>':''}${c.rtp?' <span class="b OUT">SI RITIRA</span>':''}<div class="mut">${esc(c.tipo)}${c.marca?' '+esc(c.marca):''} ${c.lung||''} m · ${esc(c.targa)}</div></div><div style="flex:none;text-align:right"><span class="b ${s}">${s}</span><div class="due" style="color:${d>0?'var(--out)':'var(--in)'}">${d>0?eur(d):'Saldato'}</div></div></div>
- <div class="det mut">Tariffa ${eur(tarC(c))}${c.ct&&c.ct!=='A'?' ('+CTR[c.ct]+')':''} · acconto ${eur(c.acconto||0)} · pagato ${eur(c.pagato||0)}${arrOpen(c)>0?' · <b style="color:var(--out)">arretrati '+arrTxt(c)+'</b>':''}<br>Lavaggi extra ${c.lav||0} · ritardi ${c.rit||0}<br>Ultima entrata ${c.ui||'-'} · ultima uscita ${c.uo||'-'}<br>Registrazione: ${c.reg?(c.reg.stato==='ok'?'completa':'DA VERIFICARE')+' · '+c.reg.d:'dati precedenti'}${c.reg&&!(c.dk&&c.dk.id&&c.dk.veh)?' · <span style="color:var(--out)">documenti mancanti</span>':''} <button class="btn g sm" data-doc="${c.id}">Documenti e contratto</button> <button class="btn g sm" data-ed="${c.id}">Modifica cliente</button> <button class="btn g sm" data-of="${c.id}">Apri in ufficio</button> <button class="btn g sm" data-sh="${c.id}">Storico</button> <button class="btn g sm" data-rt="${c.id}">Ritiro mezzo</button> <button class="btn g sm" data-rp="${c.id}">${c.rtp?'Resta cliente':'Dice che si ritira'}</button>${c.rtp?'<br><b>Ha detto che si ritira</b> dal '+c.rtp.d+(c.rtp.n?' · '+esc(c.rtp.n):'')+' (resta nell\'elenco finché non ritira il mezzo)':''}${c.per&&c.per.dal?'<br>Periodo: '+c.per.dal+' → '+c.per.al:''}<br>Posizione: ${c.pos?esc(descr(c.pos)+' ('+c.pos+')'):'non assegnata'}</div></div>`}).join(''):'<p class="mut">Nessun cliente trovato. Cambia la ricerca o il filtro.</p>';
- if(filtro==='RIT')ritList();mvList();bkList();grid();pn();us();trv();al();home();menuX()}
+ <div class="det mut">Tariffa ${eur(tarC(c))}${c.ct&&c.ct!=='A'?' ('+CTR[c.ct]+')':''} · acconto ${eur(c.acconto||0)} · pagato ${eur(c.pagato||0)}${arrOpen(c)>0?' · <b style="color:var(--out)">arretrati '+arrTxt(c)+'</b>':''}<br>Lavaggi extra ${c.lav||0} · ritardi ${c.rit||0}<br>Ultima entrata ${c.ui||'-'} · ultima uscita ${c.uo||'-'}<br>Registrazione: ${c.reg?(c.reg.stato==='ok'?'completa':'DA VERIFICARE')+' · '+c.reg.d:'dati precedenti'}${c.reg&&!(c.dk&&c.dk.id&&c.dk.veh)?' · <span style="color:var(--out)">documenti mancanti</span>':''} <button class="btn g sm" data-doc="${c.id}">Documenti e contratto</button> <button class="btn g sm" data-ed="${c.id}">Modifica cliente</button> <button class="btn g sm" data-of="${c.id}">Apri in ufficio</button> <button class="btn g sm" data-sh="${c.id}">Storico</button> <button class="btn g sm" data-rt="${c.id}">Ritiro mezzo</button> ${c.rtp?'<button class="btn g sm" data-rp="'+c.id+'">Annulla il ritiro previsto</button><br><b>Ritiro previsto</b>: '+(c.rtp.prev?'il mezzo verrà portato via il '+dmy(c.rtp.prev):'data non ancora nota')+' (resta nell\'elenco finché non esce il mezzo)':''}${c.per&&c.per.dal?'<br>Periodo: '+c.per.dal+' → '+c.per.al:''}<br>Posizione: ${c.pos?esc(descr(c.pos)+' ('+c.pos+')'):'non assegnata'}</div></div>`}).join(''):'<p class="mut">Nessun cliente trovato. Cambia la ricerca o il filtro.</p>';
+ if(filtro==='RIT')ritList();mvList();bkList();grid();pn();us();trv();al();home();menuX();setTimeout(rtpSweep,200)}
 let capSel='13C',uf='P';
 function descr(l){let m;
  if(m=l.match(/^13([CS]) F(\d+) POS(\d+)$/))return`Capannone 13 · lato ${m[1]==='C'?'Campagna':'Strada'} · fila ${m[2]} · posizione ${m[3]}`;
@@ -584,16 +584,21 @@ $('#seg').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-go]');if
 $('#al-line').onclick=()=>go('h');
 // ---- Pagina "Oggi" e menu "Altro"
 // ---- Chi ha detto che si ritira (resta cliente finché non ritira il mezzo) e misuratore in home
-function rtpToggle(id){const c=cli(id);if(!c)return;
- if(c.rtp){delete c.rtp;save();render();return toast(`${c.nome}: resta cliente`)}
- const n=prompt('Nota facoltativa (per esempio il motivo o quando riporta il mezzo)','');if(n===null)return;
- c.rtp={d:oggi(),n:n.trim()};save();render();toast(`${c.nome}: segnato che si ritira. Resta nell'elenco finché non ritira il mezzo`)}
+function rtpToggle(id){const c=cli(id);if(!c||!c.rtp)return;delete c.rtp;save();render();toast(`${c.nome}: ritiro annullato, resta cliente`)}
+let rtpBusy=false;
+async function rtpSweep(){if(rtpBusy||!db.cl.some(c=>c.rtp))return;rtpBusy=true;try{
+ for(const c of db.cl.filter(x=>x.rtp)){if(!cli(c.id)||!c.rtp)continue;if(!(stato(c)==='OUT'||fuoriOggi(c)))continue;
+  const pv=c.rtp.prev&&c.rtp.prev<=oggi(),ud=c.uo||oggi(),d=pv?c.rtp.prev:ud;
+  const ok=pv||await askQ('Ritirare il cliente?',`${esc(c.nome)} (n. ${fid(c.id)}) aveva detto che si ritira e il mezzo è uscito il ${dmy(ud)}.<br>Confermi che non riporterà il mezzo? Sarà spostato tra i "Ritirati" e il numero si libera.`,'Sì, ritira');
+  if(ok){const n=c.nome,i=c.id;ritDo(c.id,d);toast(`${n} ritirato: il numero ${fid(i)} è di nuovo libero`)}else{delete c.rtp;save();render();toast(`${c.nome}: resta cliente`)}}
+ }finally{rtpBusy=false}}
+$('#dlgq').addEventListener('close',()=>{if(askRes){askRes(false);askRes=null}});
 function rinnoviSet(){const v=prompt("Quanti clienti annuali vuoi avere in tutto? (obiettivo, per sapere quanti nuovi puoi ancora accettare). Lascia vuoto o 0 per toglierlo.",db.obj||'');if(v===null)return;db.obj=Math.max(0,Math.round(+String(v).replace(',','.'))||0);save();home()}
 function rinnoviHtml(){const ann=db.cl.filter(c=>!isS(c.id)),N=ann.length,A=ann.filter(c=>c.rtp).length,st=(db.yr-1)+'-12-01',rr=db.rit.filter(r=>r.d>=st&&!isS(r.id)),R=rr.length,Ra=rr.filter(r=>r.cl&&r.cl.rtp).length,
  pa=db.pren.filter(p=>p.stato==='attiva'),P=pa.length,inc=pa.filter(p=>bkMissing(p).length).length,rest=N-A,fut=rest+P,obj=+db.obj||0,libero=obj-fut,max=Math.max(obj,N+P,1),w=x=>(100*x/max).toFixed(1);
  const box=(n,l,s)=>`<div><b>${n}</b>${l}${s?'<br><span class="mut">'+s+'</span>':''}</div>`;
  return`<h3 style="margin:0 0 4px">Posti e rinnovi · stagione ${db.yr}</h3>
- <div class="mon four">${box(N,'Clienti','annuali in elenco')}${box(A,'Dicono di ritirarsi','ancora in elenco')}${box(R,'Già ritirati','in questa stagione'+(Ra?' · '+Ra+' l\'avevano annunciato':''))}${box(P,'Nuove prenotazioni',inc?inc+' incomplete':'da trasformare in clienti')}</div>
+ <div class="mon four">${box(N,'Clienti','annuali in elenco')}${box(A,'Si ritireranno','mezzo ancora da noi')}${box(R,'Già ritirati','in questa stagione'+(Ra?' · '+Ra+' l\'avevano annunciato':''))}${box(P,'Nuove prenotazioni',inc?inc+' incomplete':'da trasformare in clienti')}</div>
  <div style="display:flex;height:14px;border-radius:7px;overflow:hidden;margin:10px 0 6px;background:rgba(128,128,128,.18)" title="Verde: restano · Arancione: si ritirano · Blu: nuove prenotazioni">
   <span style="width:${w(rest)}%;background:var(--in)"></span><span style="width:${w(A)}%;background:#d99a2b"></span><span style="width:${w(P)}%;background:#3b82c4"></span></div>
  <div class="mut" style="font-size:.85rem"><span style="color:var(--in)">■</span> restano ${rest} · <span style="color:#d99a2b">■</span> si ritirano ${A} · <span style="color:#3b82c4">■</span> prenotazioni ${P}</div>
@@ -1387,10 +1392,12 @@ $('#ec-c').onclick=()=>$('#dlg9').close();
 $('#ec-s').onclick=()=>{const e=ecApply(ecX.k,ecX.id,ecX.E);if(e)return toast(e);$('#dlg9').close();toast('Dati aggiornati')};
 // ---- Ritiro del cliente (si riporta il mezzo a casa): il cliente va nell'archivio dei ritirati e il numero si libera
 let ritId=null;
-function ritOpen(id){const c=cli(id);if(!c)return;ritId=id;const d=daPagare(c)+arrOpen(c),tb=cont().find(x=>x.cid===id),w=[];
- if(d>0)w.push(`Rimessaggio non saldato: <b>${eur(d)}</b>`);if(tb&&tb.dap>0)w.push(`Trasporti non pagati: <b>${eur(tb.dap)}</b>`);if(c.pos)w.push('La posizione '+esc(c.pos)+' verrà liberata');
- $('#rt-i').innerHTML=`<div class="row"><span class="num">${fid(c.id)}</span><div><b>${esc(c.nome)}</b><div class="mut">${esc(c.tipo)} ${esc(c.marca||'')} ${esc(c.targa||'')}</div></div></div>${w.map(x=>`<div class="${/non/.test(x)?'ko':'mut'}">${x}</div>`).join('')}<p class="mut">Il cliente verrà tolto dall'elenco e spostato in "Ritirati" con la data del ritiro. Il numero ${fid(c.id)} potrà essere assegnato a un nuovo cliente. Incassi e Prima nota restano invariati.</p>`;
- $('#rt-d').value=oggi();$('#dlg10').showModal()}
+let ritInShed=false;
+function ritOpen(id){const c=cli(id);if(!c)return;ritId=id;ritInShed=stato(c)==='IN'&&!fuoriOggi(c);const d=daPagare(c)+arrOpen(c),tb=cont().find(x=>x.cid===id),w=[];
+ if(d>0)w.push(`Rimessaggio non saldato: <b>${eur(d)}</b>`);if(tb&&tb.dap>0)w.push(`Trasporti non pagati: <b>${eur(tb.dap)}</b>`);if(c.pos&&!ritInShed)w.push('La posizione '+esc(c.pos)+' verrà liberata');
+ $('#rt-i').innerHTML=`<div class="row"><span class="num">${fid(c.id)}</span><div><b>${esc(c.nome)}</b><div class="mut">${esc(c.tipo)} ${esc(c.marca||'')} ${esc(c.targa||'')}</div></div></div>${w.map(x=>`<div class="${/non/.test(x)?'ko':'mut'}">${x}</div>`).join('')}${ritInShed?`<p class="mut"><b>Il mezzo è ancora nel capannone.</b> Il cliente resta nell'elenco e conta tra "Si ritireranno". Quando il mezzo uscirà (o alla data che indichi qui sotto) verrà spostato in "Ritirati" e il numero ${fid(c.id)} si libererà.</p>`:`<p class="mut">Il cliente verrà tolto dall'elenco e spostato in "Ritirati" con la data del ritiro. Il numero ${fid(c.id)} potrà essere assegnato a un nuovo cliente. Incassi e Prima nota restano invariati.</p>`}`;
+ $('#rt-l').textContent=ritInShed?'Quando ritirerà il mezzo (se lo sai già)':'Data del ritiro';$('#rt-s').textContent=ritInShed?'Segna che si ritira':'Conferma ritiro';
+ $('#rt-d').value=ritInShed?((c.rtp&&c.rtp.prev)||''):oggi();$('#dlg10').showModal()}
 function ritDo(id,d){const c=cli(id);if(!c||!d)return 0;const rid=1+Math.max(0,...db.rit.map(r=>r.rid)),sum=daPagare(c)+arrOpen(c);
  const arch={mov:db.mov.filter(m=>m.cid===id),tr:db.tr.filter(t=>t.cid===id),trp:db.trp.filter(p=>p.cid===id),trc:db.trc.filter(p=>p.cid===id)};
  db.rit.push({rid,id:c.id,cl:c,d,sum,arch});
@@ -1405,7 +1412,9 @@ function ritUndo(rid){const r=db.rit.find(x=>x.rid===rid);if(!r)return 0;const i
  const f=fdb();if(f['R'+rid]){f[id]=f['R'+rid];delete f['R'+rid];fsave(f)}
  db.rit=db.rit.filter(x=>x!==r);recalc(id);save();render();return id}
 $('#rt-c').onclick=()=>$('#dlg10').close();
-$('#rt-s').onclick=()=>{const id=ritId,n=cli(id)&&cli(id).nome,rid=ritDo(id,$('#rt-d').value);if(!rid)return toast('Scegli la data del ritiro');$('#dlg10').close();toast(`${n} ritirato: il numero ${fid(id)} è di nuovo libero`)};
+$('#rt-s').onclick=()=>{const id=ritId,n=cli(id)&&cli(id).nome;
+ if(ritInShed){const c=cli(id);if(!c)return;c.rtp={d:oggi(),prev:$('#rt-d').value||'',n:''};$('#dlg10').close();save();render();return toast(`${n}: ritiro segnato. Resta nell'elenco finché non esce il mezzo`)}
+ const rid=ritDo(id,$('#rt-d').value);if(!rid)return toast('Scegli la data del ritiro');$('#dlg10').close();toast(`${n} ritirato: il numero ${fid(id)} è di nuovo libero`)};
 function ritList(){const q=$('#q').value.trim().toLowerCase(),l=db.rit.filter(r=>!q||(r.cl.nome+r.cl.targa+r.id).toLowerCase().includes(q)).sort((a,b)=>a.d<b.d?1:-1);
  $('#list').innerHTML=l.length?l.map(r=>`<div class="card" data-rid="${r.rid}"><div class="row"><span class="num" style="opacity:.6">${fid(r.id)}</span><div><b>${esc(r.cl.nome)}</b><div class="mut">${esc(r.cl.tipo)}${r.cl.marca?' '+esc(r.cl.marca):''} · ${esc(r.cl.targa)}</div><div class="mut">Ritirato il <b>${r.d}</b>${r.sum>0?' · <span class="ko">saldo aperto '+eur(r.sum)+'</span>':''}</div></div></div><div style="margin-top:8px"><button class="btn g sm" data-rdoc="${r.rid}">Documenti e contratto</button> <button class="btn g sm" data-rund="${r.rid}">Annulla ritiro</button></div></div>`).join(''):'<p class="mut">Nessun cliente ritirato.</p>'}
 // ---- Prenotazioni (numerazione P1, P2…) → diventano cliente quando il cliente salda (annuale) o arriva col mezzo (stagionale)
