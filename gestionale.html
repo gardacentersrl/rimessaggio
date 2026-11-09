@@ -376,6 +376,7 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
 <dialog id="dlg11"><h2>Cerca numero cliente</h2><input id="sr-q" type="search" placeholder="Nome, targa o marca"><div id="sr-l"></div><button class="btn g" id="sr-x">Chiudi</button></dialog>
 <dialog id="dlg12"><h2>Trasforma in cliente</h2><div id="fn-i"></div><label>Codice cancello (se già assegnato)</label><input id="fn-cod"><label id="fn-al">Data di arrivo del mezzo</label><input id="fn-arr" type="date"><button class="btn" id="fn-s">Conferma</button><button class="btn g" id="fn-c">Annulla</button></dialog>
 <dialog id="dlg7"><h2>Documenti cliente</h2><div id="dc-b"></div><button class="btn g" id="dc-x">Chiudi</button></dialog>
+<dialog id="dlgar"><h2>Rientri automatici dei mezzi</h2><p class="mut">Clienti con il mezzo fuori o senza movimenti. Spunta quelli che devono avere il rientro registrato: gli altri (per esempio mezzi che non sono nel capannone) restano come sono.</p><input id="ar-q" type="search" placeholder="Cerca numero, nome o targa"><div class="chips" id="ar-ch"></div><div class="row"><button class="btn g sm" id="ar-a">Seleziona tutti</button><button class="btn g sm" id="ar-z">Deseleziona tutti</button></div><div id="ar-l" class="cl" style="max-height:44vh"></div><div class="mut" id="ar-n" style="margin:6px 0"></div><button class="btn" id="ar-s">Registra i rientri</button><button class="btn g" id="ar-c">Chiudi</button></dialog>
 <dialog id="dlgab"><h2>Arretrati</h2><div id="ab-i"></div><button class="btn g" id="ab-c">Chiudi</button></dialog>
 <dialog id="dlgs"><h2>Nuova stagione</h2>
  <div id="ss-i"></div>
@@ -1139,14 +1140,25 @@ function arCalc(c){const base=c.uo||c.fc||c.ini||'';if(!base)return null; // cli
  
  const T=oggi(),off=8+((c.id*7919+parseInt(base.replace(/-/g,''),10)*104729)%21),add=(d,k)=>{const x=new Date(d+'T00:00:00Z');x.setUTCDate(x.getUTCDate()+k);return x.toISOString().slice(0,10)};
  let d=add(base,off);if(d>T)d=T;if(d<=base)d=add(base,1);return d}
-async function arOpen(){let sv='';try{sv=localStorage.getItem('rim-arex')||''}catch(e){}
- const s=prompt('Numeri cliente da ESCLUDERE (quelli che non hanno il mezzo nel capannone), separati da virgola. Lascia vuoto se nessuno.',sv);if(s===null)return;
- try{localStorage.setItem('rim-arex',s)}catch(e){}
- const ex=new Set((s.match(/\d+/g)||[]).map(Number)),l=db.cl.filter(c=>!isS(c.id)&&!ex.has(c.id)&&['OUT','X'].includes(stato(c))),ok1=l.filter(c=>arCalc(c)),no=l.filter(c=>!arCalc(c));
- if(!l.length)return toast('Nessun cliente da sistemare: tutti hanno già un rientro');
- const go=await askQ('Registrare i rientri?',`<b>${ok1.length} mezzi</b> risultano fuori o senza movimenti${ex.size?` (esclusi ${ex.size} numeri)`:''}. Registro il rientro con una data a caso tra 8 e 28 giorni dopo l'ultima uscita (per i clienti nuovi senza uscite: dopo la firma del contratto), mai dopo oggi. I rientri compaiono in Carico/Scarico.`+(no.length?`<br><br>${no.length} clienti non hanno nessuna data di uscita e restano come sono: ${no.map(c=>fid(c.id)).join(', ')}.`:''),'Registra i rientri');if(!go)return;
- ok1.forEach(c=>{db.mov.push({id:1+Math.max(0,...db.mov.map(y=>y.id||0)),d:arCalc(c),t:'ui',cid:c.id,pos:'',sede:sedeDi(c),lav:false,rit:false,note:'Rientro registrato in automatico (impostazione rientri)'});recalc(c.id)});
- save();render();toast(`${ok1.length} rientri registrati`)}
+let arSel=new Set(),arF='ALL';
+function arRows(){return db.cl.filter(c=>!isS(c.id)&&['OUT','X'].includes(stato(c))).sort((a,b)=>a.id-b.id)}
+function arOpen(){let ex=new Set();try{ex=new Set((localStorage.getItem('rim-arex')||'').match(/\d+/g)||[])}catch(e){}
+ arSel=new Set(arRows().filter(c=>arCalc(c)&&!ex.has(String(c.id))).map(c=>c.id));arF='ALL';$('#ar-q').value='';arDraw();$('#dlgar').showModal()}
+function arDraw(){const q=$('#ar-q').value.trim().toLowerCase(),all=arRows(),l=all.filter(c=>(arF==='ALL'||stato(c)===arF)&&(!q||(fid(c.id)+' '+c.nome+' '+(c.targa||'')+' '+(c.marca||'')).toLowerCase().includes(q)));
+ $('#ar-ch').innerHTML=[['ALL','Tutti ('+all.length+')'],['OUT','Fuori ('+all.filter(c=>stato(c)==='OUT').length+')'],['X','Senza movimenti ('+all.filter(c=>stato(c)==='X').length+')']].map(([k,t])=>`<button class="chip ${arF===k?'on':''}" data-f="${k}">${t}</button>`).join('');
+ $('#ar-l').innerHTML=l.length?l.map(c=>{const d=arCalc(c),st=stato(c);return`<label class="chk" style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);${d?'':'opacity:.55'}"><input type="checkbox" data-i="${c.id}" ${arSel.has(c.id)?'checked':''} ${d?'':'disabled'}><span style="flex:1"><b>${fid(c.id)}</b> ${esc(c.nome)}<span class="mut" style="display:block">${esc(c.tipo||'')} ${esc(c.targa||'')} · ${st==='OUT'?'fuori dal '+dmy(c.uo):'senza movimenti'}</span></span><span class="mut" style="text-align:right">${d?'rientro<br><b>'+dmy(d)+'</b>':'nessuna data<br>di partenza'}</span></label>`}).join(''):'<p class="mut">Nessun cliente trovato.</p>';
+ const n=[...arSel].filter(id=>cli(id)&&arRows().includes(cli(id))).length;$('#ar-n').innerHTML=`Selezionati: <b>${n}</b> su ${all.length}`;$('#ar-s').disabled=!n;$('#ar-s').textContent=n?`Registra ${n} rientr${n===1?'o':'i'}`:'Registra i rientri'}
+$('#ar-q').oninput=arDraw;
+$('#ar-ch').onclick=e=>{const b=e.target.closest('[data-f]');if(!b)return;arF=b.dataset.f;arDraw()};
+$('#ar-l').onchange=e=>{const i=+e.target.dataset.i;if(!i)return;e.target.checked?arSel.add(i):arSel.delete(i);arDraw()};
+function arVis(){const q=$('#ar-q').value.trim().toLowerCase();return arRows().filter(c=>(arF==='ALL'||stato(c)===arF)&&(!q||(fid(c.id)+' '+c.nome+' '+(c.targa||'')+' '+(c.marca||'')).toLowerCase().includes(q))&&arCalc(c))}
+$('#ar-a').onclick=()=>{arVis().forEach(c=>arSel.add(c.id));arDraw()};$('#ar-z').onclick=()=>{arVis().forEach(c=>arSel.delete(c.id));arDraw()};
+$('#ar-c').onclick=()=>$('#dlgar').close();
+$('#ar-s').onclick=async()=>{const l=arRows().filter(c=>arSel.has(c.id)&&arCalc(c));if(!l.length)return;
+ const go=await askQ('Registrare i rientri?',`<b>${l.length} mezzi</b> rientrano con una data a caso tra 8 e 28 giorni dopo l'ultima uscita (per i clienti nuovi senza uscite: dopo la firma del contratto), mai dopo oggi. I rientri compaiono in Carico/Scarico.`,'Registra i rientri');if(!go)return;
+ try{localStorage.setItem('rim-arex',arRows().filter(c=>!arSel.has(c.id)).map(c=>c.id).join(','))}catch(e){}
+ l.forEach(c=>{db.mov.push({id:1+Math.max(0,...db.mov.map(y=>y.id||0)),d:arCalc(c),t:'ui',cid:c.id,pos:'',sede:sedeDi(c),lav:false,rit:false,note:'Rientro registrato in automatico (impostazione rientri)'});recalc(c.id)});
+ $('#dlgar').close();save();render();toast(`${l.length} rientri registrati`)};
 function sysOpen(){const M=typeof window!=='undefined'&&window.SITE&&ROLE==='master';
  $('#sys-b').innerHTML=`<div class="card xm" data-bk2="1"><div><b>Backup completo</b><div class="mut">Scarica un file con tutti i dati: copia di sicurezza</div></div><span class="ch">›</span></div>`+rsCard()+(M?`<div class="card xm" data-ar="1"><div><b>Rientri automatici dei mezzi</b><div class="mut">Per tutti i clienti fuori o senza movimenti registra il rientro (da 8 a 28 giorni dopo l'ultima uscita), con la possibilità di escludere dei numeri</div></div><span class="ch">›</span></div>`:'')+(M?utCard():'');$('#dlgsys').showModal()}
 $('#sys-b').onclick=e=>{const c=e.target.closest('.xm');if(!c)return;$('#dlgsys').close();if(c.dataset.bk2)bkSave();else if(c.dataset.rs)rsOpen();else if(c.dataset.ar)arOpen();else if(c.dataset.ut)utOpen()};
