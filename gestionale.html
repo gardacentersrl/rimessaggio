@@ -196,20 +196,20 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
 <section id="v-u" class="v">
  <h2>Uscite</h2>
  <select id="u-y"></select>
+ <button class="btn g sm" id="u-x" style="margin:4px 0 8px">Esporta in Excel</button>
  <div class="chips" id="u-ch"></div>
  <p class="mut"><span class="dot cas"></span>Casalemenini<span class="dot cam"></span>Camporengo</p>
  <div id="u-l"></div>
- <button class="btn g" id="u-x">Esporta in Excel</button>
 </section>
 <section id="v-cs" class="v">
  <h2>Carico / Scarico</h2>
  <p class="mut">Tutte le entrate (carico) e le uscite (scarico) dei mezzi. Il foglio "Uscite" mostra solo le uscite.</p>
  <div class="chips" id="cs-ch"></div>
  <div class="row"><select id="cs-y" style="flex:1"></select></div>
+ <button class="btn g sm" id="cs-x" style="margin:4px 0 8px">Esporta in Excel</button>
  <input id="cs-q" type="search" placeholder="Cerca numero, nome o targa">
  <p class="mut" id="cs-t"></p>
  <div id="cs-l"></div>
- <button class="btn g" id="cs-x">Esporta in Excel</button>
 </section>
 <section id="v-p" class="v">
  <h2>Piantina</h2>
@@ -228,10 +228,10 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
 <section id="v-r" class="v">
  <h2>Trasporti</h2>
  <select id="r-y"></select>
+ <button class="btn g sm" id="r-x" style="margin:4px 0 8px">Esporta in Excel</button>
  <div class="chips" id="r-sub"></div>
  <div id="r-l"></div>
  <button class="btn g" id="r-add">Aggiungi trasporto</button>
- <button class="btn g" id="r-x">Esporta in Excel</button>
 </section>
 <section id="v-k" class="v">
  <h2>Cassa</h2>
@@ -244,25 +244,25 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
  </div>
  <div id="k-g" hidden>
   <select id="g-y"></select>
+ <button class="btn g sm" id="g-x" style="margin:4px 0 8px">Esporta in Excel</button>
   <div id="g-tot" class="card"></div><div id="g-l"></div>
-  <button class="btn g" id="g-x">Esporta in Excel</button>
- </div>
+  </div>
  <div id="k-pn" hidden>
   <select id="n-y"></select>
+ <button class="btn g sm" id="n-x" style="margin:4px 0 8px">Esporta in Excel</button>
   <div id="n-tot" class="card"></div>
   <button class="btn" id="n-c" hidden>Conferma fatture scadute…</button>
   <div id="n-l"></div>
-  <button class="btn g" id="n-x">Esporta in Excel</button>
- </div>
+  </div>
 </section>
 <section id="v-b" class="v">
  <h2>Prenotazioni</h2>
  <p class="mut">Numerazione a parte (P1, P2…). Per prenotare un posto: acconto, documenti e contratto firmato. Quando il cliente salda (annuale) o arriva col mezzo (stagionale) la prenotazione diventa cliente.</p>
  <select id="b-y"></select>
+ <button class="btn g sm" id="b-x" style="margin:4px 0 8px">Esporta in Excel</button>
  <input id="b-q" type="search" placeholder="Cerca nome, targa o numero P">
  <div class="chips" id="b-ch"></div>
  <div id="b-l"></div>
- <button class="btn g" id="b-x">Esporta in Excel</button>
  <button class="btn" id="b-new">Nuova prenotazione</button>
 </section>
 </main>
@@ -376,6 +376,7 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
 <dialog id="dlg11"><h2>Cerca numero cliente</h2><input id="sr-q" type="search" placeholder="Nome, targa o marca"><div id="sr-l"></div><button class="btn g" id="sr-x">Chiudi</button></dialog>
 <dialog id="dlg12"><h2>Trasforma in cliente</h2><div id="fn-i"></div><label>Codice cancello (se già assegnato)</label><input id="fn-cod"><label id="fn-al">Data di arrivo del mezzo</label><input id="fn-arr" type="date"><button class="btn" id="fn-s">Conferma</button><button class="btn g" id="fn-c">Annulla</button></dialog>
 <dialog id="dlg7"><h2>Documenti cliente</h2><div id="dc-b"></div><button class="btn g" id="dc-x">Chiudi</button></dialog>
+<dialog id="dlgab"><h2>Arretrati</h2><div id="ab-i"></div><button class="btn g" id="ab-c">Chiudi</button></dialog>
 <dialog id="dlgs"><h2>Nuova stagione</h2>
  <div id="ss-i"></div>
  <label>Data in cui ti ricordo di aprirla</label><input id="ss-d" type="date">
@@ -430,6 +431,10 @@ function stato(c){const t=oggi(),z='2000-01-01',uo=c.uo||z,ui=c.ui||z;
  if(uo===z&&ui===z)return'X';
  if(uo<ui)return uo<t?(ui>t?'OUT':'IN'):'IN';
  if(uo>ui)return uo<t?'OUT':'IN';return'IN'}
+const EXL={lav:{it:'Lavaggio extra',en:'Extra washing',de:'Zusätzliche Wäsche',nl:'Extra wassen'},rit:{it:'Comunicazione in ritardo',en:'Late notification',de:'Verspätete Mitteilung',nl:'Late melding'},pneu:{it:'Cambio pneumatici',en:'Tyre change',de:'Reifenwechsel',nl:'Bandenwissel'},alt:{it:'Altro',en:'Other',de:'Sonstiges',nl:'Overig'}};
+function exLines(c,L){L=EXL.lav[L]?L:'it';const o=[],n1=c.lav||0,n2=c.rit||0;
+ if(n1)o.push({l:EXL.lav[L]+(n1>1?' ×'+n1:''),imp:50*n1});if(n2)o.push({l:EXL.rit[L]+(n2>1?' ×'+n2:''),imp:50*n2});
+ (c.xs||[]).forEach(x=>{const b=x.t==='Cambio pneumatici'?EXL.pneu[L]:(x.desc?'':EXL.alt[L]);o.push({l:(b+(x.desc?(b?' · ':'')+x.desc:'')).trim(),imp:+x.imp||0})});return o}
 const xtra=c=>(c.xs||[]).reduce((a,x)=>a+(+x.imp||0),0);
 function exT(c){return 50*((c.lav||0)+(c.rit||0))+xtra(c)}
 const daPagare=c=>tarC(c)-(c.acconto||0)+exT(c)-(c.pagato||0);
@@ -505,7 +510,7 @@ function render(){
  const l=db.cl.filter(c=>(filtro==='ARR'?arrOpen(c)>.004:filtro==='RITP'?!!c.rtp:filtro==='STAG'?isS(c.id):!isS(c.id)&&(filtro==='TUTTI'||stato(c)===filtro))&&(!q||(c.nome+c.targa+fid(c.id)).toLowerCase().includes(q)));
  $('#list').innerHTML=histY()?histList(q):l.length?l.map(c=>{const s=stato(c),d=daPagare(c)+arrOpen(c);return`<div class="card ${aperto===c.id?'open':''}" data-id="${c.id}">
  <div class="row"><span class="num">${fid(c.id)}</span><div><b>${esc(c.nome)}</b>${c.ct&&c.ct!=='A'?' <span class="b X">STAGIONALE</span>':''}${c.rtp?' <span class="b OUT">SI RITIRA</span>':''}<div class="mut">${esc(c.tipo)}${c.marca?' '+esc(c.marca):''} ${c.lung||''} m · ${esc(c.targa)}</div></div><div style="flex:none;text-align:right"><span class="b ${s}">${s}</span><div class="due" style="color:${d>0?'var(--out)':'var(--in)'}">${d>0?eur(d):'Saldato'}</div></div></div>
- <div class="det mut">Tariffa ${eur(tarC(c))}${c.ct&&c.ct!=='A'?' ('+CTR[c.ct]+')':''} · acconto ${eur(c.acconto||0)} · pagato ${eur(c.pagato||0)}${arrOpen(c)>0?' · <b style="color:var(--out)">arretrati '+arrTxt(c)+'</b>':''}<br>Lavaggi extra ${c.lav||0} · ritardi ${c.rit||0}${xtra(c)?' · altri extra '+eur(xtra(c)):''}${exList(c)}<br>Ultima entrata ${c.ui||'-'} · ultima uscita ${c.uo||'-'}<br>Registrazione: ${c.reg?(c.reg.stato==='ok'?'completa':'DA VERIFICARE')+' · '+c.reg.d:'dati precedenti'}${c.reg&&!(c.dk&&c.dk.id&&c.dk.veh)?' · <span style="color:var(--out)">documenti mancanti</span>':''} <button class="btn g sm" data-doc="${c.id}">Documenti e contratto</button> <button class="btn g sm" data-ed="${c.id}">Modifica cliente</button> <button class="btn g sm" data-of="${c.id}">Apri in ufficio</button> <button class="btn g sm" data-sh="${c.id}">Storico</button> <button class="btn g sm" data-xa="${c.id}">Aggiungi extra</button> <button class="btn g sm" data-rt="${c.id}">Ritiro mezzo</button> ${c.rtp?'<button class="btn g sm" data-rp="'+c.id+'">Annulla il ritiro previsto</button><br><b>Ritiro previsto</b>: '+(c.rtp.prev?'il mezzo verrà portato via il '+dmy(c.rtp.prev):'data non ancora nota')+' (resta nell\'elenco finché non esce il mezzo)':''}${c.per&&c.per.dal?'<br>Periodo: '+c.per.dal+' → '+c.per.al:''}<br>Posizione: ${c.pos?esc(descr(c.pos)+' ('+c.pos+')'):'non assegnata'}</div></div>`}).join(''):'<p class="mut">Nessun cliente trovato. Cambia la ricerca o il filtro.</p>';
+ <div class="det mut">Tariffa ${eur(tarC(c))}${c.ct&&c.ct!=='A'?' ('+CTR[c.ct]+')':''} · acconto ${eur(c.acconto||0)} · pagato ${eur(c.pagato||0)}${arrOpen(c)>0?' · <b style="color:var(--out)">arretrati '+arrTxt(c)+'</b>':''}<br>Lavaggi extra ${c.lav||0} · ritardi ${c.rit||0}${xtra(c)?' · altri extra '+eur(xtra(c)):''}${exList(c)}${(c.abb||[]).length?'<br>Abbuoni: '+c.abb.map(x=>x.y+' '+e2(x.imp)).join(', '):''}<br>Ultima entrata ${c.ui||'-'} · ultima uscita ${c.uo||'-'}<br>Registrazione: ${c.reg?(c.reg.stato==='ok'?'completa':'DA VERIFICARE')+' · '+c.reg.d:'dati precedenti'}${c.reg&&!(c.dk&&c.dk.id&&c.dk.veh)?' · <span style="color:var(--out)">documenti mancanti</span>':''} <button class="btn g sm" data-doc="${c.id}">Documenti e contratto</button> <button class="btn g sm" data-ed="${c.id}">Modifica cliente</button> <button class="btn g sm" data-of="${c.id}">Apri in ufficio</button> <button class="btn g sm" data-sh="${c.id}">Storico</button> <button class="btn g sm" data-xa="${c.id}">Aggiungi extra</button> <button class="btn g sm" data-rt="${c.id}">Ritiro mezzo</button> ${c.rtp?'<button class="btn g sm" data-rp="'+c.id+'">Annulla il ritiro previsto</button><br><b>Ritiro previsto</b>: '+(c.rtp.prev?'il mezzo verrà portato via il '+dmy(c.rtp.prev):'data non ancora nota')+' (resta nell\'elenco finché non esce il mezzo)':''}${c.per&&c.per.dal?'<br>Periodo: '+c.per.dal+' → '+c.per.al:''}<br>Posizione: ${c.pos?esc(descr(c.pos)+' ('+c.pos+')'):'non assegnata'}</div></div>`}).join(''):'<p class="mut">Nessun cliente trovato. Cambia la ricerca o il filtro.</p>';
  if(filtro==='RIT')ritList();mvList();bkList();grid();pn();us();trv();al();home();menuX();setTimeout(rtpSweep,200)}
 let capSel='13C',uf='P';
 function descr(l){let m;
@@ -789,7 +794,7 @@ function rimExcel(XLSX,buf,ctx){
  for(const c of cl)if(c.tp){const ex=r2(c.acconto+c.pagato-c.tp);if(ex>0.01)rep.crediti.push([c.id,c.nome,ex])}
  // ---- dati dell'app che l'Excel non contiene
  if(old&&Array.isArray(old.cl)){const o={};old.cl.forEach(x=>o[x.id]=x);
-  for(const c of cl){const x=o[c.id];if(!x)continue;for(const k of['ct','dasse','dk','reg','rtp','xs'])if(x[k]!==undefined)c[k]=x[k]}}
+  for(const c of cl){const x=o[c.id];if(!x)continue;for(const k of['ct','dasse','dk','reg','rtp','xs','abb'])if(x[k]!==undefined)c[k]=x[k]}}
  const db=Object.assign({},old||{});db.cl=cl;db.mov=mov;db.pag=pag;db.pn=pn;db.sto=stoL;
  for(const k of['tmp','tr','trp','trc','rit','pren','pc'])if(!Array.isArray(db[k]))db[k]=[];
  if(db.yr===undefined)db.yr=2026;if(db.rd===undefined)db.rd='2027-01-01';if(db.rl===undefined)db.rl=null;
@@ -853,6 +858,7 @@ function mlFields(c,L){
  const T={it:{ar:'Arretrato',st:'Stagione',tot:'Totale',vers:'Già versato',dap:'Da pagare',td:'Totale da pagare'},en:{ar:'Arrears',st:'Season',tot:'Total',vers:'Already paid',dap:'To pay',td:'Total due'},de:{ar:'Rückstand',st:'Saison',tot:'Gesamt',vers:'Bereits bezahlt',dap:'Zu zahlen',td:'Gesamtbetrag fällig'},nl:{ar:'Achterstand',st:'Seizoen',tot:'Totaal',vers:'Reeds betaald',dap:'Te betalen',td:'Totaal verschuldigd'}}[L];
  let rows='';(c.arr||[]).forEach(x=>{const r=Math.max(0,x.imp-(x.pag||0));if(r>.004)rows+=`<tr><td style="padding:4px 12px 4px 0">${T.ar} ${x.y}</td><td style="text-align:right">${E(mlMoney(r,L))}</td></tr>`});
  if(dp>.004)rows+=`<tr><td style="padding:4px 12px 4px 0">${T.st} ${db.yr} (${T.tot} ${E(mlMoney(tarC(c)+exT(c),L))}, ${T.vers} ${E(mlMoney((c.acconto||0)+(c.pagato||0),L))})</td><td style="text-align:right">${E(mlMoney(dp,L))}</td></tr>`;
+ exLines(c,L).forEach(x=>{rows+=`<tr><td style="padding:0 12px 2px 16px;font-size:.9em;color:#555">+ ${E(x.l)}</td><td style="text-align:right;font-size:.9em;color:#555">${E(mlMoney(x.imp,L))}</td></tr>`});
  rows+=`<tr><td style="padding:6px 12px 4px 0;border-top:1px solid #999"><b>${T.td}</b></td><td style="text-align:right;border-top:1px solid #999"><b>${E(mlMoney(ar+dp,L))}</b></td></tr>`;
  const nm=(c.nm||'').trim(),cg=(c.cg||'').trim();
  return{nome:E((nm+' '+cg).trim()||c.nome),nome_proprio:E(nm||c.nome),cognome:E(cg||c.nome),numero:E(fid(c.id)),mezzo:E(((c.tipo||'').charAt(0)+(c.tipo||'').slice(1).toLowerCase()+' '+(c.marca||'')).trim()),targa:E(c.targa||''),posizione:E(pr||'—'),sede:E(sedeDi(c)||''),stagione:db.yr,totale:E(mlMoney(tarC(c),L)),acconto_versato:E(mlMoney(c.acconto||0,L)),da_pagare:E(mlMoney(dp,L)),arretrati:E(mlMoney(ar,L)),totale_dovuto:E(mlMoney(ar+dp,L)),conto:`<table style="border-collapse:collapse;margin:8px 0">${rows}</table>`,acconto:E(mlMoney(+cf.acc||0,L)),iban:E(cf.iban||'(IBAN)'),bic:E(cf.bic||''),intestatario:E(cf.intest||''),banca:`${({it:'Bonifico a',en:'Bank transfer to',de:'Überweisung an',nl:'Overschrijving naar'})[L]}: <b>${E(cf.intest||'')}</b><br>IBAN: <b>${E(cf.iban||'(IBAN)')}</b><br>BIC/SWIFT: ${E(cf.bic||'')}`,data:E(mlDate(oggi(),L)),email:E(c.mail||'')}}
@@ -1005,7 +1011,7 @@ if(typeof window!=='undefined')setTimeout(mlAutoSoon,8000);
 const ovCard=()=>(typeof window!=='undefined'&&window.SITE&&ROLE==='master')?`<div class="card xm" data-ov="1"><div><b>Dai clienti (area ospiti)</b><div class="mut">Richieste di uscita e documenti caricati dai clienti${window.OVN?' · <b>'+window.OVN+' da vedere</b>':''}</div></div><span class="ch">›</span></div>`:'';
 function ovVista(c,F){F=F||{};const f=F[c.id]||{},dk=c.dk||{},ds=(c.doc||{}).s||'',L=mlLang(c),cf=mlCfg(),st=stato(c),cas=sedeDi(c)==='Casalemenini',ex=exT(c),lc=LOC[c.pos]||{};
  return{L,nome:c.nome,mezzo:((MZ[c.tipo]||{})[L])||String(c.tipo||'').toLowerCase(),targa:c.targa||'',stato:st,area:st==='IN'?(lc.cap||''):'',cod:(cas&&st==='IN')?String(c.cod||''):'',
-  yr:db.yr,tot:r2(tarC(c)+ex),vers:r2((c.acconto||0)+(c.pagato||0)),dap:r2(Math.max(0,daPagare(c))),arr:r2(arrRest(c)),
+  yr:db.yr,exl:exLines(c,L),tot:r2(tarC(c)+ex),vers:r2((c.acconto||0)+(c.pagato||0)),dap:r2(Math.max(0,daPagare(c))),arr:r2(arrRest(c)),
   pag:db.pag.filter(p=>p.cid===c.id&&p.y===db.yr).sort((a,b)=>b.d<a.d?-1:1).slice(0,10).map(p=>({d:p.d,imp:p.imp})),
   usc:db.mov.filter(m=>m.t==='uo'&&m.cid===c.id&&m.d>=oggi()).map(m=>m.d).sort(),
   trp:trTariffa(c,!!c.dasse)||0,num:fid(c.id),accImp:+cf.acc||0,
@@ -1147,7 +1153,7 @@ $('#sys-b').onclick=e=>{const c=e.target.closest('.xm');if(!c)return;$('#dlgsys'
 async function bkSave(){try{const d=await claude.use('downloads');if(!d)return toast('Salvataggio non disponibile qui');
  const o={formato:'rimessaggio-backup',v:1,creato:new Date().toISOString(),db:db,files:fdb()};
  await d.save({filename:'backup-rimessaggio-'+oggi()+'.json',data:new Blob([JSON.stringify(o)],{type:'application/json'})});try{localStorage.setItem('rim-bk',oggi())}catch(e){}toast('Backup salvato');render()}catch(e){if(!e||e.code!=='declined')toast('Salvataggio non riuscito')}}
-$('#x-l').onclick=e=>{if(e.target.closest&&e.target.closest('[data-bk2]'))return bkSave();if(e.target.closest&&e.target.closest('[data-rs]'))return rsOpen();if(e.target.closest&&e.target.closest('[data-ut]'))return utOpen();if(e.target.closest&&e.target.closest('[data-ml]'))return mlOpen();if(e.target.closest&&e.target.closest('[data-ov]'))return ovOpen();if(e.target.closest&&e.target.closest('[data-st]'))return stOpen();if(e.target.closest&&e.target.closest('[data-sys]'))return sysOpen();const b=e.target.closest&&e.target.closest('[data-go]');if(b)go(b.dataset.go);const r=e.target.closest&&e.target.closest('[data-roll]');if(r)rollOpen()};
+$('#x-l').onclick=e=>{if(e.target.closest&&e.target.closest('[data-ab]'))return abOpen();if(e.target.closest&&e.target.closest('[data-bk2]'))return bkSave();if(e.target.closest&&e.target.closest('[data-rs]'))return rsOpen();if(e.target.closest&&e.target.closest('[data-ut]'))return utOpen();if(e.target.closest&&e.target.closest('[data-ml]'))return mlOpen();if(e.target.closest&&e.target.closest('[data-ov]'))return ovOpen();if(e.target.closest&&e.target.closest('[data-st]'))return stOpen();if(e.target.closest&&e.target.closest('[data-sys]'))return sysOpen();const b=e.target.closest&&e.target.closest('[data-go]');if(b)go(b.dataset.go);const r=e.target.closest&&e.target.closest('[data-roll]');if(r)rollOpen()};
 $('#v-h').querySelector&&0;
 document.querySelector('.qa')&&(document.querySelector('.qa').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-q]');if(!b)return;const q=b.dataset.q;if(q==='new')regOpen(false,'c');else if(q==='find')srOpen(id=>{filtro=isS(id)?'STAG':'TUTTI';$('#q').value=fid(id);aperto=id;go('c');render()});else if(q==='pay'){kt='R';go('k');pn()}else go(q)});
 $('#m-d').value=oggi();
@@ -1368,7 +1374,7 @@ function emApply(id,f){const m=db.mov.find(x=>x.id===id);if(!m)return'Movimento 
  db.tr=db.tr.filter(x=>x.mid!==id);
  if(tr){tr.id=old?old.id:1+Math.max(0,...db.tr.map(t=>t.id));tr.mid=id;tr.cid=c.id;tr.d=f.d;tr.tipo=f.t==='uo'?'Uscita':'Rientro';tr.pos=c.pos||'';db.tr.push(tr);c.sede=tr.sede;if(c.tipo==='ROULOTTE')c.dasse=tr.dx}
  recalc(c.id);if(oc!==c.id)recalc(oc);save();render();return''}
-function emDelete(id){const m=db.mov.find(x=>x.id===id);if(!m)return;db.mov=db.mov.filter(x=>x.id!==id);db.tr=db.tr.filter(x=>x.mid!==id);recalc(m.cid);const c=cli(m.cid);if(c&&c.xs){c.xs=c.xs.filter(x=>x.mid!==id);if(!c.xs.length)delete c.xs}if(c&&m.t==='uo'&&m.pos&&!c.pos&&!fuoriOggi(c)&&LOC[m.pos]&&!occ()[m.pos])c.pos=m.pos;save();render()}
+function emDelete(id){const m=db.mov.find(x=>x.id===id);if(!m)return;db.mov=db.mov.filter(x=>x.id!==id);db.tr=db.tr.filter(x=>x.mid!==id);recalc(m.cid);const c=cli(m.cid);if(c&&c.xs)c.xs.forEach(x=>{if(x.mid===id)delete x.mid});if(c&&m.t==='uo'&&m.pos&&!c.pos&&!fuoriOggi(c)&&LOC[m.pos]&&!occ()[m.pos])c.pos=m.pos;save();render()}
 $('#dlg8').oninput=e=>{if(e.target.id==='em-d')emSlots($('#em-ora').value);emUp()};$('#dlg8').onchange=$('#dlg8').oninput;
 $('#em-c').onclick=()=>$('#dlg8').close();
 $('#em-s').onclick=()=>{const f={cid:$('#em-n').value,t:$('#em-t').value,d:$('#em-d').value,lav:$('#em-l').checked,rit:$('#em-r').checked,note:$('#em-o').value,tr:$('#em-tr').checked?{camp:$('#em-camp').value,piaz:$('#em-piaz').value,ora:$('#em-ora').value,sede:$('#em-sede').value,dx:$('#em-dx').checked,imp:$('#em-imp').value}:null};
@@ -1874,9 +1880,9 @@ const dLoc=(d,L)=>new Date(d+'T12:00').toLocaleDateString({it:'it-IT',de:'de-DE'
 function mailPag(pg){const ent=entOf(pg.cid);if(!ent)return null;const bk=typeof pg.cid==='string',L=LANG(ent.naz),f=n=>em2(n,L),data=dLoc(pg.d,L),
  tar=tarC(ent),ac=bk?(ent.accok?ent.acc:0):(ent.acconto||0),pa=bk?0:(ent.pagato||0),ex=bk?0:exT(ent),res=Math.max(0,r2(tar+ex-ac-pa)),arT=bk?'':arrList(ent).map(x=>x.y+': '+f(r2(x.imp-(x.pag||0)))).join(', '),num=bk?pg.cid:fid(ent.id),
  op=(OPN[L][pg.op]||'')+(pg.op==='RATA'&&pg.rata?' '+pg.rata:'')+(pg.ay?' ('+(L==='it'?'arretrato ':L==='de'?'Rückstand ':'arrears ')+pg.ay+')':''),mo=MODN[L][pg.mod]||String(pg.mod).toLowerCase(),mz=`${ent.tipo||''} ${ent.targa||''}`.trim();
- const T={it:{s:`Pagamento ricevuto - cliente n. ${num}`,l:[`Gentile ${ent.nome},`,'',`oggi, ${data}, abbiamo registrato il suo pagamento di ${f(pg.imp)} (${op}, ${mo}).`,'',`LA SUA SITUAZIONE CONTABILE (${mz})`,`Tariffa annuale di rimessaggio: ${f(tar)}`,...(ex?[`Extra (lavaggi, ritardi, altri servizi): ${f(ex)}`]:[]),`Acconto versato: ${f(ac)}`,...(pa?[`Altri pagamenti ricevuti: ${f(pa)}`]:[]),`Residuo da pagare: ${res>0?f(res):'saldato, nessun importo da pagare'}`,...(arT?['Arretrati da stagioni precedenti: '+arT]:[]),'',"La ringraziamo per averci scelto anche quest'anno.",'','Cordiali saluti','Garda Center']},
- de:{s:`Zahlungseingang - Kundennummer ${num}`,l:[`Guten Tag ${ent.nome},`,'',`heute, ${data}, haben wir Ihre Zahlung über ${f(pg.imp)} (${op}, ${mo}) verbucht.`,'',`IHRE KONTOÜBERSICHT (${mz})`,`Jahresgebühr Abstellplatz: ${f(tar)}`,...(ex?[`Extras (Wäsche, Verspätung, weitere Leistungen): ${f(ex)}`]:[]),`Geleistete Anzahlung: ${f(ac)}`,...(pa?[`Weitere erhaltene Zahlungen: ${f(pa)}`]:[]),`Noch offener Betrag: ${res>0?f(res):'beglichen, nichts zu zahlen'}`,...(arT?['Rückstände aus Vorjahren: '+arT]:[]),'','Vielen Dank, dass Sie sich auch in diesem Jahr für uns entschieden haben.','','Mit freundlichen Grüßen','Garda Center']},
- en:{s:`Payment received - customer no. ${num}`,l:[`Dear ${ent.nome},`,'',`today, ${data}, we have recorded your payment of ${f(pg.imp)} (${op}, ${mo}).`,'',`YOUR ACCOUNT STATEMENT (${mz})`,`Annual storage fee: ${f(tar)}`,...(ex?[`Extras (washing, late fees, other services): ${f(ex)}`]:[]),`Deposit paid: ${f(ac)}`,...(pa?[`Other payments received: ${f(pa)}`]:[]),`Amount still due: ${res>0?f(res):'paid in full, nothing due'}`,...(arT?['Arrears from previous seasons: '+arT]:[]),'','Thank you for choosing us again this year.','','Kind regards','Garda Center']}}[L];
+ const T={it:{s:`Pagamento ricevuto - cliente n. ${num}`,l:[`Gentile ${ent.nome},`,'',`oggi, ${data}, abbiamo registrato il suo pagamento di ${f(pg.imp)} (${op}, ${mo}).`,'',`LA SUA SITUAZIONE CONTABILE (${mz})`,`Tariffa annuale di rimessaggio: ${f(tar)}`,...(ex?[`Extra (lavaggi, ritardi, altri servizi): ${f(ex)}`,...exLines(ent,'it').map(x=>`   - ${x.l}: ${f(x.imp)}`)]:[]),`Acconto versato: ${f(ac)}`,...(pa?[`Altri pagamenti ricevuti: ${f(pa)}`]:[]),`Residuo da pagare: ${res>0?f(res):'saldato, nessun importo da pagare'}`,...(arT?['Arretrati da stagioni precedenti: '+arT]:[]),'',"La ringraziamo per averci scelto anche quest'anno.",'','Cordiali saluti','Garda Center']},
+ de:{s:`Zahlungseingang - Kundennummer ${num}`,l:[`Guten Tag ${ent.nome},`,'',`heute, ${data}, haben wir Ihre Zahlung über ${f(pg.imp)} (${op}, ${mo}) verbucht.`,'',`IHRE KONTOÜBERSICHT (${mz})`,`Jahresgebühr Abstellplatz: ${f(tar)}`,...(ex?[`Extras (Wäsche, Verspätung, weitere Leistungen): ${f(ex)}`,...exLines(ent,'de').map(x=>`   - ${x.l}: ${f(x.imp)}`)]:[]),`Geleistete Anzahlung: ${f(ac)}`,...(pa?[`Weitere erhaltene Zahlungen: ${f(pa)}`]:[]),`Noch offener Betrag: ${res>0?f(res):'beglichen, nichts zu zahlen'}`,...(arT?['Rückstände aus Vorjahren: '+arT]:[]),'','Vielen Dank, dass Sie sich auch in diesem Jahr für uns entschieden haben.','','Mit freundlichen Grüßen','Garda Center']},
+ en:{s:`Payment received - customer no. ${num}`,l:[`Dear ${ent.nome},`,'',`today, ${data}, we have recorded your payment of ${f(pg.imp)} (${op}, ${mo}).`,'',`YOUR ACCOUNT STATEMENT (${mz})`,`Annual storage fee: ${f(tar)}`,...(ex?[`Extras (washing, late fees, other services): ${f(ex)}`,...exLines(ent,'en').map(x=>`   - ${x.l}: ${f(x.imp)}`)]:[]),`Deposit paid: ${f(ac)}`,...(pa?[`Other payments received: ${f(pa)}`]:[]),`Amount still due: ${res>0?f(res):'paid in full, nothing due'}`,...(arT?['Arrears from previous seasons: '+arT]:[]),'','Thank you for choosing us again this year.','','Kind regards','Garda Center']}}[L];
  return{L,to:ent.mail||'',subject:T.s,body:T.l.join('\n')}}
 function mailTrp(p){const c=cli(p.cid);if(!c)return null;const L=LANG(c.naz),f=n=>em2(n,L),o=cont().find(x=>x.cid===p.cid)||{tot:0,pag:0,dap:0},data=dLoc(p.d,L);
  const T={it:{s:`Pagamento trasporto ricevuto - cliente n. ${fid(c.id)}`,l:[`Gentile ${c.nome},`,'',`oggi, ${data}, abbiamo registrato il suo pagamento di ${f(p.imp)} per il trasporto del suo mezzo (${c.tipo} ${c.targa}).`,'','SITUAZIONE TRASPORTI',`Totale viaggi: ${f(o.tot)}`,`Pagato: ${f(o.pag)}`,`Residuo da pagare: ${o.dap>0?f(o.dap):'saldato, nessun importo da pagare'}`,'',"La ringraziamo per averci scelto anche quest'anno.",'','Cordiali saluti','Garda Center']},
@@ -1971,27 +1977,51 @@ let cy=cur(),uy=cur(),ty=cur(),by='';
 const histY=()=>cy!==cur();
 function rollPreview(){let nc=0,tot=0;db.cl.forEach(c=>{const r=daPagare(c);if(r>.004){nc++;tot+=r}});return{y:db.yr,ny:db.yr+1,n:db.cl.length,nc,tot:r2(tot)}}
 // Apre la nuova stagione: l'importo da pagare riparte dalla tariffa, il residuo non pagato diventa arretrato con l'anno di riferimento
-function stagioneApri(){const y=db.yr,ny=y+1,snap=db.cl.map(c=>({xs:c.xs?JSON.parse(JSON.stringify(c.xs)):undefined,id:c.id,tp:c.tp,acconto:c.acconto||0,pagato:c.pagato||0,b:JSON.parse(JSON.stringify(c.b||{ui:'',uo:'',lav:0,rit:0})),arr:JSON.parse(JSON.stringify(c.arr||[])),nh:(c.hist||[]).length}));
+function stagioneApri(skip){const y=db.yr,ny=y+1,snap=db.cl.map(c=>({abb:c.abb?JSON.parse(JSON.stringify(c.abb)):undefined,xs:c.xs?JSON.parse(JSON.stringify(c.xs)):undefined,id:c.id,tp:c.tp,acconto:c.acconto||0,pagato:c.pagato||0,b:JSON.parse(JSON.stringify(c.b||{ui:'',uo:'',lav:0,rit:0})),arr:JSON.parse(JSON.stringify(c.arr||[])),nh:(c.hist||[]).length}));
  db.cl.forEach(c=>{const res=r2(daPagare(c));(c.hist=c.hist||[]).push({y,tar:tarC(c),acc:c.acconto||0,ext:exT(c),xs:(c.xs||[]).length?JSON.parse(JSON.stringify(c.xs)):undefined,pag:c.pagato||0,res});
-  if(res>.004)(c.arr=c.arr||[]).push({y,imp:res,pag:0});c.acconto=0;c.pagato=0;c.b=Object.assign(c.b||{},{lav:0,rit:0});delete c.xs});
+  if(res>.004){if(skip&&skip.has(c.id))(c.abb=c.abb||[]).push({y,imp:res,d:oggi(),n:'Non portato nella nuova stagione'});else(c.arr=c.arr||[]).push({y,imp:res,pag:0})}c.acconto=0;c.pagato=0;c.b=Object.assign(c.b||{},{lav:0,rit:0});delete c.xs});
  db.yr=ny;db.rd=(ny+1)+'-01-01';db.cl.forEach(c=>recalc(c.id));
  db.rl={from:y,to:ny,d:oggi(),pm:Math.max(0,...db.pag.map(p=>p.id||0)),snap};cy=uy=ty=cur();return{from:y,to:ny}}
 function stagioneUndo(){const r=db.rl;if(!r)return{err:'Niente da annullare'};if(Math.max(0,...db.pag.map(p=>p.id||0))!==r.pm)return{err:'Nella nuova stagione sono già stati registrati pagamenti: non si può annullare'};
- r.snap.forEach(s=>{const c=cli(s.id);if(!c)return;c.acconto=s.acconto;c.pagato=s.pagato;if(s.tp>0)c.tp=s.tp;else delete c.tp;c.b=s.b;c.arr=s.arr;if(s.xs)c.xs=s.xs;else delete c.xs;c.hist=(c.hist||[]).slice(0,s.nh)});
+ r.snap.forEach(s=>{const c=cli(s.id);if(!c)return;c.acconto=s.acconto;c.pagato=s.pagato;if(s.tp>0)c.tp=s.tp;else delete c.tp;c.b=s.b;c.arr=s.arr;if(s.xs)c.xs=s.xs;else delete c.xs;if(s.abb)c.abb=s.abb;else delete c.abb;c.hist=(c.hist||[]).slice(0,s.nh)});
  db.yr=r.from;db.rd=(r.from+1)+'-01-01';db.cl.forEach(c=>recalc(c.id));db.rl=null;cy=uy=ty=cur();return{ok:1}}
 function rollOpen(){const pv=rollPreview(),cu=db.rl&&Math.max(0,...db.pag.map(p=>p.id||0))===db.rl.pm;
  $('#ss-i').innerHTML=`<div class="mon"><div>Stagione attuale<b>${pv.y}</b></div><div>Nuova stagione<b>${pv.ny}</b></div><div>Clienti<b>${pv.n}</b></div></div>
  <p>Per ogni cliente l'importo da pagare riparte dalla tariffa del ${pv.ny}: acconto, pagato, lavaggi e ritardi si azzerano.</p>
  <p><b>${pv.nc} clienti</b> hanno ancora un residuo ${pv.y}, in totale <b>${e2(pv.tot)}</b>: diventa <b>arretrato ${pv.y}</b>, con l'anno di riferimento sempre indicato.</p>
+ <h3 style="margin:10px 0 4px">Residui da valutare</h3><p class="mut" style="margin:0 0 6px">Togli la spunta ai residui che non vuoi portare nella nuova stagione (piccoli sconti, errori di digitazione): non diventano arretrato e restano registrati come abbuono.</p><label>Non portare i residui fino a (€)</label><input id="ss-th" type="number" step="0.01" min="0" inputmode="decimal" placeholder="es. 10"><div id="ss-rl" class="cl" style="max-height:34vh"></div><div id="ss-rs" class="mut" style="margin:6px 0"></div>
  <p class="mut">La situazione ${pv.y} di ogni cliente resta consultabile (Clienti, scelta della stagione) e si scarica in Excel. Viene usato il listino attuale: se il listino ${pv.ny} è diverso, aggiornalo prima di aprire la stagione.</p>`;
- $('#ss-d').value=db.rd;$('#ss-u').hidden=!cu;$('#ss-u').textContent="Annulla l'apertura della stagione "+(db.rl?db.rl.to:'');$('#dlgs').showModal()}
-$('#ss-s').onclick=()=>{const pv=rollPreview();askQ('Aprire la stagione '+pv.ny+'?',`Tutti i clienti ripartono dalla tariffa ${pv.ny}. I residui ${pv.y} (${e2(pv.tot)}) diventano arretrati.`,'Apri la stagione').then(ok=>{if(!ok)return;const r=stagioneApri();save();$('#dlgs').close();render();toast('Stagione '+r.to+' aperta')})};
+ rollList();$('#ss-d').value=db.rd;$('#ss-u').hidden=!cu;$('#ss-u').textContent="Annulla l'apertura della stagione "+(db.rl?db.rl.to:'');$('#dlgs').showModal()}
+// ---- Arretrati: valutarli, abbuonarli (non portarli avanti) o lasciarli
+function abRows(){return db.cl.filter(c=>arrOpen(c)>.004).map(c=>({c,t:arrOpen(c)})).sort((a,b)=>a.t-b.t)}
+function abAb(c,y,n){const a=(c.arr||[]).find(x=>x.y===y);if(!a)return 0;const r=r2(a.imp-(a.pag||0));if(r>.004)(c.abb=c.abb||[]).push({y,imp:r,d:oggi(),n:n||'Abbuonato'});
+ if((a.pag||0)>.004)a.imp=r2(a.pag);else c.arr=c.arr.filter(x=>x!==a);if(!c.arr.length)delete c.arr;return r}
+function abOpen(){const rows=abRows(),tot=r2(rows.reduce((a,x)=>a+x.t,0)),ab=db.cl.flatMap(c=>(c.abb||[]).map(x=>({c,x}))).sort((a,b)=>a.x.d<b.x.d?1:-1);
+ $('#ab-i').innerHTML=`<div class="mon"><div>Clienti<b>${rows.length}</b></div><div>Totale<b>${e2(tot)}</b></div><div>Abbuonati<b>${e2(r2(ab.reduce((a,x)=>a+x.x.imp,0)))}</b></div></div>
+ <p class="mut">Per ogni cliente vedi gli arretrati per anno. "Abbuona" cancella l'arretrato (resta registrato qui sotto e si può ripristinare). Per decidere a fine stagione quali residui portare avanti usa "Stagione" → Nuova stagione.</p>
+ <label>Abbuona tutti gli arretrati fino a (€)</label><div class="row"><input id="ab-th" type="number" step="0.01" min="0" inputmode="decimal" placeholder="es. 10" style="flex:1"><button class="btn g sm" id="ab-all">Abbuona</button></div>
+ <div class="cl" style="max-height:40vh;margin-top:8px">${rows.length?rows.map(({c,t})=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><div style="flex:1"><b>${fid(c.id)}</b> ${esc(c.nome)}<div class="mut">${arrList(c).map(x=>x.y+': '+e2(r2(x.imp-(x.pag||0)))).join(' · ')}</div></div><b>${e2(t)}</b> <button class="btn g sm" data-ab1="${c.id}">Abbuona</button></div>`).join(''):'<span class="mut">Nessun arretrato.</span>'}</div>
+ ${ab.length?`<h3 style="margin:10px 0 4px">Abbuonati</h3><div class="cl" style="max-height:22vh">${ab.map(({c,x})=>`<div class="row" style="padding:4px 0"><div style="flex:1"><b>${fid(c.id)}</b> ${esc(c.nome)}<div class="mut">${x.y}: ${e2(x.imp)} · ${dmy(x.d)}${x.n?' · '+esc(x.n):''}</div></div><button class="btn g sm" data-abr="${c.id}:${c.abb.indexOf(x)}">Ripristina</button></div>`).join('')}</div>`:''}`;
+ if(!$('#dlgab').open)$('#dlgab').showModal()}
+$('#ab-c').onclick=()=>$('#dlgab').close();
+$('#ab-i').onclick=e=>{const d=e.target.dataset||{};
+ if(d.ab1){const c=cli(+d.ab1);if(!c)return;askQ('Abbuonare gli arretrati?',`${esc(c.nome)}: ${arrTxt(c)} (totale ${e2(arrOpen(c))}).<br>L'arretrato viene cancellato e resta registrato tra gli abbuonati.`,'Abbuona').then(ok=>{if(!ok)return;arrList(c).map(x=>x.y).forEach(y=>abAb(c,y));save();render();abOpen();toast('Arretrato abbuonato')})}
+ else if(d.abr){const[ci,i]=d.abr.split(':').map(Number),c=cli(ci),x=c&&c.abb&&c.abb[i];if(!x)return;(c.arr=c.arr||[]).push({y:x.y,imp:x.imp,pag:0});c.abb.splice(i,1);if(!c.abb.length)delete c.abb;save();render();abOpen();toast('Arretrato ripristinato')}
+ else if(e.target.id==='ab-all'){const t=+String($('#ab-th').value).replace(',','.')||0;if(!(t>0))return toast('Scrivi la cifra massima');const l=abRows().filter(x=>x.t<=t);if(!l.length)return toast('Nessun arretrato fino a '+e2(t));
+  askQ('Abbuonare gli arretrati piccoli?',`<b>${l.length}</b> clienti con arretrati fino a ${e2(t)}, in totale ${e2(r2(l.reduce((a,x)=>a+x.t,0)))}.`,'Abbuona').then(ok=>{if(!ok)return;l.forEach(({c})=>arrList(c).map(x=>x.y).forEach(y=>abAb(c,y)));save();render();abOpen();toast('Arretrati abbuonati: '+l.length)})}};
+function rollRows(){return db.cl.map(c=>({c,r:r2(daPagare(c))})).filter(x=>x.r>.004).sort((a,b)=>b.r-a.r)}
+function rollList(){$('#ss-th').value='';$('#ss-rl').innerHTML=rollRows().map(({c,r})=>`<label class="chk" style="margin:4px 0"><input type="checkbox" data-sk="${c.id}" checked> <span><b>${fid(c.id)}</b> ${esc(c.nome)} · <b>${e2(r)}</b>${c.arr&&arrOpen(c)>0?' <span class="mut">(ha già arretrati '+arrTxt(c)+')</span>':''}</span></label>`).join('')||'<span class="mut">Nessun residuo: tutti i clienti sono in regola.</span>';rollSum()}
+function rollSkip(){const k=new Set();document.querySelectorAll('#ss-rl input[data-sk]').forEach(i=>{if(!i.checked)k.add(+i.dataset.sk)});return k}
+function rollSum(){const k=rollSkip(),rows=rollRows(),p=rows.filter(x=>!k.has(x.c.id)),n=rows.filter(x=>k.has(x.c.id));$('#ss-rs').innerHTML=`Porti in arretrato: <b>${p.length}</b> clienti, <b>${e2(r2(p.reduce((a,x)=>a+x.r,0)))}</b> · Non porti: <b>${n.length}</b> clienti, <b>${e2(r2(n.reduce((a,x)=>a+x.r,0)))}</b>`}
+$('#ss-i').onchange=e=>{if(e.target.dataset&&e.target.dataset.sk)rollSum()};
+$('#ss-i').oninput=e=>{if(e.target.id!=='ss-th')return;const t=+String($('#ss-th').value).replace(',','.')||0,m={};rollRows().forEach(x=>m[x.c.id]=x.r);document.querySelectorAll('#ss-rl input[data-sk]').forEach(i=>{i.checked=!(t>0&&m[i.dataset.sk]<=t)});rollSum()};
+$('#ss-s').onclick=()=>{const pv=rollPreview(),sk=rollSkip(),rows=rollRows(),np=rows.filter(x=>!sk.has(x.c.id)),nn=rows.filter(x=>sk.has(x.c.id));askQ('Aprire la stagione '+pv.ny+'?',`Tutti i clienti ripartono dalla tariffa ${pv.ny}.<br>Diventano arretrati ${pv.y}: <b>${np.length}</b> residui (${e2(r2(np.reduce((a,x)=>a+x.r,0)))}).${nn.length?`<br>Non vengono portati: <b>${nn.length}</b> residui (${e2(r2(nn.reduce((a,x)=>a+x.r,0)))}), registrati come abbuono.`:''}`,'Apri la stagione').then(ok=>{if(!ok)return;const r=stagioneApri(sk);save();$('#dlgs').close();render();toast('Stagione '+r.to+' aperta')})};
 $('#ss-u').onclick=()=>{askQ("Annullare l'apertura?",'La stagione tornerà quella precedente, con gli importi di prima.','Annulla apertura').then(ok=>{if(!ok)return;const r=stagioneUndo();if(r.err)return toast(r.err);save();$('#dlgs').close();render();toast('Apertura annullata')})};
 $('#ss-d').onchange=()=>{if($('#ss-d').value){db.rd=$('#ss-d').value;save();render()}};$('#ss-c').onclick=()=>$('#dlgs').close();
 {const _mx=menuX;menuX=function(){_mx();const n=oggi()>=db.rd,M=typeof window!=='undefined'&&window.SITE&&ROLE==='master',ov=(typeof window!=='undefined'&&window.OVN)||0;
  $('#x-l').innerHTML+=`<h3 class="xh">Strumenti</h3><div class="xgrid">`
  +(M?`<div class="xt2" data-ml="1"><b>Email ai clienti</b><span>Natale, acconti, arretrati</span></div><div class="xt2" data-ov="1"><b>Dai clienti</b><span>Richieste e documenti</span>${ov?`<i class="bd">${ov}</i>`:''}</div><div class="xt2" data-st="1"><b>Statistiche</b><span>Guadagni e mezzi in deposito</span></div>`:'')
- +`<div class="xt2 ${n?'al':''}" data-roll="1"><b>Stagione ${db.yr}</b><span>${n?'⚠ da aprire (previsto il '+dmy(db.rd)+')':'Apri la nuova stagione'}</span></div>`
+ +(M?`<div class="xt2" data-ab="1"><b>Arretrati</b><span>Valuta, abbuona o lascia</span></div>`:'')+`<div class="xt2 ${n?'al':''}" data-roll="1"><b>Stagione ${db.yr}</b><span>${n?'⚠ da aprire (previsto il '+dmy(db.rd)+')':'Apri la nuova stagione'}</span></div>`
  +`<div class="xt2" data-sys="1"><b>Dati e accessi</b><span>Backup, ripristino${M?', utenti':''}</span></div></div>`}}
 // ---- Selettori di anno nelle sezioni
 const yrOpts=(extra,sel)=>[...new Set([cur(),...extra.filter(Boolean)])].sort().reverse().map(y=>`<option value="${y}" ${y===sel?'selected':''}>${y}${y===cur()?' (corrente)':''}</option>`).join('');
