@@ -159,9 +159,9 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
  <select id="c-y"></select>
  <input id="q" type="search" placeholder="Cerca nome, targa o numero">
  <div id="q-pv" class="prev" hidden></div>
+ <button class="btn g sm" id="c-x" style="margin:4px 0 8px">Esporta in Excel</button>
  <div class="chips" id="chips"></div>
  <div id="list"></div>
- <button class="btn g" id="c-x">Esporta in Excel</button>
  <button class="btn g" id="add">Nuovo cliente (registrazione in ufficio)</button>
  <button class="btn g" id="kiosk">Modalità tablet: il cliente compila da solo</button>
 </section>
@@ -174,7 +174,7 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
  <label>Tipo</label><select id="m-t"><option value="ui">Entrata</option><option value="uo">Uscita</option></select>
  <label>Data</label><input id="m-d" type="date">
  <label>Extra</label>
- <select id="m-x"><option value="">Nessun extra</option><option value="lav">Lavaggio extra (+50 €)</option><option value="rit">Ritardo (+50 €)</option></select>
+ <select id="m-x"><option value="">Nessun extra</option><option value="lav">Lavaggio extra (+50 €)</option><option value="rit">Ritardo (+50 €)</option><option value="pneu">Cambio pneumatici (prezzo libero)</option><option value="altro">Altro extra (specifica e prezzo)</option></select><div id="m-xx" hidden><input id="m-xd" type="text" placeholder="A cosa si riferisce (obbligatorio per Altro)"><input id="m-xp" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Prezzo €"></div>
  <label class="chk"><input type="checkbox" id="m-tr"> Con trasporto (facoltativo)</label>
  <div id="m-trb" hidden>
   <p class="mut">Driver: <b>Enrico</b> · pagamento solo in contanti</p>
@@ -299,6 +299,7 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
  <label>Note</label><input id="em-o">
  <button class="btn" id="em-s">Salva modifiche</button><button class="btn g" id="em-del" style="color:var(--out)">Elimina movimento</button><button class="btn g" id="em-c">Annulla</button></dialog>
 <dialog id="dlg9"><h2 id="ec-t"></h2><div id="ec-b"></div><button class="btn" id="ec-s">Salva modifiche</button><button class="btn g" id="ec-c">Annulla</button></dialog>
+<dialog id="dlgex"><h2>Aggiungi extra</h2><div id="ex-i"></div><label>Numero cliente</label><input id="ex-n" type="text" inputmode="text" autocapitalize="characters" placeholder="es. 25 oppure S3"><label>Tipo di extra</label><select id="ex-t"><option value="Cambio pneumatici">Cambio pneumatici</option><option value="Altro">Altro (specifica)</option></select><label id="ex-dl">Dettagli (facoltativo)</label><input id="ex-d" type="text" placeholder="es. 4 gomme 195/65 R16"><label>Prezzo (€)</label><input id="ex-p" type="number" step="0.01" min="0" inputmode="decimal"><label>Data</label><input id="ex-dt" type="date"><div id="ex-m" class="ko"></div><button class="btn" id="ex-s">Salva extra</button><button class="btn g" id="ex-c">Annulla</button></dialog>
 <dialog id="dlg10"><h2>Ritiro del mezzo</h2><div id="rt-i"></div><label id="rt-l">Data del ritiro</label><input id="rt-d" type="date"><button class="btn" id="rt-s">Conferma ritiro</button><button class="btn g" id="rt-c">Annulla</button></dialog>
 <dialog id="dlgpos"><h2 id="ps-t">Assegna posto</h2><p class="mut" id="ps-d"></p><label for="ps-q">Numero cliente (o T1 per un provvisorio)</label><input id="ps-q" type="text" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="Es. 123"><button class="btn g sm lens" type="button" id="ps-lens">🔍 Non ricordi il numero? Cerca per nome o targa</button><div id="ps-pv" class="prev" hidden></div><button class="btn" id="ps-ok">Assegna posto</button><button class="btn g" id="ps-no">Annulla</button></dialog>
 <dialog id="dlgsh"><h2 id="sh-t"></h2><div id="sh-b"></div><button class="btn g" id="sh-x">Chiudi</button></dialog>
@@ -429,7 +430,9 @@ function stato(c){const t=oggi(),z='2000-01-01',uo=c.uo||z,ui=c.ui||z;
  if(uo===z&&ui===z)return'X';
  if(uo<ui)return uo<t?(ui>t?'OUT':'IN'):'IN';
  if(uo>ui)return uo<t?'OUT':'IN';return'IN'}
-const daPagare=c=>tarC(c)-(c.acconto||0)+50*((c.lav||0)+(c.rit||0))-(c.pagato||0);
+const xtra=c=>(c.xs||[]).reduce((a,x)=>a+(+x.imp||0),0);
+function exT(c){return 50*((c.lav||0)+(c.rit||0))+xtra(c)}
+const daPagare=c=>tarC(c)-(c.acconto||0)+exT(c)-(c.pagato||0);
 const add=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const seed=()=>[
  {id:1,nome:'Mario Rossi',targa:'AB123CD',marca:'Hobby',naz:'I',mail:'mario.rossi@example.com',cod:'547354',sede:'Casalemenini',tipo:'ROULOTTE',lung:6.5,acconto:200,pagato:0,lav:0,rit:0,ui:'2026-03-10',uo:add(2),pos:'13C F6 POS4'},
@@ -502,7 +505,7 @@ function render(){
  const l=db.cl.filter(c=>(filtro==='ARR'?arrOpen(c)>.004:filtro==='RITP'?!!c.rtp:filtro==='STAG'?isS(c.id):!isS(c.id)&&(filtro==='TUTTI'||stato(c)===filtro))&&(!q||(c.nome+c.targa+fid(c.id)).toLowerCase().includes(q)));
  $('#list').innerHTML=histY()?histList(q):l.length?l.map(c=>{const s=stato(c),d=daPagare(c)+arrOpen(c);return`<div class="card ${aperto===c.id?'open':''}" data-id="${c.id}">
  <div class="row"><span class="num">${fid(c.id)}</span><div><b>${esc(c.nome)}</b>${c.ct&&c.ct!=='A'?' <span class="b X">STAGIONALE</span>':''}${c.rtp?' <span class="b OUT">SI RITIRA</span>':''}<div class="mut">${esc(c.tipo)}${c.marca?' '+esc(c.marca):''} ${c.lung||''} m · ${esc(c.targa)}</div></div><div style="flex:none;text-align:right"><span class="b ${s}">${s}</span><div class="due" style="color:${d>0?'var(--out)':'var(--in)'}">${d>0?eur(d):'Saldato'}</div></div></div>
- <div class="det mut">Tariffa ${eur(tarC(c))}${c.ct&&c.ct!=='A'?' ('+CTR[c.ct]+')':''} · acconto ${eur(c.acconto||0)} · pagato ${eur(c.pagato||0)}${arrOpen(c)>0?' · <b style="color:var(--out)">arretrati '+arrTxt(c)+'</b>':''}<br>Lavaggi extra ${c.lav||0} · ritardi ${c.rit||0}<br>Ultima entrata ${c.ui||'-'} · ultima uscita ${c.uo||'-'}<br>Registrazione: ${c.reg?(c.reg.stato==='ok'?'completa':'DA VERIFICARE')+' · '+c.reg.d:'dati precedenti'}${c.reg&&!(c.dk&&c.dk.id&&c.dk.veh)?' · <span style="color:var(--out)">documenti mancanti</span>':''} <button class="btn g sm" data-doc="${c.id}">Documenti e contratto</button> <button class="btn g sm" data-ed="${c.id}">Modifica cliente</button> <button class="btn g sm" data-of="${c.id}">Apri in ufficio</button> <button class="btn g sm" data-sh="${c.id}">Storico</button> <button class="btn g sm" data-rt="${c.id}">Ritiro mezzo</button> ${c.rtp?'<button class="btn g sm" data-rp="'+c.id+'">Annulla il ritiro previsto</button><br><b>Ritiro previsto</b>: '+(c.rtp.prev?'il mezzo verrà portato via il '+dmy(c.rtp.prev):'data non ancora nota')+' (resta nell\'elenco finché non esce il mezzo)':''}${c.per&&c.per.dal?'<br>Periodo: '+c.per.dal+' → '+c.per.al:''}<br>Posizione: ${c.pos?esc(descr(c.pos)+' ('+c.pos+')'):'non assegnata'}</div></div>`}).join(''):'<p class="mut">Nessun cliente trovato. Cambia la ricerca o il filtro.</p>';
+ <div class="det mut">Tariffa ${eur(tarC(c))}${c.ct&&c.ct!=='A'?' ('+CTR[c.ct]+')':''} · acconto ${eur(c.acconto||0)} · pagato ${eur(c.pagato||0)}${arrOpen(c)>0?' · <b style="color:var(--out)">arretrati '+arrTxt(c)+'</b>':''}<br>Lavaggi extra ${c.lav||0} · ritardi ${c.rit||0}${xtra(c)?' · altri extra '+eur(xtra(c)):''}${exList(c)}<br>Ultima entrata ${c.ui||'-'} · ultima uscita ${c.uo||'-'}<br>Registrazione: ${c.reg?(c.reg.stato==='ok'?'completa':'DA VERIFICARE')+' · '+c.reg.d:'dati precedenti'}${c.reg&&!(c.dk&&c.dk.id&&c.dk.veh)?' · <span style="color:var(--out)">documenti mancanti</span>':''} <button class="btn g sm" data-doc="${c.id}">Documenti e contratto</button> <button class="btn g sm" data-ed="${c.id}">Modifica cliente</button> <button class="btn g sm" data-of="${c.id}">Apri in ufficio</button> <button class="btn g sm" data-sh="${c.id}">Storico</button> <button class="btn g sm" data-xa="${c.id}">Aggiungi extra</button> <button class="btn g sm" data-rt="${c.id}">Ritiro mezzo</button> ${c.rtp?'<button class="btn g sm" data-rp="'+c.id+'">Annulla il ritiro previsto</button><br><b>Ritiro previsto</b>: '+(c.rtp.prev?'il mezzo verrà portato via il '+dmy(c.rtp.prev):'data non ancora nota')+' (resta nell\'elenco finché non esce il mezzo)':''}${c.per&&c.per.dal?'<br>Periodo: '+c.per.dal+' → '+c.per.al:''}<br>Posizione: ${c.pos?esc(descr(c.pos)+' ('+c.pos+')'):'non assegnata'}</div></div>`}).join(''):'<p class="mut">Nessun cliente trovato. Cambia la ricerca o il filtro.</p>';
  if(filtro==='RIT')ritList();mvList();bkList();grid();pn();us();trv();al();home();menuX();setTimeout(rtpSweep,200)}
 let capSel='13C',uf='P';
 function descr(l){let m;
@@ -542,7 +545,7 @@ $('#u-ch').onclick=e=>{if(e.target.dataset.u){uf=e.target.dataset.u;us()}};
 $('#caps').onclick=e=>{const c=e.target.closest('[data-c]');if(c){capSel=c.dataset.c;grid()}};
 $('#chips').onclick=e=>{if(e.target.dataset.f){filtro=e.target.dataset.f;render()}};
 $('#list').onclick=e=>{const bt=e.target.closest&&e.target.closest('button'),d=bt?bt.dataset:(e.target.dataset||{});
- if(d.sh){shOpen(+d.sh);return}if(d.doc){docOpen('c',+d.doc);return}if(d.ed){ecOpen('c',+d.ed);return}if(d.rt){ritOpen(+d.rt);return}if(d.rp){rtpToggle(+d.rp);return}
+ if(d.sh){shOpen(+d.sh);return}if(d.doc){docOpen('c',+d.doc);return}if(d.ed){ecOpen('c',+d.ed);return}if(d.rt){ritOpen(+d.rt);return}if(d.xa){exOpen(+d.xa);return}if(d.xd){exDel(d.xd);return}if(d.rp){rtpToggle(+d.rp);return}
  if(d.rdoc){docOpen('r',+d.rdoc);return}if(d.of){ofOpen(+d.of);return}
  if(d.rund){const r=db.rit.find(x=>x.rid===+d.rund);askQ('Annullare il ritiro?',`${esc(r.cl.nome)} tornerà tra i clienti${cli(r.id)?' con un nuovo numero (il '+fid(r.id)+' è già stato riassegnato)':' con il numero '+fid(r.id)}.`,'Ripristina').then(ok=>{if(ok){const n=ritUndo(r.rid);toast('Cliente ripristinato con il numero '+fid(n))}});return}
  const c=e.target.closest('.card');if(c&&c.dataset.id){aperto=aperto==c.dataset.id*1?null:c.dataset.id*1;render()}};
@@ -786,7 +789,7 @@ function rimExcel(XLSX,buf,ctx){
  for(const c of cl)if(c.tp){const ex=r2(c.acconto+c.pagato-c.tp);if(ex>0.01)rep.crediti.push([c.id,c.nome,ex])}
  // ---- dati dell'app che l'Excel non contiene
  if(old&&Array.isArray(old.cl)){const o={};old.cl.forEach(x=>o[x.id]=x);
-  for(const c of cl){const x=o[c.id];if(!x)continue;for(const k of['ct','dasse','dk','reg','rtp'])if(x[k]!==undefined)c[k]=x[k]}}
+  for(const c of cl){const x=o[c.id];if(!x)continue;for(const k of['ct','dasse','dk','reg','rtp','xs'])if(x[k]!==undefined)c[k]=x[k]}}
  const db=Object.assign({},old||{});db.cl=cl;db.mov=mov;db.pag=pag;db.pn=pn;db.sto=stoL;
  for(const k of['tmp','tr','trp','trc','rit','pren','pc'])if(!Array.isArray(db[k]))db[k]=[];
  if(db.yr===undefined)db.yr=2026;if(db.rd===undefined)db.rd='2027-01-01';if(db.rl===undefined)db.rl=null;
@@ -849,7 +852,7 @@ function mlFields(c,L){
  const E=esc,pr=c.pos?descr(c.pos):'',dp=Math.max(0,daPagare(c)),ar=arrRest(c),cf=mlCfg();
  const T={it:{ar:'Arretrato',st:'Stagione',tot:'Totale',vers:'Già versato',dap:'Da pagare',td:'Totale da pagare'},en:{ar:'Arrears',st:'Season',tot:'Total',vers:'Already paid',dap:'To pay',td:'Total due'},de:{ar:'Rückstand',st:'Saison',tot:'Gesamt',vers:'Bereits bezahlt',dap:'Zu zahlen',td:'Gesamtbetrag fällig'},nl:{ar:'Achterstand',st:'Seizoen',tot:'Totaal',vers:'Reeds betaald',dap:'Te betalen',td:'Totaal verschuldigd'}}[L];
  let rows='';(c.arr||[]).forEach(x=>{const r=Math.max(0,x.imp-(x.pag||0));if(r>.004)rows+=`<tr><td style="padding:4px 12px 4px 0">${T.ar} ${x.y}</td><td style="text-align:right">${E(mlMoney(r,L))}</td></tr>`});
- if(dp>.004)rows+=`<tr><td style="padding:4px 12px 4px 0">${T.st} ${db.yr} (${T.tot} ${E(mlMoney(tarC(c)+50*((c.lav||0)+(c.rit||0)),L))}, ${T.vers} ${E(mlMoney((c.acconto||0)+(c.pagato||0),L))})</td><td style="text-align:right">${E(mlMoney(dp,L))}</td></tr>`;
+ if(dp>.004)rows+=`<tr><td style="padding:4px 12px 4px 0">${T.st} ${db.yr} (${T.tot} ${E(mlMoney(tarC(c)+exT(c),L))}, ${T.vers} ${E(mlMoney((c.acconto||0)+(c.pagato||0),L))})</td><td style="text-align:right">${E(mlMoney(dp,L))}</td></tr>`;
  rows+=`<tr><td style="padding:6px 12px 4px 0;border-top:1px solid #999"><b>${T.td}</b></td><td style="text-align:right;border-top:1px solid #999"><b>${E(mlMoney(ar+dp,L))}</b></td></tr>`;
  const nm=(c.nm||'').trim(),cg=(c.cg||'').trim();
  return{nome:E((nm+' '+cg).trim()||c.nome),nome_proprio:E(nm||c.nome),cognome:E(cg||c.nome),numero:E(fid(c.id)),mezzo:E(((c.tipo||'').charAt(0)+(c.tipo||'').slice(1).toLowerCase()+' '+(c.marca||'')).trim()),targa:E(c.targa||''),posizione:E(pr||'—'),sede:E(sedeDi(c)||''),stagione:db.yr,totale:E(mlMoney(tarC(c),L)),acconto_versato:E(mlMoney(c.acconto||0,L)),da_pagare:E(mlMoney(dp,L)),arretrati:E(mlMoney(ar,L)),totale_dovuto:E(mlMoney(ar+dp,L)),conto:`<table style="border-collapse:collapse;margin:8px 0">${rows}</table>`,acconto:E(mlMoney(+cf.acc||0,L)),iban:E(cf.iban||'(IBAN)'),bic:E(cf.bic||''),intestatario:E(cf.intest||''),banca:`${({it:'Bonifico a',en:'Bank transfer to',de:'Überweisung an',nl:'Overschrijving naar'})[L]}: <b>${E(cf.intest||'')}</b><br>IBAN: <b>${E(cf.iban||'(IBAN)')}</b><br>BIC/SWIFT: ${E(cf.bic||'')}`,data:E(mlDate(oggi(),L)),email:E(c.mail||'')}}
@@ -901,7 +904,7 @@ const mlEm=c=>String(c.mail||'').trim().toLowerCase();
 const mlGrp=c=>mlRecips().filter(x=>mlOk(x)&&mlEm(x)===mlEm(c));
 function mlSel(){const sd=mlSent(),seen=new Set();return mlRecips().filter(c=>mlOk(c)&&!ML.ex.has(c.id)).filter(c=>{const k=mlEm(c);if(seen.has(k))return false;seen.add(k);return!mlGrp(c).some(x=>sd.d[x.id])})}
 function mlFieldsG(c,L){const g=mlGrp(c);if(g.length<2)return mlFields(c,L);
- const F=g.map(x=>mlFields(x,L)),base=mlFields(c,L),cf=mlCfg(),sum=k=>g.reduce((a,x,i)=>a+k(x),0),dp=x=>Math.max(0,daPagare(x)),ex=x=>50*((x.lav||0)+(x.rit||0));
+ const F=g.map(x=>mlFields(x,L)),base=mlFields(c,L),cf=mlCfg(),sum=k=>g.reduce((a,x,i)=>a+k(x),0),dp=x=>Math.max(0,daPagare(x)),ex=x=>exT(x);
  const TT={it:'Totale complessivo',en:'Grand total',de:'Gesamtsumme',nl:'Totaal generaal'}[L],J=k=>F.map(f=>f[k]).join(' / ');
  return Object.assign({},base,{numero:J('numero'),mezzo:J('mezzo'),targa:J('targa'),posizione:J('posizione'),
   totale:esc(mlMoney(sum(x=>tarC(x)),L)),acconto_versato:esc(mlMoney(sum(x=>x.acconto||0),L)),da_pagare:esc(mlMoney(sum(dp),L)),arretrati:esc(mlMoney(sum(arrRest),L)),totale_dovuto:esc(mlMoney(sum(x=>arrRest(x)+dp(x)),L)),acconto:esc(mlMoney((+cf.acc||0)*g.length,L)),
@@ -1000,7 +1003,7 @@ async function mlAuto(){if(mlBusy)return;mlBusy=true;try{
 if(typeof window!=='undefined')setTimeout(mlAutoSoon,8000);
 // ======== Area ospiti ========
 const ovCard=()=>(typeof window!=='undefined'&&window.SITE&&ROLE==='master')?`<div class="card xm" data-ov="1"><div><b>Dai clienti (area ospiti)</b><div class="mut">Richieste di uscita e documenti caricati dai clienti${window.OVN?' · <b>'+window.OVN+' da vedere</b>':''}</div></div><span class="ch">›</span></div>`:'';
-function ovVista(c,F){F=F||{};const f=F[c.id]||{},dk=c.dk||{},ds=(c.doc||{}).s||'',L=mlLang(c),cf=mlCfg(),st=stato(c),cas=sedeDi(c)==='Casalemenini',ex=50*((c.lav||0)+(c.rit||0)),lc=LOC[c.pos]||{};
+function ovVista(c,F){F=F||{};const f=F[c.id]||{},dk=c.dk||{},ds=(c.doc||{}).s||'',L=mlLang(c),cf=mlCfg(),st=stato(c),cas=sedeDi(c)==='Casalemenini',ex=exT(c),lc=LOC[c.pos]||{};
  return{L,nome:c.nome,mezzo:((MZ[c.tipo]||{})[L])||String(c.tipo||'').toLowerCase(),targa:c.targa||'',stato:st,area:st==='IN'?(lc.cap||''):'',cod:(cas&&st==='IN')?String(c.cod||''):'',
   yr:db.yr,tot:r2(tarC(c)+ex),vers:r2((c.acconto||0)+(c.pagato||0)),dap:r2(Math.max(0,daPagare(c))),arr:r2(arrRest(c)),
   pag:db.pag.filter(p=>p.cid===c.id&&p.y===db.yr).sort((a,b)=>b.d<a.d?-1:1).slice(0,10).map(p=>({d:p.d,imp:p.imp})),
@@ -1093,7 +1096,7 @@ $('#ov-b').onclick=async e=>{const b=e.target.closest('button');if(!b)return;con
 const stCard=()=>(typeof window!=='undefined'&&ROLE==='master')?`<div class="card xm" data-st="1"><div><b>Statistiche</b><div class="mut">Guadagni per nazionalità, mezzo, capannone e sede · mezzi in deposito giorno per giorno</div></div><span class="ch">›</span></div>`:'';
 let stBs='fat';
 const stNz={NL:'Olanda',D:'Germania',DE:'Germania',DK:'Danimarca',I:'Italia',IT:'Italia',A:'Austria',AT:'Austria',B:'Belgio',CH:'Svizzera',GB:'Regno Unito',F:'Francia',S:'Svezia',N:'Norvegia',L:'Lussemburgo',PL:'Polonia',CZ:'Rep. Ceca'};
-const stVal=c=>stBs==='fat'?tarC(c)+50*((c.lav||0)+(c.rit||0)):(c.acconto||0)+(c.pagato||0);
+const stVal=c=>stBs==='fat'?tarC(c)+exT(c):(c.acconto||0)+(c.pagato||0);
 function stGr(kf,top){const m={};db.cl.forEach(c=>{const k=kf(c),o=m[k]=m[k]||{k,v:0,n:0};o.v+=stVal(c);o.n++});let r=Object.values(m).sort((a,b)=>b.v-a.v);
  if(top&&r.length>top){const rest=r.slice(top);r=r.slice(0,top).concat([{k:'Altre ('+rest.length+')',v:rest.reduce((a,x)=>a+x.v,0),n:rest.reduce((a,x)=>a+x.n,0)}])}return r}
 function stBar(r){const mx=Math.max(1,...r.map(x=>x.v));return'<div class="stb">'+r.map(x=>`<div class="str" title="${esc(x.k)}: ${e2(x.v)} · ${x.n} mezz${x.n===1?'o':'i'}"><span class="stl">${esc(x.k)}</span><span class="stt"><i style="width:${(x.v/mx*100).toFixed(1)}%"></i></span><span class="stv">${eur(x.v)} <span class="mut">· ${x.n}</span></span></div>`).join('')+'</div>'}
@@ -1159,10 +1162,12 @@ $('#m-s').onclick=()=>{const c=cli($('#m-n').value),d=$('#m-d').value,tp=$('#m-t
   if(cf)return toast(`Enrico ha già un trasporto il ${d} alle ${ora}:00 (cliente ${fid(cf.cid)}). Scegli un altro orario`);
   tr={id:1+Math.max(0,...db.tr.map(t=>t.id)),cid:c.id,d,tipo:tp==='uo'?'Uscita':'Rientro',camp:$('#m-camp').value.trim(),piaz:$('#m-piaz').value.trim(),ora,sede:sd,pos:c.pos||'',imp,dx};
   c.sede=sd;if(rr)c.dasse=dx}
- const x=$('#m-x').value;
+ const x=$('#m-x').value,xp=Math.round(100*(+String($('#m-xp').value).replace(',','.')||0))/100,xd=$('#m-xd').value.trim();
+ if((x==='pneu'||x==='altro')&&!(xp>0))return toast('Inserisci il prezzo dell\'extra');if(x==='altro'&&!xd)return toast('Scrivi a cosa si riferisce l\'extra');
  const mv={id:1+Math.max(0,...db.mov.map(y=>y.id||0)),d,t:tp,cid:c.id,pos:c.pos||'',sede:sedeDi(c),lav:x==='lav',rit:x==='rit',note:$('#m-o').value.trim()};db.mov.push(mv);recalc(c.id);
+ if(x==='pneu'||x==='altro')exAdd(c,{d,t:x==='pneu'?'Cambio pneumatici':'Altro',desc:xd,imp:xp,mid:mv.id});
  if(tr){tr.mid=mv.id;db.tr.push(tr)}
- $('#m-n').value='';$('#m-o').value='';$('#m-tr').checked=false;['#m-camp','#m-piaz','#m-imp'].forEach(y=>$(y).value='');$('#m-sede').value='';
+ $('#m-n').value='';$('#m-o').value='';$('#m-x').value='';$('#m-xd').value='';$('#m-xp').value='';$('#m-xx').hidden=true;$('#m-tr').checked=false;['#m-camp','#m-piaz','#m-imp'].forEach(y=>$(y).value='');$('#m-sede').value='';
  save();pv('#m-i','');trp();render();
  const mu=tr&&tr.tipo==='Rientro'&&tr.d<=oggi()&&((cont().find(o=>o.cid===c.id)||{}).dap||0)>0;
  toast(`Movimento registrato: ${c.nome} ora è ${stato(c)}${tr?' · trasporto inserito':''}${mu?' · ATTENZIONE: trasporto non ancora pagato':''}`);
@@ -1363,7 +1368,7 @@ function emApply(id,f){const m=db.mov.find(x=>x.id===id);if(!m)return'Movimento 
  db.tr=db.tr.filter(x=>x.mid!==id);
  if(tr){tr.id=old?old.id:1+Math.max(0,...db.tr.map(t=>t.id));tr.mid=id;tr.cid=c.id;tr.d=f.d;tr.tipo=f.t==='uo'?'Uscita':'Rientro';tr.pos=c.pos||'';db.tr.push(tr);c.sede=tr.sede;if(c.tipo==='ROULOTTE')c.dasse=tr.dx}
  recalc(c.id);if(oc!==c.id)recalc(oc);save();render();return''}
-function emDelete(id){const m=db.mov.find(x=>x.id===id);if(!m)return;db.mov=db.mov.filter(x=>x.id!==id);db.tr=db.tr.filter(x=>x.mid!==id);recalc(m.cid);const c=cli(m.cid);if(c&&m.t==='uo'&&m.pos&&!c.pos&&!fuoriOggi(c)&&LOC[m.pos]&&!occ()[m.pos])c.pos=m.pos;save();render()}
+function emDelete(id){const m=db.mov.find(x=>x.id===id);if(!m)return;db.mov=db.mov.filter(x=>x.id!==id);db.tr=db.tr.filter(x=>x.mid!==id);recalc(m.cid);const c=cli(m.cid);if(c&&c.xs){c.xs=c.xs.filter(x=>x.mid!==id);if(!c.xs.length)delete c.xs}if(c&&m.t==='uo'&&m.pos&&!c.pos&&!fuoriOggi(c)&&LOC[m.pos]&&!occ()[m.pos])c.pos=m.pos;save();render()}
 $('#dlg8').oninput=e=>{if(e.target.id==='em-d')emSlots($('#em-ora').value);emUp()};$('#dlg8').onchange=$('#dlg8').oninput;
 $('#em-c').onclick=()=>$('#dlg8').close();
 $('#em-s').onclick=()=>{const f={cid:$('#em-n').value,t:$('#em-t').value,d:$('#em-d').value,lav:$('#em-l').checked,rit:$('#em-r').checked,note:$('#em-o').value,tr:$('#em-tr').checked?{camp:$('#em-camp').value,piaz:$('#em-piaz').value,ora:$('#em-ora').value,sede:$('#em-sede').value,dx:$('#em-dx').checked,imp:$('#em-imp').value}:null};
@@ -1405,6 +1410,20 @@ function ecApply(k,id,E){const o=k==='c'?cli(id):db.pren.find(p=>p.bk===id);if(!
 $('#dlg9').oninput=$('#dlg9').onchange=e=>{const t=e.target,k=t.dataset&&t.dataset.e;if(!k)return;ecX.E[k]=t.type==='checkbox'?t.checked:t.value;if(k==='ct'&&ecX.k==='p'){ecDraw();return}ecUp()};
 $('#ec-c').onclick=()=>$('#dlg9').close();
 $('#ec-s').onclick=()=>{const e=ecApply(ecX.k,ecX.id,ecX.E);if(e)return toast(e);$('#dlg9').close();toast('Dati aggiornati')};
+// ---- Extra a prezzo libero (cambio pneumatici, altro): salvati nel cliente, sommati al dovuto
+function exAdd(c,o){const id=1+Math.max(0,...(c.xs||[]).map(x=>x.id||0));(c.xs=c.xs||[]).push(Object.assign({id},o));return id}
+function exList(c){const l=c.xs||[];return l.length?'<br>'+l.map(x=>`${dmy(x.d)} · ${esc(x.t)}${x.desc?' ('+esc(x.desc)+')':''} · <b>${eur(x.imp)}</b> <button class="btn g sm" data-xd="${c.id}:${x.id}">Elimina</button>`).join('<br>'):''}
+function exDel(k){const[ci,xi]=String(k).split(':').map(Number),c=cli(ci);if(!c)return;const x=(c.xs||[]).find(y=>y.id===xi);if(!x)return;
+ askQ('Eliminare l\'extra?',`${esc(x.t)}${x.desc?' ('+esc(x.desc)+')':''} · ${eur(x.imp)} su ${esc(c.nome)}. Il dovuto del cliente scende di questa cifra.`,'Elimina').then(ok=>{if(!ok)return;c.xs=c.xs.filter(y=>y!==x);if(!c.xs.length)delete c.xs;save();render();toast('Extra eliminato')})}
+function exOpen(cid){const c=cid!=null&&cli(cid);$('#ex-n').value=c?fid(c.id):'';$('#ex-t').value='Cambio pneumatici';$('#ex-d').value='';$('#ex-p').value='';$('#ex-dt').value=oggi();$('#ex-m').textContent='';exUp();$('#dlgex').showModal()}
+function exUp(){const a=$('#ex-t').value==='Altro',c=exCli();$('#ex-dl').textContent=a?'A cosa si riferisce (obbligatorio)':'Dettagli (facoltativo)';
+ $('#ex-i').innerHTML=c?`<div class="row"><span class="num">${fid(c.id)}</span><div><b>${esc(c.nome)}</b><div class="mut">${esc(c.tipo)} ${esc(c.targa||'')} · dovuto attuale ${eur(Math.max(0,daPagare(c)))}</div></div></div>`:'<div class="mut">Scrivi il numero del cliente</div>'}
+function exCli(){const v=$('#ex-n').value.trim();return v?db.cl.find(c=>String(fid(c.id)).toUpperCase()===v.toUpperCase()||String(c.id)===v):null}
+$('#ex-t').onchange=exUp;$('#ex-n').oninput=exUp;$('#ex-c').onclick=()=>$('#dlgex').close();
+$('#ex-s').onclick=()=>{const c=exCli(),t=$('#ex-t').value,d=$('#ex-d').value.trim(),imp=Math.round(100*(+String($('#ex-p').value).replace(',','.')||0))/100,m=$('#ex-m');
+ if(!c){m.textContent='Cliente non trovato';return}if(t==='Altro'&&!d){m.textContent='Scrivi a cosa si riferisce l\'extra';return}if(!(imp>0)){m.textContent='Inserisci il prezzo';return}
+ exAdd(c,{d:$('#ex-dt').value||oggi(),t,desc:d,imp});$('#dlgex').close();save();render();toast(`Extra aggiunto a ${c.nome}: ${eur(imp)}`)};
+$('#m-x').addEventListener('change',()=>{$('#m-xx').hidden=!['pneu','altro'].includes($('#m-x').value)});
 // ---- Ritiro del cliente (si riporta il mezzo a casa): il cliente va nell'archivio dei ritirati e il numero si libera
 let ritId=null;
 let ritInShed=false;
@@ -1841,7 +1860,7 @@ $('#c-x').onclick=()=>{const q=$('#q').value.toLowerCase();
  if(filtro==='RIT')return expXlsx('clienti-ritirati.xlsx','Ritirati',['N. CLIENTE','NOME E COGNOME','MEZZO','TARGA','DATA RITIRO','SALDO ALLA DATA'],db.rit.map(r=>[xnum(r.id),r.cl.nome,r.cl.tipo,r.cl.targa,{d:r.d},{m:r.sum||0}]));
  const l=db.cl.filter(c=>(filtro==='ARR'?arrOpen(c)>.004:filtro==='RITP'?!!c.rtp:filtro==='STAG'?isS(c.id):!isS(c.id)&&(filtro==='TUTTI'||stato(c)===filtro))&&(!q||(c.nome+c.targa+fid(c.id)).toLowerCase().includes(q)));
  expXlsx('clienti-'+oggi()+'.xlsx','Clienti',['N. CLIENTE','NOME E COGNOME','TIPO','MARCA','LUNGHEZZA','TARGA','STATO','POSIZIONE','SEDE','TARIFFA','ACCONTO','PAGATO','EXTRA','DA PAGARE','ULTIMA ENTRATA','ULTIMA USCITA','EMAIL','NAZIONALITÀ','COD. CANCELLO'],
-  l.map(c=>[xnum(c.id),c.nome,c.tipo,c.marca||'',c.lung||'',c.targa,stato(c),c.pos||'',sedeDi(c),{m:tarC(c)},{m:c.acconto||0},{m:c.pagato||0},{m:50*((c.lav||0)+(c.rit||0))},{m:daPagare(c)},c.ui?{d:c.ui}:'',c.uo?{d:c.uo}:'',c.mail||'',c.naz||'',c.cod||'']))};
+  l.map(c=>[xnum(c.id),c.nome,c.tipo,c.marca||'',c.lung||'',c.targa,stato(c),c.pos||'',sedeDi(c),{m:tarC(c)},{m:c.acconto||0},{m:c.pagato||0},{m:exT(c)},{m:daPagare(c)},c.ui?{d:c.ui}:'',c.uo?{d:c.uo}:'',c.mail||'',c.naz||'',c.cod||'']))};
 $('#u-x').onclick=()=>{const t=oggi(),l=db.mov.filter(m=>m.t==='uo'&&(uf==='P'?m.d>=t:m.d<t)).sort((a,b)=>a.d>b.d?1:a.d<b.d?-1:a.cid-b.cid);
  expXlsx(`uscite-${uf==='P'?'prossime':'passate'}-${t}.xlsx`,'Uscite',['DATA','N. CLIENTE','NOME E COGNOME','MEZZO','TARGA','POSIZIONE','SEDE','LAVAGGIO EXTRA','RITARDO','NOTE'],
   l.map(m=>{const c=cli(m.cid)||{},pos=uf==='P'?(c.pos||m.pos):m.pos;return[{d:m.d},xnum(m.cid),c.nome||'',c.tipo||'',c.targa||'',pos||'',(LOC[pos]||{}).luogo||'',m.lav?'sì':'',m.rit?'sì':'',m.note||'']}))};
@@ -1853,11 +1872,11 @@ const MODN={it:{CONTANTI:'contanti',BONIFICO:'bonifico',POS:'POS / carta',ASSEGN
 const em2=(n,L)=>L==='en'?'€ '+n.toFixed(2):n.toFixed(2).replace('.',',')+' €';
 const dLoc=(d,L)=>new Date(d+'T12:00').toLocaleDateString({it:'it-IT',de:'de-DE',en:'en-GB'}[L],{day:'numeric',month:'long',year:'numeric'});
 function mailPag(pg){const ent=entOf(pg.cid);if(!ent)return null;const bk=typeof pg.cid==='string',L=LANG(ent.naz),f=n=>em2(n,L),data=dLoc(pg.d,L),
- tar=tarC(ent),ac=bk?(ent.accok?ent.acc:0):(ent.acconto||0),pa=bk?0:(ent.pagato||0),ex=bk?0:50*((ent.lav||0)+(ent.rit||0)),res=Math.max(0,r2(tar+ex-ac-pa)),arT=bk?'':arrList(ent).map(x=>x.y+': '+f(r2(x.imp-(x.pag||0)))).join(', '),num=bk?pg.cid:fid(ent.id),
+ tar=tarC(ent),ac=bk?(ent.accok?ent.acc:0):(ent.acconto||0),pa=bk?0:(ent.pagato||0),ex=bk?0:exT(ent),res=Math.max(0,r2(tar+ex-ac-pa)),arT=bk?'':arrList(ent).map(x=>x.y+': '+f(r2(x.imp-(x.pag||0)))).join(', '),num=bk?pg.cid:fid(ent.id),
  op=(OPN[L][pg.op]||'')+(pg.op==='RATA'&&pg.rata?' '+pg.rata:'')+(pg.ay?' ('+(L==='it'?'arretrato ':L==='de'?'Rückstand ':'arrears ')+pg.ay+')':''),mo=MODN[L][pg.mod]||String(pg.mod).toLowerCase(),mz=`${ent.tipo||''} ${ent.targa||''}`.trim();
- const T={it:{s:`Pagamento ricevuto - cliente n. ${num}`,l:[`Gentile ${ent.nome},`,'',`oggi, ${data}, abbiamo registrato il suo pagamento di ${f(pg.imp)} (${op}, ${mo}).`,'',`LA SUA SITUAZIONE CONTABILE (${mz})`,`Tariffa annuale di rimessaggio: ${f(tar)}`,...(ex?[`Extra (lavaggi/ritardi): ${f(ex)}`]:[]),`Acconto versato: ${f(ac)}`,...(pa?[`Altri pagamenti ricevuti: ${f(pa)}`]:[]),`Residuo da pagare: ${res>0?f(res):'saldato, nessun importo da pagare'}`,...(arT?['Arretrati da stagioni precedenti: '+arT]:[]),'',"La ringraziamo per averci scelto anche quest'anno.",'','Cordiali saluti','Garda Center']},
- de:{s:`Zahlungseingang - Kundennummer ${num}`,l:[`Guten Tag ${ent.nome},`,'',`heute, ${data}, haben wir Ihre Zahlung über ${f(pg.imp)} (${op}, ${mo}) verbucht.`,'',`IHRE KONTOÜBERSICHT (${mz})`,`Jahresgebühr Abstellplatz: ${f(tar)}`,...(ex?[`Extras (Wäsche/Verspätung): ${f(ex)}`]:[]),`Geleistete Anzahlung: ${f(ac)}`,...(pa?[`Weitere erhaltene Zahlungen: ${f(pa)}`]:[]),`Noch offener Betrag: ${res>0?f(res):'beglichen, nichts zu zahlen'}`,...(arT?['Rückstände aus Vorjahren: '+arT]:[]),'','Vielen Dank, dass Sie sich auch in diesem Jahr für uns entschieden haben.','','Mit freundlichen Grüßen','Garda Center']},
- en:{s:`Payment received - customer no. ${num}`,l:[`Dear ${ent.nome},`,'',`today, ${data}, we have recorded your payment of ${f(pg.imp)} (${op}, ${mo}).`,'',`YOUR ACCOUNT STATEMENT (${mz})`,`Annual storage fee: ${f(tar)}`,...(ex?[`Extras (washing/late fees): ${f(ex)}`]:[]),`Deposit paid: ${f(ac)}`,...(pa?[`Other payments received: ${f(pa)}`]:[]),`Amount still due: ${res>0?f(res):'paid in full, nothing due'}`,...(arT?['Arrears from previous seasons: '+arT]:[]),'','Thank you for choosing us again this year.','','Kind regards','Garda Center']}}[L];
+ const T={it:{s:`Pagamento ricevuto - cliente n. ${num}`,l:[`Gentile ${ent.nome},`,'',`oggi, ${data}, abbiamo registrato il suo pagamento di ${f(pg.imp)} (${op}, ${mo}).`,'',`LA SUA SITUAZIONE CONTABILE (${mz})`,`Tariffa annuale di rimessaggio: ${f(tar)}`,...(ex?[`Extra (lavaggi, ritardi, altri servizi): ${f(ex)}`]:[]),`Acconto versato: ${f(ac)}`,...(pa?[`Altri pagamenti ricevuti: ${f(pa)}`]:[]),`Residuo da pagare: ${res>0?f(res):'saldato, nessun importo da pagare'}`,...(arT?['Arretrati da stagioni precedenti: '+arT]:[]),'',"La ringraziamo per averci scelto anche quest'anno.",'','Cordiali saluti','Garda Center']},
+ de:{s:`Zahlungseingang - Kundennummer ${num}`,l:[`Guten Tag ${ent.nome},`,'',`heute, ${data}, haben wir Ihre Zahlung über ${f(pg.imp)} (${op}, ${mo}) verbucht.`,'',`IHRE KONTOÜBERSICHT (${mz})`,`Jahresgebühr Abstellplatz: ${f(tar)}`,...(ex?[`Extras (Wäsche, Verspätung, weitere Leistungen): ${f(ex)}`]:[]),`Geleistete Anzahlung: ${f(ac)}`,...(pa?[`Weitere erhaltene Zahlungen: ${f(pa)}`]:[]),`Noch offener Betrag: ${res>0?f(res):'beglichen, nichts zu zahlen'}`,...(arT?['Rückstände aus Vorjahren: '+arT]:[]),'','Vielen Dank, dass Sie sich auch in diesem Jahr für uns entschieden haben.','','Mit freundlichen Grüßen','Garda Center']},
+ en:{s:`Payment received - customer no. ${num}`,l:[`Dear ${ent.nome},`,'',`today, ${data}, we have recorded your payment of ${f(pg.imp)} (${op}, ${mo}).`,'',`YOUR ACCOUNT STATEMENT (${mz})`,`Annual storage fee: ${f(tar)}`,...(ex?[`Extras (washing, late fees, other services): ${f(ex)}`]:[]),`Deposit paid: ${f(ac)}`,...(pa?[`Other payments received: ${f(pa)}`]:[]),`Amount still due: ${res>0?f(res):'paid in full, nothing due'}`,...(arT?['Arrears from previous seasons: '+arT]:[]),'','Thank you for choosing us again this year.','','Kind regards','Garda Center']}}[L];
  return{L,to:ent.mail||'',subject:T.s,body:T.l.join('\n')}}
 function mailTrp(p){const c=cli(p.cid);if(!c)return null;const L=LANG(c.naz),f=n=>em2(n,L),o=cont().find(x=>x.cid===p.cid)||{tot:0,pag:0,dap:0},data=dLoc(p.d,L);
  const T={it:{s:`Pagamento trasporto ricevuto - cliente n. ${fid(c.id)}`,l:[`Gentile ${c.nome},`,'',`oggi, ${data}, abbiamo registrato il suo pagamento di ${f(p.imp)} per il trasporto del suo mezzo (${c.tipo} ${c.targa}).`,'','SITUAZIONE TRASPORTI',`Totale viaggi: ${f(o.tot)}`,`Pagato: ${f(o.pag)}`,`Residuo da pagare: ${o.dap>0?f(o.dap):'saldato, nessun importo da pagare'}`,'',"La ringraziamo per averci scelto anche quest'anno.",'','Cordiali saluti','Garda Center']},
@@ -1875,18 +1894,18 @@ $('#o-n').oninput=()=>{const v=$('#o-n').value.trim(),mb=/^p(\d+)$/i.exec(v);
  if(mb){ofb=db.pren.some(x=>x.bk===+mb[1])?+mb[1]:null;ofc=null}else{ofb=null;const c=cli(v),ni=c?c.id:null;if(ni!==ofc){ofc=ni;if(c)pfDef('o')}}
  $('#o-mv').hidden=true;mvBack();ofr()};
 function ofr(){const pb=ofb!=null?db.pren.find(x=>x.bk===ofb):null;$('#o-bkb').hidden=!pb;if(pb)ofrB(pb);const c=ofc!=null?cli(ofc):null,b=$('#o-b');b.hidden=!c;if(!c)return;
- const s=stato(c),d=daPagare(c),t=cont().find(x=>x.cid===c.id),acs=db.pag.filter(p=>p.cid===c.id&&p.op==='ACCONTO'&&!p.rid),rate=db.pag.filter(p=>p.cid===c.id&&p.op==='RATA'&&!p.rid),fd=db.pn.filter(x=>x.cid===c.id&&x.stato==='da_reg'&&!x.rid),sede=sedeDi(c),ex=50*((c.lav||0)+(c.rit||0)),all=db.pag.filter(p=>p.cid===c.id&&!p.rid).sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:b.id-a.id);
+ const s=stato(c),d=daPagare(c),t=cont().find(x=>x.cid===c.id),acs=db.pag.filter(p=>p.cid===c.id&&p.op==='ACCONTO'&&!p.rid),rate=db.pag.filter(p=>p.cid===c.id&&p.op==='RATA'&&!p.rid),fd=db.pn.filter(x=>x.cid===c.id&&x.stato==='da_reg'&&!x.rid),sede=sedeDi(c),ex=exT(c),all=db.pag.filter(p=>p.cid===c.id&&!p.rid).sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:b.id-a.id);
  $('#o-hd').innerHTML=`<div class="row"><span class="num">${fid(c.id)}</span><div><b>${esc(c.nome)}</b>${c.ct&&c.ct!=='A'?' <span class="b X">STAGIONALE</span>':''}<div class="mut">${esc(c.tipo)}${c.marca?' '+esc(c.marca):''}${c.lung?' '+c.lung+' m':''} · ${esc(c.targa)}</div><div class="mut">${sede?esc(sede):'Sede non assegnata'}${c.pos?' · '+esc(descr(c.pos)):''}</div><div class="mut">${c.mail?esc(c.mail):'<span style="color:var(--out)">email mancante</span>'}</div>${habHtml(c.id)}</div><span class="b ${s}">${s}</span></div>`;
  $('#o-st').innerHTML=`<div class="mon"><div>Dovuto<b>${eur(tarC(c)+ex)}</b></div><div>Pagato<b>${eur((c.acconto||0)+(c.pagato||0))}</b></div><div>Residuo<b style="color:${d>0?'var(--out)':'var(--in)'}">${d>0?eur(d):'Saldato'}</b></div></div>
  ${arrList(c).length?'<div class="ko" style="margin-top:8px">Arretrati da pagare: '+arrTxt(c)+'</div>':''}
  <div style="margin-top:8px">Acconto: ${acs.length?`<span style="color:var(--in);font-weight:700">✔ versato</span> ${acs.map(p=>`${e2(p.imp)} il ${dmy(p.d)} (${p.mod.toLowerCase()})`).join(', ')}`:'<span style="color:var(--out);font-weight:700">✘ non versato</span>'}</div>
- <div class="mut" style="margin-top:4px">Tariffa ${eur(tarC(c))}${c.ct&&c.ct!=='A'?' ('+CTR[c.ct]+')':''}${ex?` · extra ${eur(ex)} (${c.lav||0} lavaggi, ${c.rit||0} ritardi)`:''}${rate.length?`<br>Rate: ${rate.map(p=>`${p.rata||'?'}ª ${e2(p.imp)} (${dmy(p.d)})`).join(' · ')}`:''}
+ <div class="mut" style="margin-top:4px">Tariffa ${eur(tarC(c))}${c.ct&&c.ct!=='A'?' ('+CTR[c.ct]+')':''}${ex?` · extra ${eur(ex)} (${c.lav||0} lavaggi, ${c.rit||0} ritardi${xtra(c)?', altri '+eur(xtra(c)):''})`:''}${exList(c)} <button class="btn g sm" data-xa="${c.id}">Aggiungi extra</button>${rate.length?`<br>Rate: ${rate.map(p=>`${p.rata||'?'}ª ${e2(p.imp)} (${dmy(p.d)})`).join(' · ')}`:''}
  ${fd.length?`<br><b style="color:var(--ink)">Fatture da emettere: ${fd.map(x=>e2(x.imp)+' (entro il '+dmy(x.due)+')').join(', ')}</b>`:''}
  ${(c.hist||[]).length?'<br>Stagioni precedenti: '+c.hist.map(h=>h.y+' (pagato '+eur(h.pag+h.acc)+(h.res>0?', residuo '+eur(h.res):'')+')').join(' · '):''}<br>Registrazione: ${c.reg?(c.reg.stato==='ok'?'completa':'DA VERIFICARE'):'dati precedenti'}${c.reg&&!(c.dk&&c.dk.id&&c.dk.veh)?' · <span style="color:var(--out)">documenti mancanti</span>':''} <button class="btn g sm" data-sh="${c.id}">Storico</button> <button class="btn g sm" data-odoc="${c.id}">Documenti e contratto</button></div>`;
  $('#o-pg').innerHTML=(all.length?'<div class="mut" style="margin-bottom:6px">Registro dei pagamenti del cliente con le relative ricevute</div>':'')+(all.length?all.map(p=>`<div class="card"><div class="row"><div><b>${opLab(p)}</b> · ${p.mod.toLowerCase()}<div class="mut">${dmy(p.d)}${p.note?' · '+esc(p.note):''}</div><div class="mut">${fatTxt(p)}</div></div><b style="flex:none">${e2(p.imp)}</b></div>${!(p.fat&&(db.pn.find(x=>x.id===p.fat)||{}).stato==='emessa')?`<button class="btn g sm" data-pdel="${p.id}">Elimina</button>`:''} <button class="btn g sm" data-ric="${p.id}">${p.rp?'Apri la ricevuta inviata':'Ricevuta PDF'}</button>${p.rp?'':` <button class="btn g sm" data-ricm="${p.id}">Invia ricevuta per email</button>`}${p.rp?'<div class="mut">✉ Ricevuta inviata al cliente</div>':''}</div>`).join(''):'<p class="mut">Nessun pagamento registrato.</p>');
  $('#o-t').innerHTML=t?`<div class="mon"><div>Viaggi<b>${eur(t.tot)}</b></div><div>Pagato<b>${eur(t.pag)}</b></div><div>Da pagare<b style="color:${t.dap>0?'var(--out)':'var(--in)'}">${t.dap>0?eur(t.dap):'Saldato'}</b></div></div>
   <div class="mut" style="margin-top:6px">${db.tr.filter(x=>x.cid===c.id).sort((a,b)=>a.d>b.d?1:-1).map(x=>`${dmy(x.d)} ${x.tipo} · ${eur(x.imp||0)}`).join('<br>')}<br>Solo contanti · mai nella Cassa del rimessaggio</div>${t.dap>0?`<button class="btn g sm" data-otp="${c.id}">Registra pagamento trasporto</button>`:''}`:'<p class="mut">Nessun trasporto registrato. Per inserire un trasporto di ritorno usa "Registra entrata / uscita" e spunta "Con trasporto".</p>'}
-$('#o-b').onclick=e=>{const d=e.target.dataset||{};if(d.sh){shOpen(+d.sh);return}if(d.pdel)payAsk(+d.pdel);if(d.ric)ricScarica(+d.ric);if(d.ricm)ricMail(+d.ricm);if(d.odoc)docOpen('c',+d.odoc);
+$('#o-b').onclick=e=>{const d=e.target.dataset||{};if(d.sh){shOpen(+d.sh);return}if(d.xa){exOpen(+d.xa);return}if(d.xd){exDel(d.xd);return}if(d.pdel)payAsk(+d.pdel);if(d.ric)ricScarica(+d.ric);if(d.ricm)ricMail(+d.ricm);if(d.odoc)docOpen('c',+d.odoc);
  if(d.otp){const o=cont().find(x=>x.cid===+d.otp);if(!o)return;payId=o.cid;$('#pd-i').textContent=`${(cli(o.cid)||{}).nome} · da pagare ${eur(o.dap)}`;$('#pd-e').value=o.dap;$('#pd-d').value=oggi();$('#dlg3').showModal()}};
 $('#o-mb').onclick=()=>{const c=ofc!=null&&cli(ofc);if(!c)return;const v=$('#o-mv');
  if(v.hidden){v.appendChild($('#mvf'));v.hidden=false;$('#m-n').value=fid(c.id);$('#m-t').value='ui';$('#m-d').value=oggi();pv('#m-i',fid(c.id));trp();$('#o-mb').textContent='Chiudi movimento'}
@@ -1952,13 +1971,13 @@ let cy=cur(),uy=cur(),ty=cur(),by='';
 const histY=()=>cy!==cur();
 function rollPreview(){let nc=0,tot=0;db.cl.forEach(c=>{const r=daPagare(c);if(r>.004){nc++;tot+=r}});return{y:db.yr,ny:db.yr+1,n:db.cl.length,nc,tot:r2(tot)}}
 // Apre la nuova stagione: l'importo da pagare riparte dalla tariffa, il residuo non pagato diventa arretrato con l'anno di riferimento
-function stagioneApri(){const y=db.yr,ny=y+1,snap=db.cl.map(c=>({id:c.id,tp:c.tp,acconto:c.acconto||0,pagato:c.pagato||0,b:JSON.parse(JSON.stringify(c.b||{ui:'',uo:'',lav:0,rit:0})),arr:JSON.parse(JSON.stringify(c.arr||[])),nh:(c.hist||[]).length}));
- db.cl.forEach(c=>{const res=r2(daPagare(c));(c.hist=c.hist||[]).push({y,tar:tarC(c),acc:c.acconto||0,ext:50*((c.lav||0)+(c.rit||0)),pag:c.pagato||0,res});
-  if(res>.004)(c.arr=c.arr||[]).push({y,imp:res,pag:0});c.acconto=0;c.pagato=0;c.b=Object.assign(c.b||{},{lav:0,rit:0})});
+function stagioneApri(){const y=db.yr,ny=y+1,snap=db.cl.map(c=>({xs:c.xs?JSON.parse(JSON.stringify(c.xs)):undefined,id:c.id,tp:c.tp,acconto:c.acconto||0,pagato:c.pagato||0,b:JSON.parse(JSON.stringify(c.b||{ui:'',uo:'',lav:0,rit:0})),arr:JSON.parse(JSON.stringify(c.arr||[])),nh:(c.hist||[]).length}));
+ db.cl.forEach(c=>{const res=r2(daPagare(c));(c.hist=c.hist||[]).push({y,tar:tarC(c),acc:c.acconto||0,ext:exT(c),xs:(c.xs||[]).length?JSON.parse(JSON.stringify(c.xs)):undefined,pag:c.pagato||0,res});
+  if(res>.004)(c.arr=c.arr||[]).push({y,imp:res,pag:0});c.acconto=0;c.pagato=0;c.b=Object.assign(c.b||{},{lav:0,rit:0});delete c.xs});
  db.yr=ny;db.rd=(ny+1)+'-01-01';db.cl.forEach(c=>recalc(c.id));
  db.rl={from:y,to:ny,d:oggi(),pm:Math.max(0,...db.pag.map(p=>p.id||0)),snap};cy=uy=ty=cur();return{from:y,to:ny}}
 function stagioneUndo(){const r=db.rl;if(!r)return{err:'Niente da annullare'};if(Math.max(0,...db.pag.map(p=>p.id||0))!==r.pm)return{err:'Nella nuova stagione sono già stati registrati pagamenti: non si può annullare'};
- r.snap.forEach(s=>{const c=cli(s.id);if(!c)return;c.acconto=s.acconto;c.pagato=s.pagato;if(s.tp>0)c.tp=s.tp;else delete c.tp;c.b=s.b;c.arr=s.arr;c.hist=(c.hist||[]).slice(0,s.nh)});
+ r.snap.forEach(s=>{const c=cli(s.id);if(!c)return;c.acconto=s.acconto;c.pagato=s.pagato;if(s.tp>0)c.tp=s.tp;else delete c.tp;c.b=s.b;c.arr=s.arr;if(s.xs)c.xs=s.xs;else delete c.xs;c.hist=(c.hist||[]).slice(0,s.nh)});
  db.yr=r.from;db.rd=(r.from+1)+'-01-01';db.cl.forEach(c=>recalc(c.id));db.rl=null;cy=uy=ty=cur();return{ok:1}}
 function rollOpen(){const pv=rollPreview(),cu=db.rl&&Math.max(0,...db.pag.map(p=>p.id||0))===db.rl.pm;
  $('#ss-i').innerHTML=`<div class="mon"><div>Stagione attuale<b>${pv.y}</b></div><div>Nuova stagione<b>${pv.ny}</b></div><div>Clienti<b>${pv.n}</b></div></div>
@@ -1989,7 +2008,7 @@ $('#c-x').onclick=()=>{const q=$('#q').value.toLowerCase();
  if(filtro==='RIT')return expXlsx('clienti-ritirati.xlsx','Ritirati',['N. CLIENTE','NOME E COGNOME','MEZZO','TARGA','DATA RITIRO','SALDO ALLA DATA'],db.rit.map(r=>[xnum(r.id),r.cl.nome,r.cl.tipo,r.cl.targa,{d:r.d},{m:r.sum||0}]));
  const l=db.cl.filter(c=>(filtro==='ARR'?arrOpen(c)>.004:filtro==='RITP'?!!c.rtp:filtro==='STAG'?isS(c.id):!isS(c.id)&&(filtro==='TUTTI'||stato(c)===filtro))&&(!q||(c.nome+c.targa+fid(c.id)).toLowerCase().includes(q)));
  expXlsx('clienti-stagione-'+cur()+'.xlsx','Clienti '+cur(),['N. CLIENTE','NOME E COGNOME','TIPO','MARCA','LUNGHEZZA','TARGA','STATO','POSIZIONE','SEDE','STAGIONE','TARIFFA','ACCONTO','PAGATO','EXTRA','DA PAGARE STAGIONE','ARRETRATI','ANNI ARRETRATI','ULTIMA ENTRATA','ULTIMA USCITA','EMAIL','NAZIONALITÀ','COD. CANCELLO'],
-  l.map(c=>[xnum(c.id),c.nome,c.tipo,c.marca||'',c.lung||'',c.targa,stato(c),c.pos||'',sedeDi(c),db.yr,{m:tarC(c)},{m:c.acconto||0},{m:c.pagato||0},{m:50*((c.lav||0)+(c.rit||0))},{m:daPagare(c)},{m:arrOpen(c)},arrList(c).map(x=>x.y).join(', '),c.ui?{d:c.ui}:'',c.uo?{d:c.uo}:'',c.mail||'',c.naz||'',c.cod||'']))};
+  l.map(c=>[xnum(c.id),c.nome,c.tipo,c.marca||'',c.lung||'',c.targa,stato(c),c.pos||'',sedeDi(c),db.yr,{m:tarC(c)},{m:c.acconto||0},{m:c.pagato||0},{m:exT(c)},{m:daPagare(c)},{m:arrOpen(c)},arrList(c).map(x=>x.y).join(', '),c.ui?{d:c.ui}:'',c.uo?{d:c.uo}:'',c.mail||'',c.naz||'',c.cod||'']))};
 $('#u-x').onclick=()=>{expXlsx(`uscite-${uy}-${uy===cur()?(uf==='P'?'prossime':'passate'):'anno'}.xlsx`,'Uscite '+uy,['DATA','N. CLIENTE','NOME E COGNOME','MEZZO','TARGA','POSIZIONE','SEDE','LAVAGGIO EXTRA','RITARDO','NOTE'],
   usRows().map(m=>{const c=cli(m.cid)||{},pos=(uf==='P'&&uy===cur())?(c.pos||m.pos):m.pos;return[{d:m.d},xnum(m.cid),c.nome||'',c.tipo||'',c.targa||'',pos||'',(LOC[pos]||{}).luogo||'',m.lav?'sì':'',m.rit?'sì':'',m.note||'']}))};
 $('#r-x').onclick=()=>{if(rs==='K'){const C=cont(ty);return expXlsx('trasporti-contabilita-'+ty+'.xlsx','Contabilità trasporti '+ty,['N. CLIENTE','NOME E COGNOME','VIAGGI','TOTALE','PAGATO','DA PAGARE','DA CONSEGNARE A ENRICO','CONSEGNATO A ENRICO'],C.map(o=>[xnum(o.cid),(cli(o.cid)||{}).nome||'',o.n,{m:o.tot},{m:o.pag},{m:o.dap},{m:Math.max(0,o.dare)},{m:o.cons}]))}
