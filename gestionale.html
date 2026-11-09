@@ -615,7 +615,7 @@ function rimExcel(XLSX,buf,ctx){
  // ---- clienti
  const D=rows('Database',52),h=D[0].map(s);
  const ix=n=>{const i=h.indexOf(n);if(i<0)throw new Error('Nel foglio Database manca la colonna "'+n+'"');return i};
- ['COGNOME_NOME','NOME','COGNOME','MAIL','NAZ.','CITTA','INDIRIZZO','CAP','DOC','NUM DOC','SCADE','NATO IL','NATO A','MARCA','TARGA','MT','MEZZO','LUOGO','COD','TOT','LAVAGGIO EXTRA','LATE NOTIFICATION','ARRETRATI','TOT PAGATO','DATA ULTIMA USCITA','INIZIO'].forEach(ix);
+ ['COGNOME_NOME','NOME','COGNOME','MAIL','NAZ.','CITTA','INDIRIZZO','CAP','DOC','NUM DOC','SCADE','NATO IL','NATO A','MARCA','TARGA','MT','MEZZO','LUOGO','COD','TOT','LAVAGGIO EXTRA','LATE NOTIFICATION','ARRETRATI','TOT PAGATO','DATA ULTIMA USCITA','INIZIO','DATA CONTRATTO FIRMATO'].forEach(ix);
  const cl=[],rowsDB={};
  for(const r of D.slice(1)){
   if(r[1]===null||r[1]==='')continue;const cid=toId(r[1]);if(cid===null)continue;
@@ -627,7 +627,7 @@ function rimExcel(XLSX,buf,ctx){
   let dt=s(g('DOC')).toUpperCase();if(!['ID','PATENTE','PASSAPORTO'].includes(dt))dt=dt?'ALTRO':'ID';
   const c={id:cid,nome,nm:s(g('NOME')),cg:s(g('COGNOME')),mail:s(g('MAIL')).toLowerCase(),naz:s(g('NAZ.')).toUpperCase()||'NL',
    citta:s(g('CITTA')),via:s(g('INDIRIZZO')),cap:s(g('CAP')),doc:{t:dt,n:s(g('NUM DOC')),s:iso(g('SCADE'))},
-   ini:iso(g('INIZIO')),nasc:iso(g('NATO IL')),luogoN:s(g('NATO A')),marca:s(g('MARCA')),targa:s(g('TARGA')).toUpperCase(),tipo,lung:num(g('MT')),
+   ini:iso(g('INIZIO')),fc:iso(g('DATA CONTRATTO FIRMATO')),nasc:iso(g('NATO IL')),luogoN:s(g('NATO A')),marca:s(g('MARCA')),targa:s(g('TARGA')).toUpperCase(),tipo,lung:num(g('MT')),
    ct:'A',dasse:false,cod:s(g('COD')),acconto:0,pagato:0,lav:0,rit:0,pos:'',sede,
    b:{ui:'',uo:'',lav:0,rit:0},dk:{id:false,veh:false},reg:{d:OGGI,stato:'ok',fonte:'import'}};
   if(!c.nm&&!c.cg)c.cg=nome;
@@ -748,7 +748,8 @@ function rimExcel(XLSX,buf,ctx){
  const add=(d,k)=>{const x=new Date(d+'T00:00:00Z');x.setUTCDate(x.getUTCDate()+k);return x.toISOString().slice(0,10)};
  for(const[n,cs]of cellsof){if(!byid[n]||cs.length!==1||!pos[cs[0]])continue;
   const c=byid[n],st=stato(c);if(st!=='OUT'&&st!=='X')continue;
-  const r=rowsDB[n],base=c.uo||iso(r[ix('DATA ULTIMA USCITA')])||iso(r[ix('INIZIO')]);
+  const r=rowsDB[n],base=c.uo||iso(r[ix('DATA ULTIMA USCITA')])||c.fc||c.ini; // senza uscite (clienti nuovi): dalla firma del contratto
+  
   if(!base){rep.rientri.push([n,'',''],);continue}
   const off=8+((n*7919+parseInt(base.replace(/-/g,''),10)*104729)%21);let d=add(base,off);
   if(d>OGGI)d=OGGI;if(d<=base)d=add(base,1);
@@ -787,7 +788,7 @@ function rsOpen(){const f=document.createElement('input');f.type='file';f.accept
  else{toast('Leggo il file Excel…');try{const X=await xlLoad(),r=rimExcel(X,new Uint8Array(await fl.arrayBuffer()),{LOC,oggi:oggi(),old:db});o={formato:'rimessaggio-backup',v:1,db:r.db,files:fdb()};rep=r.rep}catch(e){return toast('Il file Excel non è valido: '+(e.message||e))}}
  const nd=o&&o.formato==='rimessaggio-backup'?o.db:o;if(!nd||!Array.isArray(nd.cl))return toast('Questo non sembra né un file Excel del rimessaggio né un backup');
  let m;if(rep){const t=rep.tot;m=`Dall'Excel arrivano <b>${t.clienti} clienti</b>, ${t.pagamenti} pagamenti, ${t.fatture} fatture e ${t.movimenti} movimenti. <b>${t.conPosto}</b> clienti hanno il posto letto dalla piantina.`
-  +`<br><br><b>${rep.rientri.length}</b> mezzi sono in piantina ma risultavano fuori o senza movimenti: registro il loro rientro in automatico, da 8 a 28 giorni dopo l'ultima uscita.`
+  +`<br><br><b>${rep.rientri.length}</b> mezzi sono in piantina ma risultavano fuori o senza movimenti: registro il loro rientro in automatico, da 8 a 28 giorni dopo l'ultima uscita (per i clienti nuovi senza uscite, dopo la firma del contratto).`
   +(t.senzaPosto.length?`<br><br>Senza posto in piantina (${t.senzaPosto.length}): ${t.senzaPosto.join(', ')}.`:'')
   +(rep.doppi.length?`<br><br>Numeri in più celle, non assegnati: ${rep.doppi.map(x=>x[0]).join(', ')}.`:'')
   +(rep.senzaCliente.length?`<br><br>Numeri in piantina che non sono nel database: ${rep.senzaCliente.map(x=>x[0]).join(', ')}.`:'')
@@ -1100,7 +1101,8 @@ $('#st-bs').onclick=e=>{const b=e.target.closest('[data-b]');if(!b)return;stBs=b
 $('#st-cl').onclick=()=>$('#dlgst').close();
 $('#sys-cl').onclick=()=>$('#dlgsys').close();
 // ---- Rientri automatici: tutti i clienti fuori o senza movimenti, con eccezioni
-function arCalc(c){const base=c.uo||c.ini||'';if(!base)return null;
+function arCalc(c){const base=c.uo||c.fc||c.ini||'';if(!base)return null; // clienti nuovi senza uscite: dalla firma del contratto
+ 
  const T=oggi(),off=8+((c.id*7919+parseInt(base.replace(/-/g,''),10)*104729)%21),add=(d,k)=>{const x=new Date(d+'T00:00:00Z');x.setUTCDate(x.getUTCDate()+k);return x.toISOString().slice(0,10)};
  let d=add(base,off);if(d>T)d=T;if(d<=base)d=add(base,1);return d}
 async function arOpen(){let sv='';try{sv=localStorage.getItem('rim-arex')||''}catch(e){}
@@ -1108,7 +1110,7 @@ async function arOpen(){let sv='';try{sv=localStorage.getItem('rim-arex')||''}ca
  try{localStorage.setItem('rim-arex',s)}catch(e){}
  const ex=new Set((s.match(/\d+/g)||[]).map(Number)),l=db.cl.filter(c=>!isS(c.id)&&!ex.has(c.id)&&['OUT','X'].includes(stato(c))),ok1=l.filter(c=>arCalc(c)),no=l.filter(c=>!arCalc(c));
  if(!l.length)return toast('Nessun cliente da sistemare: tutti hanno già un rientro');
- const go=await askQ('Registrare i rientri?',`<b>${ok1.length} mezzi</b> risultano fuori o senza movimenti${ex.size?` (esclusi ${ex.size} numeri)`:''}. Registro il rientro con una data a caso tra 8 e 28 giorni dopo l'ultima uscita, mai dopo oggi. I rientri compaiono in Carico/Scarico.`+(no.length?`<br><br>${no.length} clienti non hanno nessuna data di uscita e restano come sono: ${no.map(c=>fid(c.id)).join(', ')}.`:''),'Registra i rientri');if(!go)return;
+ const go=await askQ('Registrare i rientri?',`<b>${ok1.length} mezzi</b> risultano fuori o senza movimenti${ex.size?` (esclusi ${ex.size} numeri)`:''}. Registro il rientro con una data a caso tra 8 e 28 giorni dopo l'ultima uscita (per i clienti nuovi senza uscite: dopo la firma del contratto), mai dopo oggi. I rientri compaiono in Carico/Scarico.`+(no.length?`<br><br>${no.length} clienti non hanno nessuna data di uscita e restano come sono: ${no.map(c=>fid(c.id)).join(', ')}.`:''),'Registra i rientri');if(!go)return;
  ok1.forEach(c=>{db.mov.push({id:1+Math.max(0,...db.mov.map(y=>y.id||0)),d:arCalc(c),t:'ui',cid:c.id,pos:'',sede:sedeDi(c),lav:false,rit:false,note:'Rientro registrato in automatico (impostazione rientri)'});recalc(c.id)});
  save();render();toast(`${ok1.length} rientri registrati`)}
 function sysOpen(){const M=typeof window!=='undefined'&&window.SITE&&ROLE==='master';
