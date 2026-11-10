@@ -191,7 +191,7 @@ function draw(){var h='',nm=DATA.veicoli[0]?DATA.veicoli[0].dati.nome:'';if(PAYM
   +stRow(sI[0],T('iId'),sI[1],sI[0]==='ko'?['d'+cid,T('aCar')]:null)+stRow(sV[0],T('iVeh'),sV[1],sV[0]==='ko'?['d'+cid,T('aCar')]:null)+stRow(sC[0],T('iCtr'),sC[1],sC[0]==='ko'?['c'+cid,T('aFirma')]:null)+stRow(sA[0],T('iAcc'),sA[1],sA[0]==='ko'?['a'+cid,T('aPaga')]:null)+'</div>';
  h+='<div class="card"><h2>'+T('conto')+' · '+T('stag')+' '+E(d.yr)+'</h2>'
   +'<div class="bar" aria-hidden="true"><i style="width:'+pc.toFixed(0)+'%"></i></div>'
-  +'<div class="row"><span>'+T('tot')+'</span><span>'+money(d.tot)+'</span></div>+(d.exl||[]).map(function(x){return'<div class="row" style="font-size:.88rem;opacity:.85"><span>+ '+E(x.l)+'</span><span>'+money(x.imp)+'</span></div>'}).join('')<div class="row"><span>'+T('vers')+'</span><span>'+money(d.vers)+'</span></div>'
+  +'<div class="row"><span>'+T('tot')+'</span><span>'+money(d.tot)+'</span></div>'+(d.exl||[]).map(function(x){return'<div class="row" style="font-size:.88rem;opacity:.85"><span>+ '+E(x.l)+'</span><span>'+money(x.imp)+'</span></div>'}).join('')+'<div class="row"><span>'+T('vers')+'</span><span>'+money(d.vers)+'</span></div>'
   +(d.arr>0?'<div class="row"><span class="ko">'+T('arr')+'</span><b class="ko">'+money(d.arr)+'</b></div>':'')
   +(due>0.004?'<div class="row"><b>'+T('dap')+'</b><span class="due">'+money(due)+'</span></div>':'<p class="ok"><b>'+T('saldato')+'</b></p>');
  if(DATA.pay&&!PREV&&due>0.004){var pb='';if(S.acc!=='ok'&&d.accImp>0&&due>=d.accImp-0.005)pb+='<button class="pri" data-pay="acconto" data-c="'+cid+'" style="width:100%;margin-top:10px">'+T('payAcc')+' · '+money(d.accImp)+'</button>';
