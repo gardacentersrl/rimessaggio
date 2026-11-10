@@ -5,8 +5,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 from content2 import *
 
 OUT = "/home/claude/rimessaggio/sito"
-PAGES = ["index", "prices", "faq", "location", "contact", "privacy"]
-NAVP = [("prices", "prices"), ("faq", "how"), ("location", "where"), ("contact", "contact")]
+PAGES = ["index", "faq", "location", "contact", "privacy"]
+NAVP = [("faq", "how"), ("location", "where"), ("contact", "contact")]
 SB_URL = "https://faemhbtebrjyyvapdziw.supabase.co"
 ANON = os.environ.get("ANON", "")
 e = html.escape
@@ -114,13 +114,11 @@ def gallery(L):
 def page_index(L, c):
     h = c["hero"]; i = c["inc"]; pr = c["pr"]; st = c["steps"]
     o = head(L, c, "index") + top(L, c, "index")
-    o += ('<section class="hero"><div class="wrap"><div><h1>%s</h1><p class="lede">%s</p><div class="cta"><a class="btn p" href="contact.html?m=posto">%s</a><a class="btn" href="prices.html">%s</a></div></div><figure class="art">%s</figure></div>'
+    o += ('<section class="hero"><div class="wrap"><div><h1>%s</h1><p class="lede">%s</p><div class="cta"><a class="btn p" href="contact.html?m=posto">%s</a><a class="btn" href="contact.html?m=info">%s</a></div></div><figure class="art">%s</figure></div>'
           '<div class="wrap">%s</div></section>') % (e(h["h1"]), e(h["lede"]), e(h["c1"]), e(h["c2"]), ART % e(h["art"]), build_ribbon(c))
     o += '<section class="band"><div class="wrap two w"><div><h2>%s</h2><p>%s</p></div><div><h3>%s</h3><ul class="list">%s</ul><p style="margin-top:20px"><b style="font-family:var(--f-t)">%s.</b> %s</p></div></div></section>' % (
         e(c["indoor"]["h"]), e(c["indoor"]["p"]), e(i["h"]), "".join("<li><b>%s</b><span>%s</span></li>" % (e(a), e(b)) for a, b in i["items"]), e(i["sec_h"]), e(i["sec"]))
     o += gallery(L)
-    o += '<section><div class="wrap two w"><div><h2>%s</h2><p class="sub">%s</p></div><div class="prezzi-mini">%s</div></div></section>' % (
-        e(pr["h"]), e(pr["sub"]), "".join('<a href="prices.html"><span class="n">%s<small>%s</small></span><span class="v">%s %s</span></a>' % (e(a), e(d), e(pr["from_"]), e(b)) for a, b, d in pr["rows"]) + '<p style="margin-top:16px"><a href="prices.html">%s</a></p>' % e(pr["all"]))
     o += '<section class="band"><div class="wrap two w"><h2>%s</h2><ol class="steps">%s</ol></div></section>' % (e(st["h"]), "".join("<li><b>%s</b><span>%s</span></li>" % (e(a), e(b)) for a, b in st["items"]))
     o += '<section><div class="wrap"><h2>%s</h2><p class="sub">%s</p><div class="sedi" style="margin-top:28px">%s</div></div></section>' % (e(c["sedi"]["h"]), e(c["sedi"]["p"]), sedi_html(c))
     o += '<section class="band"><div class="wrap"><h3>%s</h3><p>%s</p><ul class="altre">%s</ul></div></section>' % (e(c["altre"]["h"]), e(c["altre"]["p"]),
@@ -203,7 +201,65 @@ def bot_js():
     # le funzioni f usano B: le ricreiamo dentro la chiusura sopra (B è locale)
     return "var GCB={};\n" + "\n".join(out[l] for l in LANGS) + "\n"
 
+PRIV = {
+ "it": dict(rep=[('una penale di **200 € per ogni bombola**','una penale per ogni bombola'),("si applica un supplemento di 50 €.","può essere previsto un supplemento."),
+   ("Con un **acconto** (di norma 50 €) confermi il posto.","Con un **acconto** confermi il posto: l'importo te lo indichiamo noi."),
+   ("dopo questa data si aggiungono 100 €.","dopo questa data è previsto un supplemento."),
+   ("Dalla terza uscita si pagano 50 € ciascuna.","Dalla terza uscita è previsto un costo per ciascuna."),
+   ("Con l'acconto (di norma 50 €) il posto è tuo.","Con l'acconto il posto è tuo.")],
+   extras="Sì, in alcuni casi: se il saldo arriva dopo il 30 settembre, se ci avvisi del ritiro con meno di una settimana di preavviso o per ogni uscita oltre le 2 incluse. Gli importi non sono pubblicati qui: te li comunichiamo con il preventivo. Il trasporto, se lo chiedi, si concorda a parte.",
+   req="I prezzi non sono pubblicati sul sito: li comunichiamo su richiesta, in base al tuo mezzo. Scrivici dal modulo (basta indicare tipo di mezzo e lunghezza) e ti rispondiamo con un preventivo.",
+   chip="Chiedi un preventivo", c2="Chiedi un preventivo"),
+ "en": dict(rep=[('a penalty of **200 € per bottle** applies','a penalty per bottle applies'),("a 50 € surcharge applies.","a surcharge may apply."),
+   ("A **deposit** (usually 50 €) confirms your space.","A **deposit** confirms your space: we tell you the amount."),
+   ("after that date 100 € is added.","after that date a surcharge applies."),
+   ("From the third exit it is 50 € each.","From the third exit a charge applies for each."),
+   ("With the deposit (usually 50 €) the space is yours.","With the deposit the space is yours.")],
+   extras="In some cases: if the balance arrives after 30 September, if you tell us about collection with less than one week's notice, or for each exit beyond the 2 included. Amounts are not published here: we give them to you with the quote. Transport, if you ask for it, is agreed separately.",
+   req="Prices are not published on the website: we give them on request, based on your vehicle. Write to us with the form (just tell us the type of vehicle and its length) and we reply with a quote.",
+   chip="Ask for a quote", c2="Ask for a quote"),
+ "de": dict(rep=[('eine Strafe von **200 € pro Flasche** an','eine Strafe pro Flasche an'),("fällt ein Zuschlag von 50 € an.","kann ein Zuschlag anfallen."),
+   ("Mit einer **Anzahlung** (in der Regel 50 €) bestätigen Sie Ihren Platz.","Mit einer **Anzahlung** bestätigen Sie Ihren Platz; die Höhe nennen wir Ihnen."),
+   ("danach kommen 100 € hinzu.","danach fällt ein Zuschlag an."),
+   ("Ab der dritten Ausfahrt kostet jede 50 €.","Ab der dritten Ausfahrt fallen Kosten pro Ausfahrt an."),
+   ("Mit der Anzahlung (in der Regel 50 €) ist der Platz Ihrer.","Mit der Anzahlung ist der Platz Ihrer.")],
+   extras="In bestimmten Fällen: wenn die Restzahlung nach dem 30. September eingeht, wenn Sie die Abholung mit weniger als einer Woche Vorlauf melden oder für jede Ausfahrt über die 2 inklusiven hinaus. Die Beträge veröffentlichen wir hier nicht: Sie erhalten sie mit dem Angebot. Ein Transport wird, wenn Sie ihn wünschen, gesondert vereinbart.",
+   req="Die Preise stehen nicht auf der Website: Wir nennen sie auf Anfrage, passend zu Ihrem Fahrzeug. Schreiben Sie uns über das Formular (Fahrzeugart und Länge genügen), dann antworten wir mit einem Angebot.",
+   chip="Angebot anfragen", c2="Angebot anfragen"),
+ "nl": dict(rep=[('een boete van **200 € per fles**','een boete per fles'),("dan geldt een toeslag van 50 €.","dan kan een toeslag gelden."),
+   ("Met een **aanbetaling** (meestal 50 €) bevestigt u uw plek.","Met een **aanbetaling** bevestigt u uw plek; het bedrag laten wij u weten."),
+   ("daarna komt er 100 € bij.","daarna geldt een toeslag."),
+   ("Vanaf de derde rit betaalt u 50 € per keer.","Vanaf de derde rit gelden kosten per rit."),
+   ("Met de aanbetaling (meestal 50 €) is de plek van u.","Met de aanbetaling is de plek van u.")],
+   extras="In sommige gevallen: als de restbetaling na 30 september binnenkomt, als u het ophalen met minder dan een week van tevoren meldt, of voor elke rit boven de 2 inbegrepen ritten. De bedragen publiceren wij hier niet: u krijgt ze bij de offerte. Vervoer wordt, als u het wilt, apart afgesproken.",
+   req="De prijzen staan niet op de website: wij noemen ze op aanvraag, passend bij uw voertuig. Stuur ons een bericht via het formulier (type voertuig en lengte volstaan), dan antwoorden wij met een offerte.",
+   chip="Offerte aanvragen", c2="Offerte aanvragen"),
+}
+def deep(o, rep):
+    if isinstance(o, str):
+        for a, b2 in rep: o = o.replace(a, b2)
+        return o
+    if isinstance(o, tuple): return tuple(deep(x, rep) for x in o)
+    if isinstance(o, list): return [deep(x, rep) for x in o]
+    return o
+def scrub():
+    for L, c in C.items():
+        r = PRIV[L]
+        c["FAQ"] = [(i, q, r["extras"] if i == "extras" else deep(a, r["rep"])) for i, q, a in c["FAQ"]]
+        c["steps"]["items"] = deep(c["steps"]["items"], r["rep"])
+        c["inc"]["items"] = deep(c["inc"]["items"], r["rep"])
+        c["hero"]["c2"] = r["c2"]
+        B = c["B"]
+        for a, b2 in (("dirti prezzi, trasporti", "dirti trasporti"), ("about prices, transport", "about transport"), ("zu Preisen, Transport", "zu Transport"), ("over prijzen, vervoer", "over vervoer")):
+            B["hello"] = B["hello"].replace(a, b2)
+        B["priceOnReq"] = r["req"]
+        B["noTariff"] = r["req"]
+        B["f"] = {"annual": "function(){return ''}", "dxAnnual": "function(){return ''}", "season": "function(){return ''}"}
+        B["chips"] = [(r["chip"], "Quanto costa?" if L == "it" else {"en": "How much does it cost?", "de": "Was kostet es?", "nl": "Wat kost het?"}[L])] + list(B["chips"][1:])
+        B["chips"] = [x for x in B["chips"] if "ranspor" not in x[0] and "rasport" not in x[0] and "ransport" not in x[0]]
+
 def main():
+    scrub()
     for L in LANGS:
         os.makedirs(os.path.join(OUT, L), exist_ok=True)
         c = C[L]

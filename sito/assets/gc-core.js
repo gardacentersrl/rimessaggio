@@ -1,26 +1,11 @@
-/* Garda Center · tariffe e logica dell'assistente (nessun servizio esterno, nessun costo).
+/* Garda Center · logica dell'assistente (nessun servizio esterno, nessun costo).
    Funziona nel browser e in Node (per i test). Le frasi delle risposte stanno in bot-data.js. */
 (function (root) {
   "use strict";
-  // ---------- Tariffe 2026 (da tabella prezzi; trasporti validi tra Peschiera e Garda) ----------
-  var P = {
-    roulotte: [[6, 600], [7, 700], [8, 800], [Infinity, 1000]], dx: 100,
-    barca: [[6, 800], [8, 900], [9, 1200], [Infinity, 1400]],
-    carrello: 350,
-    sea: { roulotte: { s2: 100, s1: 200, s3: 300 }, barca: { s2: 200, s1: 300, s3: 450 }, carrello: { s2: 100, s1: 200, s3: 300 } },
-    tr: { roulotte: [[7, 70], [Infinity, 80]], dx: 20, barca: [[7, 80], [Infinity, 110]] }
-  };
-  function tier(arr, len) { for (var i = 0; i < arr.length; i++) if (len <= arr[i][0]) return arr[i][1]; return null; }
-  function annual(type, len, dx) {
-    if (type === "carrello") return P.carrello;
-    var p = tier(P[type], len); if (p == null) return null;
-    return type === "roulotte" && dx ? p + P.dx : p;
-  }
-  function transport(type, len, dx) {
-    if (!P.tr[type]) return null;
-    var p = tier(P.tr[type], len); if (p == null) return null;
-    return type === "roulotte" && dx ? p + P.tr.dx : p;
-  }
+  // I prezzi non sono pubblicati: si comunicano su richiesta.
+  var P = {};
+  function annual() { return null; }
+  function transport() { return null; }
 
   // ---------- Testo ----------
   function norm(s) {
@@ -144,22 +129,8 @@
     next.forEach(function (n) { chips(n[1].charAt(0) === "#" ? { label: n[0], href: n[1], primary: n[1] === "#form" } : { label: n[0], send: n[1] }); });
     return out;
 
-    function answerPrice(kind) {
-      if (kind === "transport") { say(B.transportInfo); chips({ label: B.chipOtherRoute, href: "#form", primary: true }, { label: B.chipAnnual, send: B.chipAnnual }); return out; }
-      var ty = ctx.type, len = ctx.len;
-      if (!ty) { ask("type"); return out; }
-      var T = B.types[ty];
-      if (kind === "season") {
-        if (!ctx.dur) { ask("dur"); return out; }
-        if (ctx.dur === "long") { say(B.seasonLong); chips({ label: B.chipAnnual, send: B.chipAnnual }); return out; }
-        say(B.f.season(T, B.dur[ctx.dur], P.sea[ty][ctx.dur])); chips({ label: B.chipAnnual, send: B.chipAnnual }); return out;
-      }
-      if (ty !== "carrello" && len == null) { ask("len"); return out; }
-      var p = annual(ty, len, ctx.dx);
-      if (p == null) { handoff(B.fallback); return out; }
-      var dxNote = ty === "roulotte" && ctx.dx == null ? B.f.dxAnnual(p + P.dx) : "";
-      say(B.f.annual(T, len, p, dxNote)); chips({ label: B.chipIncluded, send: B.chipIncluded }, { label: B.chipBook, send: B.chipBook });
-      return out;
+    function answerPrice() {
+      handoff(B.priceOnReq); return out;
     }
   }
   var api = { P: P, annual: annual, transport: transport, norm: norm, respond: respond, newCtx: newCtx, parseLen: parseLen, detect: detect };
