@@ -43,6 +43,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 12px;border-radius:99px;background:var(--tint);font-size:.85rem;font-weight:600}
 .dot{width:9px;height:9px;border-radius:50%;background:var(--mut)}.pill.in .dot{background:var(--ok)}
 .gate{background:var(--tint);border-radius:12px;padding:14px;text-align:center}
+.gate .gl{font-weight:700;font-size:1.05rem;margin-bottom:4px}
 .gate .big{font-family:var(--f-m);font-size:2rem;letter-spacing:.2em;font-weight:600;color:var(--acc2)}
 .bar{height:10px;border-radius:99px;background:var(--tint);overflow:hidden}.bar i{display:block;height:100%;background:var(--ok)}
 .due{font-family:var(--f-d);font-size:1.9rem}
@@ -83,7 +84,7 @@ var WA='+39 331 361 5262';
 var D={
 it:{h:'Rimessaggio · Area clienti',tag:'Il tuo mezzo al sicuro con noi: controlla il conto, prenota l\'uscita e invia i documenti, quando vuoi.',t1h:'Accedi alla tua area',t1:'Inserisci l\'email che ci hai comunicato. Ti mandiamo un codice per entrare, senza password.',l1:'Email',b1:'Invia il codice',t2:'Se l\'email è registrata, ti abbiamo inviato un codice di 6 cifre (controlla anche lo spam).',l2:'Codice',b2:'Entra',b2x:'Cambia email',ex:'Esci',
  ciao:'Benvenuto',inviato:'Controlla la posta.',bad:'Codice non valido o scaduto.',err:'Qualcosa non ha funzionato. Riprova.',scad:'Sessione scaduta: rientra.',
- mezzo:'Il tuo mezzo',dentro:'Nel nostro deposito',fuori:'Fuori dal deposito',nd:'Stato non disponibile',area:'Zona',cancello:'Codice cancello',cancs:'Il codice è lo stesso per tutta la durata del contratto.',
+ mezzo:'Il tuo mezzo',dentro:'Nel nostro deposito',fuori:'Fuori dal deposito',nd:'Stato non disponibile',area:'Zona',cancello:'Codice del cancello',cancs:'Il codice è lo stesso per tutta la durata del contratto.',
  conto:'Il tuo conto',stag:'Stagione',tot:'Totale stagione',vers:'Già versato',dap:'Da pagare',arr:'Arretrati da stagioni precedenti',saldato:'Tutto saldato, grazie!',pagam:'Pagamenti registrati',
  bonifico:'Per pagare con bonifico',iban:'IBAN',bic:'BIC/SWIFT',intest:'Intestatario',caus:'Causale',agg:'Dati aggiornati al',
  uscita:'Prenota l\'uscita',uscd:'Data di uscita desiderata',nota:'Note (facoltative)',invia:'Invia la richiesta',uscok:'Richiesta inviata! Ti confermeremo la data.',prog:'Uscite già programmate',rich:'Le tue richieste',
@@ -92,7 +93,7 @@ it:{h:'Rimessaggio · Area clienti',tag:'Il tuo mezzo al sicuro con noi: control
  doc:'Documenti',docs:'Carica un documento (PDF, foto)',docok:'Documento inviato, grazie!',doclist:'Documenti inviati',doctp:'Sono accettati PDF, JPG e PNG fino a 6 MB.',datein:'La data deve essere futura.',cmp:'Indica il campeggio per il trasporto.',ft:'Garda Center s.r.l. · Rimessaggio · Cavaion Veronese (VR) · www.gardacenter.info'},
 en:{h:'Storage · Customer area',tag:'Your vehicle safe with us: check your account, book your departure and send documents, whenever you like.',t1h:'Sign in to your area',t1:'Enter the email address you gave us. We will send you a code to sign in, no password needed.',l1:'Email',b1:'Send code',t2:'If the email is registered, we have sent you a 6-digit code (check your spam folder too).',l2:'Code',b2:'Sign in',b2x:'Change email',ex:'Sign out',
  ciao:'Welcome',inviato:'Check your inbox.',bad:'Invalid or expired code.',err:'Something went wrong. Please try again.',scad:'Session expired: please sign in again.',
- mezzo:'Your vehicle',dentro:'In our storage',fuori:'Outside the storage',nd:'Status not available',area:'Area',cancello:'Gate code',cancs:'The code stays the same for the whole contract.',
+ mezzo:'Your vehicle',dentro:'In our storage',fuori:'Outside the storage',nd:'Status not available',area:'Area',cancello:'Gate code (to open the gate)',cancs:'The code stays the same for the whole contract.',
  conto:'Your account',stag:'Season',tot:'Season total',vers:'Already paid',dap:'To pay',arr:'Arrears from previous seasons',saldato:'All paid, thank you!',pagam:'Recorded payments',
  bonifico:'To pay by bank transfer',iban:'IBAN',bic:'BIC/SWIFT',intest:'Account holder',caus:'Reference',agg:'Data updated on',
  uscita:'Book your departure',uscd:'Desired departure date',nota:'Notes (optional)',invia:'Send request',uscok:'Request sent! We will confirm the date.',prog:'Scheduled departures',rich:'Your requests',
@@ -101,7 +102,7 @@ en:{h:'Storage · Customer area',tag:'Your vehicle safe with us: check your acco
  doc:'Documents',docs:'Upload a document (PDF, photo)',docok:'Document sent, thank you!',doclist:'Documents sent',doctp:'PDF, JPG and PNG up to 6 MB are accepted.',datein:'The date must be in the future.',cmp:'Please enter the campsite for the transport.',ft:'Garda Center s.r.l. · Storage · Cavaion Veronese (VR) · www.gardacenter.info'},
 de:{h:'Rimessaggio · Kundenbereich',tag:'Ihr Fahrzeug bei uns in sicheren Händen: Konto einsehen, Ausfahrt buchen und Dokumente senden, wann immer Sie möchten.',t1h:'In Ihren Bereich einloggen',t1:'Geben Sie die E-Mail-Adresse ein, die Sie uns mitgeteilt haben. Wir senden Ihnen einen Code zur Anmeldung, ohne Passwort.',l1:'E-Mail',b1:'Code senden',t2:'Wenn die E-Mail registriert ist, haben wir Ihnen einen 6-stelligen Code gesendet (bitte auch den Spam-Ordner prüfen).',l2:'Code',b2:'Anmelden',b2x:'E-Mail ändern',ex:'Abmelden',
  ciao:'Willkommen',inviato:'Bitte prüfen Sie Ihr Postfach.',bad:'Code ungültig oder abgelaufen.',err:'Etwas ist schiefgelaufen. Bitte erneut versuchen.',scad:'Sitzung abgelaufen: bitte erneut anmelden.',
- mezzo:'Ihr Fahrzeug',dentro:'In unserem Depot',fuori:'Nicht im Depot',nd:'Status nicht verfügbar',area:'Bereich',cancello:'Torcode',cancs:'Der Code bleibt für die gesamte Vertragsdauer gleich.',
+ mezzo:'Ihr Fahrzeug',dentro:'In unserem Depot',fuori:'Nicht im Depot',nd:'Status nicht verfügbar',area:'Bereich',cancello:'Torcode (zum Öffnen des Tores)',cancs:'Der Code bleibt für die gesamte Vertragsdauer gleich.',
  conto:'Ihr Konto',stag:'Saison',tot:'Saisonpreis',vers:'Bereits bezahlt',dap:'Offen',arr:'Rückstände aus früheren Saisons',saldato:'Alles bezahlt, danke!',pagam:'Verbuchte Zahlungen',
  bonifico:'Zahlung per Überweisung',iban:'IBAN',bic:'BIC/SWIFT',intest:'Kontoinhaber',caus:'Verwendungszweck',agg:'Daten aktualisiert am',
  uscita:'Ausfahrt buchen',uscd:'Gewünschtes Ausfahrtsdatum',nota:'Anmerkungen (optional)',invia:'Anfrage senden',uscok:'Anfrage gesendet! Wir bestätigen das Datum.',prog:'Geplante Ausfahrten',rich:'Ihre Anfragen',
@@ -132,7 +133,7 @@ function dt(d){if(!d)return'';var p=String(d).slice(0,10).split('-');return L===
 var D2={
 it:{pratica:'La tua pratica',tuttoOk:'Tutto in regola, grazie!',allerta:'Per completare la pratica mancano o sono da rinnovare:',iId:'Documento d\'identità',iVeh:'Documento del mezzo',iCtr:'Contratto firmato e privacy',iAcc:'Acconto di prenotazione',
  sMan:'Mancante',sScad:'Scaduto il',sVal:'Valido fino al',sVer:'Ricevuto, in verifica',sOk:'Completato',sDa:'Da versare',sVers:'Versato',aCar:'Carica',aFirma:'Firma ora',aPaga:'Vedi come pagare',payAcc:'Paga l\'acconto online',payAll:'Paga online',payNote:'Pagamento sicuro con carta o iDEAL tramite Stripe. Riceverai la conferma e la ricevuta qui nell\'area clienti dopo la verifica.',payOk:'Grazie! Il pagamento è stato ricevuto. Lo registreremo a breve e la ricevuta comparirà qui.',payNo:'Pagamento annullato. Non è stato addebitato nulla.',payWait:'Apro il pagamento…',
- docs2:'Documenti',idT:'Documento d\'identità',tdoc:'Tipo di documento',ndoc:'Numero del documento',sdoc:'Data di scadenza',vehT:'Documento del mezzo (libretto o carta di circolazione)',invDoc:'Invia',docScad:'Il documento è scaduto: serve un documento in corso di validità.',docDati:'Compila tipo, numero e scadenza e scegli il file.',
+ docs2:'Documenti',idT:'Documento d\'identità',idUno:'Lo carichi una volta sola: vale per tutti i tuoi mezzi.',tdoc:'Tipo di documento',ndoc:'Numero del documento',sdoc:'Data di scadenza',vehT:'Documento del mezzo (libretto o carta di circolazione)',invDoc:'Invia',docScad:'Il documento è scaduto: serve un documento in corso di validità.',docDati:'Compila tipo, numero e scadenza e scegli il file.',
  DOC:{ID:'Carta d\'identità',PASS:'Passaporto',PAT:'Patente'},
  ctr:'Contratto di rimessaggio',ctrIn:'Leggi, compila e firma il contratto direttamente qui. Valido come firma elettronica semplice.',ctrOpen:'Compila e firma il contratto',tuoi:'I tuoi dati',nm:'Nome',cg:'Cognome',luogoN:'Luogo di nascita',nasc:'Data di nascita',via:'Indirizzo (via)',cap:'CAP',citta:'Città',
  s1:'Contratto',s2:'Condizioni generali',s3:'Clausole specifiche',s4:'Informativa sulla privacy (GDPR)',firmaQ:'Firma qui con il dito o il mouse',cancF:'Cancella firma',invia2:'Firma e invia il contratto',ctrOk:'Contratto inviato! Lo verifichiamo e ti confermiamo.',ctrKo:'Completa tutti i dati, le caselle e le tre firme.',ctrInv:'Contratto già inviato, in verifica.',
@@ -140,7 +141,7 @@ it:{pratica:'La tua pratica',tuttoOk:'Tutto in regola, grazie!',allerta:'Per com
  ric:'Ricevute dei pagamenti',ricT:'Scarica la ricevuta (PDF)',ricNf:'Le ricevute non hanno valore fiscale.',nopag:'Nessun pagamento registrato.'},
 en:{pratica:'Your file',tuttoOk:'All in order, thank you!',allerta:'To complete your file the following are missing or need renewing:',iId:'Identity document',iVeh:'Vehicle document',iCtr:'Signed contract and privacy',iAcc:'Booking deposit',
  sMan:'Missing',sScad:'Expired on',sVal:'Valid until',sVer:'Received, being checked',sOk:'Completed',sDa:'To be paid',sVers:'Paid',aCar:'Upload',aFirma:'Sign now',aPaga:'How to pay',payAcc:'Pay the deposit online',payAll:'Pay online',payNote:'Secure payment by card or iDEAL via Stripe. You will find the confirmation and receipt here in your customer area once checked.',payOk:'Thank you! Your payment has been received. We will record it shortly and the receipt will appear here.',payNo:'Payment cancelled. Nothing was charged.',payWait:'Opening payment…',
- docs2:'Documents',idT:'Identity document',tdoc:'Document type',ndoc:'Document number',sdoc:'Expiry date',vehT:'Vehicle document (registration papers)',invDoc:'Send',docScad:'The document has expired: a valid document is required.',docDati:'Fill in type, number and expiry date and choose the file.',
+ docs2:'Documents',idT:'Identity document',idUno:'Upload it once: it counts for all your vehicles.',tdoc:'Document type',ndoc:'Document number',sdoc:'Expiry date',vehT:'Vehicle document (registration papers)',invDoc:'Send',docScad:'The document has expired: a valid document is required.',docDati:'Fill in type, number and expiry date and choose the file.',
  DOC:{ID:'ID card',PASS:'Passport',PAT:'Driving licence'},
  ctr:'Storage contract',ctrIn:'Read, fill in and sign the contract right here. Valid as a simple electronic signature.',ctrOpen:'Fill in and sign the contract',tuoi:'Your details',nm:'First name',cg:'Last name',luogoN:'Place of birth',nasc:'Date of birth',via:'Address (street)',cap:'Postcode',citta:'City',
  s1:'Contract',s2:'General terms and conditions',s3:'Specific clauses',s4:'Privacy notice (GDPR)',firmaQ:'Sign here with your finger or mouse',cancF:'Clear signature',invia2:'Sign and send the contract',ctrOk:'Contract sent! We will check it and confirm.',ctrKo:'Please complete all details, boxes and the three signatures.',ctrInv:'Contract already sent, being checked.',
@@ -148,7 +149,7 @@ en:{pratica:'Your file',tuttoOk:'All in order, thank you!',allerta:'To complete 
  ric:'Payment receipts',ricT:'Download receipt (PDF)',ricNf:'Receipts have no fiscal value.',nopag:'No payments recorded.'},
 de:{pratica:'Ihre Unterlagen',tuttoOk:'Alles in Ordnung, danke!',allerta:'Zur Vervollständigung fehlen bzw. müssen erneuert werden:',iId:'Ausweisdokument',iVeh:'Fahrzeugdokument',iCtr:'Unterschriebener Vertrag und Datenschutz',iAcc:'Anzahlung zur Buchung',
  sMan:'Fehlt',sScad:'Abgelaufen am',sVal:'Gültig bis',sVer:'Erhalten, wird geprüft',sOk:'Erledigt',sDa:'Zu zahlen',sVers:'Bezahlt',aCar:'Hochladen',aFirma:'Jetzt unterschreiben',aPaga:'Zahlungsinfos',payAcc:'Anzahlung online bezahlen',payAll:'Online bezahlen',payNote:'Sichere Zahlung per Karte oder iDEAL über Stripe. Bestätigung und Beleg finden Sie nach der Prüfung hier im Kundenbereich.',payOk:'Vielen Dank! Ihre Zahlung ist eingegangen. Wir buchen sie in Kürze, der Beleg erscheint dann hier.',payNo:'Zahlung abgebrochen. Es wurde nichts abgebucht.',payWait:'Zahlung wird geöffnet…',
- docs2:'Dokumente',idT:'Ausweisdokument',tdoc:'Dokumentart',ndoc:'Dokumentnummer',sdoc:'Ablaufdatum',vehT:'Fahrzeugdokument (Fahrzeugschein)',invDoc:'Senden',docScad:'Das Dokument ist abgelaufen: ein gültiges Dokument ist erforderlich.',docDati:'Art, Nummer und Ablaufdatum ausfüllen und Datei wählen.',
+ docs2:'Dokumente',idT:'Ausweisdokument',idUno:'Nur einmal hochladen: gilt für alle Ihre Fahrzeuge.',tdoc:'Dokumentart',ndoc:'Dokumentnummer',sdoc:'Ablaufdatum',vehT:'Fahrzeugdokument (Fahrzeugschein)',invDoc:'Senden',docScad:'Das Dokument ist abgelaufen: ein gültiges Dokument ist erforderlich.',docDati:'Art, Nummer und Ablaufdatum ausfüllen und Datei wählen.',
  DOC:{ID:'Personalausweis',PASS:'Reisepass',PAT:'Führerschein'},
  ctr:'Abstellvertrag',ctrIn:'Vertrag hier lesen, ausfüllen und unterschreiben. Gültig als einfache elektronische Signatur.',ctrOpen:'Vertrag ausfüllen und unterschreiben',tuoi:'Ihre Daten',nm:'Vorname',cg:'Nachname',luogoN:'Geburtsort',nasc:'Geburtsdatum',via:'Adresse (Straße)',cap:'PLZ',citta:'Stadt',
  s1:'Vertrag',s2:'Allgemeine Vertragsbedingungen',s3:'Besondere Klauseln',s4:'Datenschutzerklärung (DSGVO)',firmaQ:'Hier mit Finger oder Maus unterschreiben',cancF:'Unterschrift löschen',invia2:'Vertrag unterschreiben und senden',ctrOk:'Vertrag gesendet! Wir prüfen ihn und bestätigen.',ctrKo:'Bitte alle Daten, Kästchen und die drei Unterschriften ausfüllen.',ctrInv:'Vertrag bereits gesendet, wird geprüft.',
@@ -173,23 +174,30 @@ function ctBlocks(kind,lines){return(lines||[]).map(function(x,i){x=String(x);va
 function ctB(t){return E(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')}
 function ctHtml(bl){return'<div class="ctx">'+bl.map(function(b){return b.k==='li'?'<div class="li"><span>'+E(b.m)+'</span><div>'+ctB(b.t)+'</div></div>':b.k==='h'?'<p class="h">'+ctB(b.t)+'</p>':b.k==='t'?'<p class="tt">'+ctB(b.t)+'</p>':'<p>'+ctB(b.t)+'</p>'}).join('')+'</div>'}
 function pText(arr){return(arr||[]).map(function(x){return'<p style="color:var(--fg);margin:0 0 6px;font-size:.88rem">'+E(x)+'</p>'}).join('')}
-function draw(){var h='',nm=DATA.veicoli[0]?DATA.veicoli[0].dati.nome:'';if(PAYMSG)h+='<div class="'+(PAYMSG==='ok'?'ok':'alrt')+'" style="padding:12px;border-radius:8px;margin-bottom:10px"><b>'+T(PAYMSG==='ok'?'payOk':'payNo')+'</b></div>';h+='<div class="hello">'+T('ciao')+(nm?', '+E(tc(nm)):'')+'</div>';
- DATA.veicoli.forEach(function(v){var d=v.dati,S=d.st||{},cid=v.cid,rq=DATA.richieste.filter(function(r){return r.cid===cid}),dc=DATA.documenti.filter(function(x){return x.cid===cid}),pr=(DATA.pratiche||[]).filter(function(x){return x.cid===cid}),due=(d.dap||0)+(d.arr||0),pc=d.tot>0?Math.min(100,Math.max(0,d.vers/d.tot*100)):0,
-  prIn=pr.some(function(x){return x.stato==='inviata'}),idUp=dc.some(function(x){return x.cat==='identita'}),vhUp=dc.some(function(x){return x.cat==='mezzo'});
+function draw(){var h='',V=DATA.veicoli,nm=V[0]?V[0].dati.nome:'',many=V.length>1,todayP=new Date(Date.now()+864e5).toISOString().slice(0,10);
+ if(PAYMSG)h+='<div class="'+(PAYMSG==='ok'?'ok':'alrt')+'" style="padding:12px;border-radius:8px;margin-bottom:10px"><b>'+T(PAYMSG==='ok'?'payOk':'payNo')+'</b></div>';
+ h+='<div class="hello">'+T('ciao')+(nm?', '+E(tc(nm)):'')+'</div>';
+ /* codice del cancello, in alto, ben etichettato */
+ var gates=V.filter(function(v){return v.dati.cod});
+ if(gates.length)h+='<div class="gate"><div class="gl">'+T('cancello')+'</div>'+(new Set(gates.map(function(v){return v.dati.cod})).size===1?'<div class="big">'+E(gates[0].dati.cod)+'</div>':gates.map(function(v){return'<div class="s">'+E(v.dati.mezzo)+' · '+E(v.dati.targa)+'</div><div class="big">'+E(v.dati.cod)+'</div>'}).join(''))+'<div class="s">'+T('cancs')+'</div></div>';
+ /* documenti: condivisi tra tutti i mezzi della stessa email */
+ var allDoc=DATA.documenti||[],gId=V.some(function(v){return(v.dati.st||{}).id==='ok'}),gIdUp=allDoc.some(function(x){return x.cat==='identita'}),gScad=V.some(function(v){return(v.dati.st||{}).id==='scaduto'}),gIds=(V.filter(function(v){return(v.dati.st||{}).id==='scaduto'})[0]||{dati:{st:{}}}).dati.st.ids;
+ var sI=gId?['ok',T('sVal')+' '+dt((V.filter(function(v){return(v.dati.st||{}).id==='ok'})[0].dati.st||{}).ids)]:gScad&&!gIdUp?['ko',T('sScad')+' '+dt(gIds)]:gIdUp?['ver',T('sVer')]:['ko',T('sMan')];
+ V.forEach(function(v){var d=v.dati,S=d.st||{},cid=v.cid,rq=DATA.richieste.filter(function(r){return r.cid===cid}),dc=allDoc.filter(function(x){return x.cid===cid}),pr=(DATA.pratiche||[]).filter(function(x){return x.cid===cid}),due=(d.dap||0)+(d.arr||0),pc=d.tot>0?Math.min(100,Math.max(0,d.vers/d.tot*100)):0,
+  prIn=pr.some(function(x){return x.stato==='inviata'}),vhUp=dc.some(function(x){return x.cat==='mezzo'});
  var st=d.stato==='IN'?T('dentro'):d.stato==='OUT'?T('fuori'):T('nd');
- var sI=S.id==='ok'?['ok',T('sVal')+' '+dt(S.ids)]:S.id==='scaduto'&&!idUp?['ko',T('sScad')+' '+dt(S.ids)]:idUp&&S.id!=='ok'?['ver',T('sVer')]:['ko',T('sMan')],
-  sV=S.veh==='ok'?['ok',T('sOk')]:vhUp?['ver',T('sVer')]:['ko',T('sMan')],
+ var sV=S.veh==='ok'?['ok',T('sOk')]:vhUp?['ver',T('sVer')]:['ko',T('sMan')],
   sC=S.ctr==='ok'?['ok',T('sOk')]:prIn?['ver',T('sVer')]:['ko',T('sMan')],
   sA=S.acc==='ok'?['ok',T('sVers')]:['ko',T('sDa')+(d.accImp?' · '+money(d.accImp):'')];
- var miss=[];if(sI[0]==='ko')miss.push(T('iId')+(S.id==='scaduto'?' ('+T('sScad').toLowerCase()+' '+dt(S.ids)+')':''));if(sV[0]==='ko')miss.push(T('iVeh'));if(sC[0]==='ko')miss.push(T('iCtr'));
+ var miss=[];if(sI[0]==='ko')miss.push(T('iId')+(gScad&&!gId?' ('+T('sScad').toLowerCase()+' '+dt(gIds)+')':''));if(sV[0]==='ko')miss.push(T('iVeh'));if(sC[0]==='ko')miss.push(T('iCtr'));
  h+='<div class="card"><div class="veh"><div style="flex:1"><div class="s">'+T('mezzo')+'</div><h2 style="margin:0">'+E(d.mezzo)+'</h2></div><span class="plate">'+E(d.targa)+'</span></div>'
   +'<div><span class="pill '+(d.stato==='IN'?'in':'')+'"><span class="dot"></span>'+st+'</span></div>';
  if(d.area)h+='<div class="row"><span>'+T('area')+'</span><b>'+E(d.area)+'</b></div>';
- if(d.cod)h+='<div class="gate"><div class="s">'+T('cancello')+'</div><div class="big">'+E(d.cod)+'</div><div class="s">'+T('cancs')+'</div></div>';
  h+='</div>';
- h+='<div class="card" id="p'+cid+'"><h2>'+T('pratica')+'</h2>'+(miss.length?'<div class="alrt"><b>'+T('allerta')+'</b><br>'+miss.map(E).join(' · ')+'</div>':'<p class="ok"><b>'+T('tuttoOk')+'</b></p>')
-  +stRow(sI[0],T('iId'),sI[1],sI[0]==='ko'?['d'+cid,T('aCar')]:null)+stRow(sV[0],T('iVeh'),sV[1],sV[0]==='ko'?['d'+cid,T('aCar')]:null)+stRow(sC[0],T('iCtr'),sC[1],sC[0]==='ko'?['c'+cid,T('aFirma')]:null)+stRow(sA[0],T('iAcc'),sA[1],sA[0]==='ko'?['a'+cid,T('aPaga')]:null)+'</div>';
- h+='<div class="card"><h2>'+T('conto')+' · '+T('stag')+' '+E(d.yr)+'</h2>'
+ h+='<div class="card" id="p'+cid+'"><h2>'+T('pratica')+(many?' · '+E(d.mezzo)+' '+E(d.targa):'')+'</h2>'+(miss.length?'<div class="alrt"><b>'+T('allerta')+'</b><br>'+miss.map(E).join(' · ')+'</div>':'<p class="ok"><b>'+T('tuttoOk')+'</b></p>')
+  +stRow(sI[0],T('iId'),sI[1],sI[0]==='ko'?['docs',T('aCar')]:null)+stRow(sV[0],T('iVeh'),sV[1],sV[0]==='ko'?['docs',T('aCar')]:null)+stRow(sC[0],T('iCtr'),sC[1],sC[0]==='ko'?['c'+cid,T('aFirma')]:null)+stRow(sA[0],T('iAcc'),sA[1],sA[0]==='ko'?['a'+cid,T('aPaga')]:null)+'</div>';
+ /* situazione contabile: una sola volta per mezzo, con gli extra e le ricevute */
+ h+='<div class="card"><h2>'+T('conto')+' · '+T('stag')+' '+E(d.yr)+(many?'<span class="s" style="display:block;font-weight:400">'+E(d.mezzo)+' · '+E(d.targa)+'</span>':'')+'</h2>'
   +'<div class="bar" aria-hidden="true"><i style="width:'+pc.toFixed(0)+'%"></i></div>'
   +'<div class="row"><span>'+T('tot')+'</span><span>'+money(d.tot)+'</span></div>'+(d.exl||[]).map(function(x){return'<div class="row" style="font-size:.88rem;opacity:.85"><span>+ '+E(x.l)+'</span><span>'+money(x.imp)+'</span></div>'}).join('')+'<div class="row"><span>'+T('vers')+'</span><span>'+money(d.vers)+'</span></div>'
   +(d.arr>0?'<div class="row"><span class="ko">'+T('arr')+'</span><b class="ko">'+money(d.arr)+'</b></div>':'')
@@ -197,26 +205,26 @@ function draw(){var h='',nm=DATA.veicoli[0]?DATA.veicoli[0].dati.nome:'';if(PAYM
  if(DATA.pay&&!PREV&&due>0.004){var pb='';if(S.acc!=='ok'&&d.accImp>0&&due>=d.accImp-0.005)pb+='<button class="pri" data-pay="acconto" data-c="'+cid+'" style="width:100%;margin-top:10px">'+T('payAcc')+' · '+money(d.accImp)+'</button>';
   pb+='<button class="'+(pb?'alt':'pri')+'" data-pay="saldo" data-c="'+cid+'" style="width:100%;margin-top:10px">'+T('payAll')+' · '+money(due)+'</button>';h+=pb+'<p class="s">'+T('payNote')+'</p>'}
  if(d.iban&&(due>0.004||S.acc!=='ok'))h+='<h3 id="a'+cid+'">'+(S.acc!=='ok'?T('acc2'):T('bonifico'))+'</h3>'+(S.acc!=='ok'&&d.accImp?'<p style="color:var(--fg)">'+T('accT')+' <b>'+money(d.accImp)+'</b>. <span class="s">'+T('accN')+'</span></p>':'')+'<div class="row"><span>'+T('intest')+'</span><span>'+E(d.intest)+'</span></div><div class="row"><span>'+T('iban')+'</span><span class="mono">'+E(d.iban)+'</span></div>'+(d.bic?'<div class="row"><span>'+T('bic')+'</span><span class="mono">'+E(d.bic)+'</span></div>':'')+'<div class="row"><span>'+T('caus')+'</span><span>'+E(d.caus)+'</span></div>';
+ h+='<h3>'+T('ric')+'</h3>'+((d.rec||[]).length?d.rec.map(function(p){return'<div class="row" style="align-items:center"><span>'+dt(p.d)+' · <b>'+money(p.imp)+'</b><span class="s"> · '+E(p.op||'')+'</span></span><button class="alt" data-rc="'+p.i+'" data-c="'+cid+'" style="padding:4px 10px;font-size:.85rem">PDF</button></div>'}).join('')+'<p class="s">'+T('ricNf')+'</p>':'<p>'+T('nopag')+'</p>');
  h+='<p class="s">'+T('agg')+' '+dt(v.agg)+'</p></div>';
- // ricevute
- h+='<div class="card"><h2>'+T('ric')+'</h2>'+((d.rec||[]).length?d.rec.map(function(p){return'<div class="row" style="align-items:center"><span>'+dt(p.d)+' · <b>'+money(p.imp)+'</b><span class="s"> · '+E(p.op||'')+'</span></span><button class="alt" data-rc="'+p.i+'" data-c="'+cid+'" style="padding:4px 10px;font-size:.85rem">PDF</button></div>'}).join('')+'<p class="s">'+T('ricNf')+'</p>':'<p>'+T('nopag')+'</p>')+'</div>';
- // uscita
- h+='<div class="card"><h2>'+T('uscita')+'</h2>';
+ /* uscita */
+ h+='<div class="card"><h2>'+T('uscita')+(many?'<span class="s" style="display:block;font-weight:400">'+E(d.mezzo)+' · '+E(d.targa)+'</span>':'')+'</h2>';
  if((d.usc||[]).length)h+='<p>'+T('prog')+': <b>'+d.usc.map(dt).join(', ')+'</b></p>';
- if(d.stato==='IN'){h+='<form data-u="'+cid+'"><label>'+T('uscd')+'</label><input type="date" name="d" required min="'+new Date(Date.now()+864e5).toISOString().slice(0,10)+'">'
+ if(d.stato==='IN'){h+='<form data-u="'+cid+'"><label>'+T('uscd')+'</label><input type="date" name="d" required min="'+todayP+'">'
    +'<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="t" data-tt="1"> '+T('trasp')+'</label>'
    +'<div class="sub" data-sub hidden><label>'+T('camp')+'</label><input name="camp" maxlength="60"><label>'+T('piaz')+'</label><input name="piaz" maxlength="30"><label>'+T('ora')+'</label><select name="ora"><option value="">'+T('oraDef')+'</option>'+SLOT.map(function(x){return'<option value="'+x+'">'+x+':00</option>'}).join('')+'</select>'
    +(d.trp?'<p class="s">'+T('cost')+': <b>'+money(d.trp)+'</b></p>':'')+'<p class="s">'+T('trn')+' '+WA+'.</p></div>'
    +'<label>'+T('nota')+'</label><textarea name="n" rows="2" maxlength="400"></textarea><button class="pri" type="submit">'+T('invia')+'</button></form>'}else h+='<p>'+T('solodentro')+'</p>';
  if(rq.length)h+='<h3>'+T('rich')+'</h3>'+rq.map(function(r){return'<div class="row"><span>'+dt(r.data)+' · <span class="pill">'+T(r.stato)+'</span><span class="s">'+trTxt(r)+'</span></span>'+(r.stato==='nuova'?'<button class="alt" data-x="'+r.id+'" data-c="'+cid+'" style="padding:4px 10px">'+T('annulla')+'</button>':'')+'</div>'}).join('');
  h+='</div>';
- // documenti
- h+='<div class="card" id="d'+cid+'"><h2>'+T('docs2')+'</h2>'
-  +'<form data-di="'+cid+'"><h3 style="margin-top:0">'+T('idT')+'</h3><label>'+T('tdoc')+'</label><select name="td"><option value="ID">'+T('DOC').ID+'</option><option value="PASS">'+T('DOC').PASS+'</option><option value="PAT">'+T('DOC').PAT+'</option></select><label>'+T('ndoc')+'</label><input name="nd" maxlength="30"><label>'+T('sdoc')+'</label><input type="date" name="sd" min="'+new Date(Date.now()+864e5).toISOString().slice(0,10)+'"><input type="file" name="f" accept="application/pdf,image/jpeg,image/png,image/*"><button class="pri" type="submit">'+T('invDoc')+'</button></form>'
-  +'<form data-dv="'+cid+'"><h3>'+T('vehT')+'</h3><input type="file" name="f" accept="application/pdf,image/jpeg,image/png,image/*"><button class="pri" type="submit">'+T('invDoc')+'</button></form><p class="s">'+T('doctp')+'</p>'
-  +(dc.length?'<h3>'+T('doclist')+'</h3>'+dc.map(function(x){return'<div class="row s"><span>'+E(x.cat==='identita'?T('iId'):x.cat==='mezzo'?T('iVeh'):'')+' · '+E(x.nome)+'</span><span>'+dt(x.creato)+'</span></div>'}).join(''):'')+'</div>';
- // contratto
- h+='<div class="card" id="c'+cid+'"><h2>'+T('ctr')+'</h2>'+(S.ctr==='ok'?'<p class="ok"><b>'+T('sOk')+'</b></p>':prIn?'<p>'+T('ctrInv')+'</p>':'<p>'+T('ctrIn')+'</p><button class="pri" data-co="'+cid+'">'+T('ctrOpen')+'</button><div data-cw="'+cid+'"></div>')+'</div>'});
+ /* contratto */
+ h+='<div class="card" id="c'+cid+'"><h2>'+T('ctr')+(many?' · '+E(d.mezzo)+' '+E(d.targa):'')+'</h2>'+(S.ctr==='ok'?'<p class="ok"><b>'+T('sOk')+'</b></p>':prIn?'<p>'+T('ctrInv')+'</p>':'<p>'+T('ctrIn')+'</p><button class="pri" data-co="'+cid+'">'+T('ctrOpen')+'</button><div data-cw="'+cid+'"></div>')+'</div>'});
+ /* documenti: UNA sola sezione, in fondo */
+ var c0=V[0].cid;
+ h+='<div class="card" id="docs"><h2>'+T('docs2')+'</h2>'
+  +'<form data-di="'+c0+'"><h3 style="margin-top:0">'+T('idT')+'</h3>'+(many?'<p class="s">'+T('idUno')+'</p>':'')+'<label>'+T('tdoc')+'</label><select name="td"><option value="ID">'+T('DOC').ID+'</option><option value="PASS">'+T('DOC').PASS+'</option><option value="PAT">'+T('DOC').PAT+'</option></select><label>'+T('ndoc')+'</label><input name="nd" maxlength="30"><label>'+T('sdoc')+'</label><input type="date" name="sd" min="'+todayP+'"><input type="file" name="f" accept="application/pdf,image/jpeg,image/png,image/*"><button class="pri" type="submit">'+T('invDoc')+'</button></form>'
+  +V.map(function(v){return'<form data-dv="'+v.cid+'"><h3>'+T('vehT')+(many?' · '+E(v.dati.mezzo)+' '+E(v.dati.targa):'')+'</h3><input type="file" name="f" accept="application/pdf,image/jpeg,image/png,image/*"><button class="pri" type="submit">'+T('invDoc')+'</button></form>'}).join('')+'<p class="s">'+T('doctp')+'</p>'
+  +(allDoc.length?'<h3>'+T('doclist')+'</h3>'+allDoc.map(function(x){var vv=V.filter(function(y){return y.cid===x.cid})[0];return'<div class="row s"><span>'+E(x.cat==='identita'?T('iId'):x.cat==='mezzo'?T('iVeh')+(many&&vv?' ('+E(vv.dati.targa)+')':''):'')+' · '+E(x.nome)+'</span><span>'+dt(x.creato)+'</span></div>'}).join(''):'')+'</div>';
  $('#app').innerHTML=h}
 function contrattoForm(cid){var v=DATA.veicoli.filter(function(x){return x.cid===cid})[0],A=v.dati.anag||{},C=CFG&&CFG.t&&CFG.t[L],S=CFG&&CFG.s;if(!C)return'<p class="ko">'+T('err')+'</p>';
  var sg=function(k,lab){return'<div><div class="s">'+lab+' · '+T('firmaQ')+'</div><canvas class="sig" data-sg="'+k+'" width="360" height="204"></canvas><button type="button" class="alt" data-cs="'+k+'" style="padding:4px 10px;font-size:.85rem">'+T('cancF')+'</button></div>'};
