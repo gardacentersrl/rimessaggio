@@ -293,7 +293,7 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
   </div>
  <div id="k-pn" hidden>
   <select id="n-y"></select>
- <button class="btn g sm" id="n-x" style="margin:4px 0 8px">Esporta in Excel</button>
+ <button class="btn g sm" id="n-x" style="margin:4px 0 8px">Esporta in Excel</button> <button class="btn g sm" id="n-xml" style="margin:4px 0 8px">Fatture XML da inviare</button> <button class="btn g sm" id="n-xml2" style="margin:4px 0 8px">Riscarica tutte le XML</button>
   <div id="n-tot" class="card"></div>
   <button class="btn" id="n-c" hidden>Conferma fatture scadute…</button>
   <div id="n-l"></div>
@@ -1787,9 +1787,8 @@ function cont(y){const m={},iy=d=>!y||String(d).slice(0,4)===String(y);
  return Object.values(m).map(o=>(o.dap=Math.max(0,o.tot-o.pag),o))}
 const unpaid=()=>cont().filter(o=>o.rient&&o.dap>0);
 // Allerta: mezzo già riportato e trasporto non pagato (visibile in tutte le pagine)
-function al(){const ovn=ROLE==='master'&&typeof window!=='undefined'?(window.OVN||0):0,pe=ROLE==='master'?pendList():[],bk=ROLE==='master'&&bkOld(),l=unpaid(),dm=add(1),rem=db.mov.filter(m=>m.t==='uo'&&m.d===dm&&!m.mr),sc=db.cl.filter(c=>isS(c.id)&&c.per&&c.per.al&&c.per.al<oggi());const ar=db.cl.filter(c=>arrOpen(c)>.004),nr=oggi()>=db.rd,fd=fatDue(),mp=db.pag.filter(p=>p.mail===false).map(p=>['pag',p]).concat(db.trp.filter(p=>p.mail===false).map(p=>['trp',p]));alN=l.length+sc.length+rem.length+(fd.length?1:0)+(ar.length?1:0)+(nr?1:0)+mp.length+(pe.length?1:0)+(bk?1:0)+(ovn?1:0);alBadge();
+function al(){const ovn=ROLE==='master'&&typeof window!=='undefined'?(window.OVN||0):0,pe=ROLE==='master'?pendList():[],bk=ROLE==='master'&&bkOld(),l=unpaid(),dm=add(1),rem=db.mov.filter(m=>m.t==='uo'&&m.d===dm&&!m.mr),sc=db.cl.filter(c=>isS(c.id)&&c.per&&c.per.al&&c.per.al<oggi());const ar=db.cl.filter(c=>arrOpen(c)>.004),nr=oggi()>=db.rd,fd=fatDue(),mp=db.pag.filter(p=>p.mail===false).map(p=>['pag',p]).concat(db.trp.filter(p=>p.mail===false).map(p=>['trp',p]));alN=l.length+sc.length+rem.length+(fd.length?1:0)+(nr?1:0)+mp.length+(pe.length?1:0)+(bk?1:0)+(ovn?1:0);alBadge();
  $('#al').innerHTML=(ovn?`<div class="card" style="border:2px solid var(--x);background:rgba(217,168,0,.14)"><b>Dai clienti: ${ovn} novità</b><div class="mut">Richieste di uscita o documenti caricati dall'area ospiti</div><button class="btn sm" data-ov="1">Guarda</button></div>`:'')+(pe.length?pendCard(pe,true):'')+(bk?bkCard():'')+(nr?`<div class="card" style="border:2px solid var(--x);background:rgba(217,168,0,.14)"><b>Nuova stagione ${db.yr+1}: aggiorna gli importi da pagare</b><div class="mut">Era previsto per il ${dmy(db.rd)}.</div><button class="btn sm" data-roll="1">Apri la stagione ${db.yr+1}</button></div>`:'')
- +(ar.length?`<div class="card" style="border:2px solid var(--out);background:rgba(214,69,69,.12)"><b style="color:var(--out)">⚠ Arretrati da incassare: ${ar.length} clienti, ${e2(r2(ar.reduce((a,c)=>a+arrOpen(c),0)))}</b><button class="btn g sm" data-arr="1">Vedi i clienti</button></div>`:'')
  +(fd.length?`<div class="card" style="border:2px solid var(--x);background:rgba(217,168,0,.14)"><b>Fatture da registrare: sono state emesse?</b><div class="mut">Sono passati ${FDAYS} giorni dall'incasso.</div>${fd.map(x=>`<div style="margin-top:4px">${esc(fid(x.cid))} · ${esc(x.nome)} · <b>${e2(x.imp)}</b> <span class="mut">(incassato il ${dmy(x.d)})</span></div>`).join('')}<button class="btn sm" data-fat="all">Conferma fatture emesse</button></div>`:'')
  +(mp.length?`<div class="card" style="border:2px solid var(--x);background:rgba(217,168,0,.14)"><b>Email di conferma pagamento da inviare</b>${mp.map(([k,x])=>`<div class="row" style="margin-top:6px"><div>${esc(fid(x.cid))} · ${esc(x.nome||(cli(x.cid)||{}).nome||'')} · ${e2(x.imp)}${k==='trp'?' <span class="mut">(trasporto)</span>':''}</div><span style="display:flex;gap:6px">${k==='pag'&&typeof x.cid==='number'?`<button class="btn sm" style="margin:0" data-mpr="${x.id}">Invia con ricevuta</button>`:''}<button class="btn g sm" style="margin:0" data-mpk="${k}:${x.id}">Prepara email</button></span></div>`).join('')}</div>`:'')
  +(l.length?`<div class="card" style="border:2px solid var(--out);background:rgba(214,69,69,.12)"><b style="color:var(--out)">⚠ Mezzo già riportato, trasporto NON pagato</b>${l.map(o=>`<div>${fid(o.cid)} · ${esc((cli(o.cid)||{}).nome)} · <b>${eur(o.dap)}</b> <span class="mut">(rientro del ${o.rient})</span></div>`).join('')}<button class="btn g sm" id="al-go">Vai ai trasporti</button></div>`:'')
@@ -2082,6 +2081,129 @@ function fatOpen(ids){fatIds=ids;const l=ids.map(i=>db.pn.find(x=>x.id===i)).fil
 $('#ff-s').onclick=()=>{const ids=[],nums={};document.querySelectorAll('#ff-l input[data-k]').forEach(i=>{if(i.checked)ids.push(+i.dataset.k)});document.querySelectorAll('#ff-l input[data-n]').forEach(i=>nums[+i.dataset.n]=i.value.trim());
  if(!ids.length)return toast('Seleziona almeno una fattura');fatConf(ids,$('#ff-d').value||oggi(),nums);save();$('#dlgf').close();render();toast(ids.length===1?'Fattura confermata: consolidata in Prima nota':ids.length+' fatture confermate: consolidate in Prima nota')};
 $('#ff-c').onclick=()=>$('#dlgf').close();
+
+// ---- Fatture elettroniche XML (formato FatturaPA FPR12, identico all'esempio del commercialista)
+const XML_CED={tr:'00865310221',iva:'03578820239',den:'GARDA CENTER SRL',ind:'LOC. CAMPOREGGIO',cap:'37010',com:'CAVAION VERONESE',pr:'VR',intId:'01530760220',intDen:'SEAC SPA',iban:'IT60S0200859380000040535208',banca:'UNICREDIT ',ph:'00000000134'};
+const XML_ISO={NL:'NL',I:'IT',D:'DE',A:'AT',CH:'CH',B:'BE',DK:'DK',GB:'GB',F:'FR'},XML_MP={BONIFICO:'MP05','PAGHERA BONIFICO':'MP05',POS:'MP08',ASSEGNO:'MP02',CONTANTI:'MP01'};
+const xe=t=>String(t==null?'':t).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[m]));
+function xmlFattura(f){const c=cli(f.cid);if(!c)return{err:'cliente non trovato'};if(!f.num)return{err:'manca il numero fattura'};
+ const iso=XML_ISO[c.naz];if(!iso)return{err:'nazione del cliente non indicata'};if(iso==='IT')return{err:'cliente italiano: serve il codice fiscale, da fare dal portale del commercialista'};
+ const U=t=>String(t||'').trim().toUpperCase(),nm=U(c.nm)||U(String(c.nome||'').split(' ')[0]),cg=U(c.cg)||U(String(c.nome||'').split(' ').slice(1).join(' '))||nm;
+ const lordo=r2(f.imp),imp=r2(lordo/1.22),iva=r2(lordo-imp),un=(lordo/1.22).toFixed(8),y2=String(f.y||db.yr).slice(2),y3=String(+(f.y||db.yr)+1).slice(2);
+ const ps=(f.pays||[]).map(i=>db.pag.find(x=>x.id===i)).filter(Boolean),ops=ps.map(p=>p.op),
+  desc=ops.length&&ops.every(o=>o==='ACCONTO')?`Acconto abbonamento RIMESSAGGIO periodo ${y2} ${y3}`:`Abbonamento RIMESSAGGIO periodo ${y2} ${y3} incluso deposito`,
+  lp=ps.filter(p=>p.mod).pop(),mp=XML_MP[lp&&lp.mod]||'MP05',cap=/^\d{5}$/.test(String(c.cap||'').trim())?String(c.cap).trim():'00000',
+  ib=(typeof mlCfg==='function'&&String(mlCfg().iban||'').replace(/\s/g,''))||XML_CED.iban,cd=XML_CED,num=String(f.num).trim();
+ const x=`<FatturaElettronica xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" versione="FPR12" xmlns="http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2">
+	<FatturaElettronicaHeader xmlns="">
+		<DatiTrasmissione>
+			<IdTrasmittente>
+				<IdPaese>IT</IdPaese>
+				<IdCodice>${cd.tr}</IdCodice>
+			</IdTrasmittente>
+			<ProgressivoInvio>${f.id}</ProgressivoInvio>
+			<FormatoTrasmissione>FPR12</FormatoTrasmissione>
+			<CodiceDestinatario>XXXXXXX</CodiceDestinatario>
+		</DatiTrasmissione>
+		<CedentePrestatore>
+			<DatiAnagrafici>
+				<IdFiscaleIVA>
+					<IdPaese>IT</IdPaese>
+					<IdCodice>${cd.iva}</IdCodice>
+				</IdFiscaleIVA>
+				<CodiceFiscale>${cd.iva}</CodiceFiscale>
+				<Anagrafica>
+					<Denominazione>${xe(cd.den)}</Denominazione>
+				</Anagrafica>
+				<RegimeFiscale>RF01</RegimeFiscale>
+			</DatiAnagrafici>
+			<Sede>
+				<Indirizzo>${xe(cd.ind)}</Indirizzo>
+				<CAP>${cd.cap}</CAP>
+				<Comune>${xe(cd.com)}</Comune>
+				<Provincia>${cd.pr}</Provincia>
+				<Nazione>IT</Nazione>
+			</Sede>
+		</CedentePrestatore>
+		<CessionarioCommittente>
+			<DatiAnagrafici>
+				<IdFiscaleIVA>
+					<IdPaese>${iso}</IdPaese>
+					<IdCodice>${cd.ph}</IdCodice>
+				</IdFiscaleIVA>
+				<Anagrafica>
+					<Nome>${xe(nm)}</Nome>
+					<Cognome>${xe(cg)}</Cognome>
+				</Anagrafica>
+			</DatiAnagrafici>
+			<Sede>
+				<Indirizzo>${xe(U(c.via)||'N/D')}</Indirizzo>
+				<CAP>${cap}</CAP>
+				<Comune>${xe(U(c.citta)||'N/D')}</Comune>
+				<Provincia>${iso}</Provincia>
+				<Nazione>${iso}</Nazione>
+			</Sede>
+		</CessionarioCommittente>
+		<TerzoIntermediarioOSoggettoEmittente>
+			<DatiAnagrafici>
+				<IdFiscaleIVA>
+					<IdPaese>IT</IdPaese>
+					<IdCodice>${cd.intId}</IdCodice>
+				</IdFiscaleIVA>
+				<Anagrafica>
+					<Denominazione>${cd.intDen}</Denominazione>
+				</Anagrafica>
+			</DatiAnagrafici>
+		</TerzoIntermediarioOSoggettoEmittente>
+		<SoggettoEmittente>TZ</SoggettoEmittente>
+	</FatturaElettronicaHeader>
+	<FatturaElettronicaBody xmlns="">
+		<DatiGenerali>
+			<DatiGeneraliDocumento>
+				<TipoDocumento>TD01</TipoDocumento>
+				<Divisa>EUR</Divisa>
+				<Data>${f.de||f.d}</Data>
+				<Numero>${xe(num)}</Numero>
+				<ImportoTotaleDocumento>${lordo.toFixed(2)}</ImportoTotaleDocumento>
+			</DatiGeneraliDocumento>
+		</DatiGenerali>
+		<DatiBeniServizi>
+			<DettaglioLinee>
+				<NumeroLinea>1</NumeroLinea>
+				<Descrizione>${xe(desc)}</Descrizione>
+				<Quantita>1.00000000</Quantita>
+				<PrezzoUnitario>${un}</PrezzoUnitario>
+				<PrezzoTotale>${imp.toFixed(2)}000000</PrezzoTotale>
+				<AliquotaIVA>22.00</AliquotaIVA>
+			</DettaglioLinee>
+			<DatiRiepilogo>
+				<AliquotaIVA>22.00</AliquotaIVA>
+				<ImponibileImporto>${imp.toFixed(2)}</ImponibileImporto>
+				<Imposta>${iva.toFixed(2)}</Imposta>
+				<EsigibilitaIVA>I</EsigibilitaIVA>
+			</DatiRiepilogo>
+		</DatiBeniServizi>
+		<DatiPagamento>
+			<CondizioniPagamento>TP02</CondizioniPagamento>
+			<DettaglioPagamento>
+				<ModalitaPagamento>${mp}</ModalitaPagamento>
+				<ImportoPagamento>${lordo.toFixed(2)}</ImportoPagamento>
+				<IstitutoFinanziario>${xe(cd.banca)}</IstitutoFinanziario>
+				<IBAN>${xe(ib)}</IBAN>
+			</DettaglioPagamento>
+		</DatiPagamento>
+	</FatturaElettronicaBody>
+</FatturaElettronica>`;
+ return{xml:x,nome:`Fattura_${String(f.y||db.yr)}_${num.replace(/[\\/:*?"<>|\s]+/g,'-')}.xml`}}
+async function xmlExport(tutte){const y=$('#n-y').value,l=db.pn.filter(p=>p.y===y&&p.stato==='emessa'&&!p.rid&&(tutte||!p.xd)).sort((a,b)=>a.id-b.id);
+ if(!l.length)return toast(tutte?'Nessuna fattura emessa da esportare':'Nessuna nuova fattura da inviare: tutte già scaricate');
+ const ok=[],no=[];l.forEach(f=>{const r=xmlFattura(f);if(r.err)no.push(`${esc(f.nome)} (${esc(f.num||'senza numero')}): ${r.err}`);else ok.push([f,r])});
+ if(!ok.length)return askQ('Niente da esportare',`Nessuna fattura è esportabile:<br>${no.join('<br>')}`,'Ho capito');
+ const go=await askQ('Scarica fatture XML',`<b>${ok.length}</b> fatture emesse in un file ZIP, da caricare sul gestionale del commercialista.${no.length?`<br><br><b>Non incluse (${no.length}):</b><br>${no.join('<br>')}`:''}`,'Scarica');if(!go)return;
+ try{const d=await claude.use('downloads');if(!d)return toast('Salvataggio non disponibile qui');
+  await d.save({filename:`fatture_xml_${oggi()}.zip`,data:new Blob([zipStore(ok.map(([f,r])=>[r.nome,r.xml]))],{type:'application/zip'})});
+  ok.forEach(([f])=>{f.xd=oggi()});save();render();toast(ok.length+' fatture XML salvate')}catch(e){if(!e||e.code!=='declined')toast('Salvataggio non riuscito')}}
+$('#n-xml').onclick=()=>xmlExport(false);$('#n-xml2').onclick=()=>xmlExport(true);
 // ---- Esportazioni Excel
 const stF=p=>{const f=p.fat&&db.pn.find(x=>x.id===p.fat);return f?(f.stato==='emessa'?'Fattura emessa':'Fattura da emettere'):p.op==='ACCONTO'?'Caparra (no fattura)':'Contanti (no fattura)'};
 $('#g-x').onclick=()=>{const y=$('#g-y').value;expXlsx(`registro-pagamenti-${y}.xlsx`,'Registro pagamenti '+y,['N°','DATA','N. CLIENTE','NOME E COGNOME','OPERAZIONE','RATA','MODALITÀ','IMPORTO','NOTE','FATTURA','N. FATTURA','STAGIONE'],
