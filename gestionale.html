@@ -311,8 +311,9 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
 </section>
 </main>
 <div id="t"></div>
-<nav><button data-v="h" class="on"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Oggi<i class="bdg" id="bd-h" hidden></i></button><button data-v="c"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14c3 0 4.5 2 4.5 5"/></svg>Clienti</button><button data-v="m"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>Movimenti</button><button data-v="p"><svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Piantina</button><button data-v="x"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Altro</button></nav>
+<nav><button data-v="h" class="on"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Oggi<i class="bdg" id="bd-h" hidden></i></button><button data-v="c"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14c3 0 4.5 2 4.5 5"/></svg>Clienti</button><button data-v="m"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>Movimenti</button><button data-v="p"><svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Piantina</button><button data-v="k"><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="13" rx="2"/><path d="M2.5 10h19"/><circle cx="12" cy="14.5" r="2"/></svg>Cassa</button><button data-v="x"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Altro</button></nav>
 <div id="reg" hidden><div class="in"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b id="rg-t" style="font-size:20px"></b><button class="btn g sm" id="rg-x">Esci</button></div><div class="mut" id="rg-p"></div><div class="rbar"><i id="rg-bar"></i></div><div id="rg-b"></div></div>
+ <div id="rg-err" hidden style="max-width:640px;margin:0 auto;padding:10px 16px;color:var(--out);font-weight:700;background:var(--card)"></div>
  <div class="rf"><button class="btn g" id="rg-b1">Indietro</button><button class="btn" id="rg-n">Avanti</button></div></div>
 <dialog id="dlgov" style="width:min(96vw,640px)"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Dai clienti</h2><button class="btn g sm" id="ov-cl" style="margin:0;width:auto" aria-label="Chiudi">✕</button></div><div id="ov-pv" style="margin:10px 0"><h3>Vedi come un cliente</h3><div style="display:flex;gap:8px"><input id="ov-q" list="ov-dl" placeholder="Numero o nome del cliente" style="flex:1"><button class="btn sm" id="ov-go" style="margin:0;width:auto">Apri</button></div><datalist id="ov-dl"></datalist></div><div id="ov-b"></div></dialog>
 <dialog id="dlgsys" style="width:min(96vw,560px)"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Dati e accessi</h2><button class="btn g sm" id="sys-cl" style="margin:0;width:auto" aria-label="Chiudi">✕</button></div><div id="sys-b" style="margin-top:10px"></div></dialog>
@@ -651,7 +652,7 @@ $('#t-s').onclick=()=>{const v=id=>$(id).value.trim();if(!v('#t-nome')&&!v('#t-m
  db.tmp.push({k,nome:v('#t-nome'),tipo:$('#t-tipo').value,marca:v('#t-marca'),targa:v('#t-targa').toUpperCase(),note:v('#t-note'),pos:''});
  save();$('#dlg2').close();['#t-nome','#t-marca','#t-targa','#t-note'].forEach(x=>$(x).value='');$('#p-q').value=k;$('#p-q').oninput();toast(`${k} creato: tocca un posto libero`)};
 // Navigazione: 5 voci in basso (Oggi, Clienti, Movimenti, Piantina, Altro); le sezioni collegate si scelgono con le linguette in alto
-const GRP={h:'h',o:'h',cs:'m',c:'c',b:'c',m:'m',u:'m',p:'p',x:'x',r:'x',k:'x',rp:'x',mk:'x',pr:'m'},SEGS={c:[['c','Clienti'],['b','Prenotazioni']],m:[['m','Registra'],['u','Uscite'],['pr','Preparazione'],['cs','Carico/Scarico']]},lastV={};let curV='h',alN=0;
+const GRP={h:'h',o:'h',cs:'m',c:'c',b:'c',m:'m',u:'m',p:'p',x:'x',r:'x',k:'k',rp:'x',mk:'x',pr:'m'},SEGS={c:[['c','Clienti'],['b','Prenotazioni']],m:[['m','Registra'],['u','Uscite'],['pr','Preparazione'],['cs','Carico/Scarico']]},lastV={};let curV='h',alN=0;
 function segDraw(v){const g=GRP[v],e=$('#seg');if(SEGS[g])e.innerHTML='<div class="chips">'+SEGS[g].map(([k,n])=>`<button class="chip ${k===v?'on':''}" data-go="${k}">${n}</button>`).join('')+'</div>';
  else if(v==='o')e.innerHTML='<button class="btn g sm" data-go="h" style="margin:8px 0">← Oggi</button>';else if(g==='x'&&v!=='x')e.innerHTML='<button class="btn g sm" data-go="x" style="margin:8px 0">← Altro</button>';else e.innerHTML=''}
 function alBadge(){const b=$('#bd-h'),l=$('#al-line');if(b){b.hidden=!alN;b.textContent=alN}if(l){l.hidden=!(alN>0&&curV!=='h');l.textContent='⚠ '+alN+(alN===1?' avviso da controllare':' avvisi da controllare')+' · tocca per vederli'}}
@@ -1540,7 +1541,7 @@ function upFile(inp){const f=inp.files&&inp.files[0],k=inp.dataset.f,st=$('#up-'
 $('#rg-b1').onclick=()=>{if(rs_>0){rs_--;regDraw()}};
 function regThanks(){const L=R.lg;R=newR('c');R.lg=L;rs_=0;$('#rg-b').innerHTML=`<div class="card" style="text-align:center"><h2>Grazie! / Thank you! / Danke!</h2><p>${tt('sent')}</p><button class="btn" id="rg-new">${tt('newReg')}</button></div>`;$('#rg-t').textContent=tt('done');$('#rg-p').textContent='';$('#rg-n').style.visibility='hidden';$('#rg-b1').style.visibility='hidden';$('#rg-bar').style.width='100%';
  $('#rg-b').onclick=ev=>{if(ev.target.id==='rg-new'){$('#rg-b').onclick=ev2=>{const d=ev2.target.dataset||{};if(d.lang){R.lg=d.lang;R.lgm=true;regDraw();return}const k=d.clr;if(k&&sg[k])sg[k]()};regOpen(true)}}}
-$('#rg-n').onclick=()=>{const e=regErr();if(e)return toast(e);if(rs_<I18.it.st.length-1){rs_++;regDraw();return}
+$('#rg-n').onclick=()=>{const e=regErr(),re=$('#rg-err');if(re){re.hidden=!e;re.textContent=e||''}if(e)return toast(e);if(rs_<I18.it.st.length-1){rs_++;regDraw();return}
  if(R.mode==='p'){const bk=regSavePren();if(!bk)return;$('#reg').hidden=true;render();go('b');toast('Prenotazione P'+bk+' registrata');return}
  const id=regSave();if(!id)return;if(kiosk){regThanks();return}
  $('#reg').hidden=true;render();toast('Cliente '+fid(id)+' creato')};
@@ -2076,18 +2077,32 @@ function payAsk(id){const p=db.pag.find(x=>x.id===id);if(!p)return;askQ('Elimina
 $('#n-l').onclick=e=>{const id=e.target.dataset&&e.target.dataset.fat1;if(id)fatOpen([+id])};
 $('#n-c').onclick=()=>fatOpen(fatDue().map(x=>x.id));
 let fatIds=[];
+const fatInt=v=>{const m=String(v||'').match(/\d+/);return m?+m[0]:0},fatIt=f=>((cli(f.cid)||{}).naz==='I');
+function fatRen(from){const sf=$('#ff-sf').value,rows=[...document.querySelectorAll('#ff-l [data-row]')];let n=fatInt($('#ff-ln').value),go=from==null;
+ rows.forEach(r=>{const inp=r.querySelector('[data-n]'),on=r.querySelector('[data-k]').checked;if(r.dataset.it==='1')return;
+  if(!go){if(r===from){go=true;n=fatInt(inp.value)}return}
+  if(!on){inp.value='';return}n++;inp.value=n+sf})}
 function fatOpen(ids){fatIds=ids;const l=ids.map(i=>db.pn.find(x=>x.id===i)).filter(Boolean);if(!l.length)return;
- $('#ff-l').innerHTML=l.map(x=>`<div class="card"><label class="chk"><input type="checkbox" data-k="${x.id}" checked> <b>${esc(x.nome)}</b> · ${e2(x.imp)}</label><div class="mut">n. ${esc(fid(x.cid))} · pagato il ${dmy(x.d)}${x.pays.length>1?' · compreso acconto':''}</div><input data-n="${x.id}" placeholder="N. fattura (facoltativo)"></div>`).join('');$('#ff-d').value=oggi();$('#dlgf').showModal()}
+ const ln=db.fl||0,sf=db.fs==null?'/B00':db.fs;
+ $('#ff-l').innerHTML=`<div class="card"><b>Numerazione fatture</b><div class="row" style="gap:8px;margin-top:6px"><div style="flex:1"><label>Ultimo numero già usato</label><input id="ff-ln" type="number" inputmode="numeric" value="${ln||''}" placeholder="es. 335"></div><div style="flex:1"><label>Dopo il numero</label><input id="ff-sf" value="${esc(sf)}"></div></div><div class="mut">Controlla sul portale del commercialista qual è l'ultima fattura emessa: i numeri qui sotto partono da quello. Puoi cambiare ogni numero a mano: i successivi si adeguano.</div></div>`
+  +l.map(x=>`<div class="card" data-row="1" data-it="${fatIt(x)?1:0}"><label class="chk"><input type="checkbox" data-k="${x.id}" checked> <b>${esc(x.nome)}</b> · ${e2(x.imp)}</label><div class="mut">n. ${esc(fid(x.cid))} · pagato il ${dmy(x.d)}${x.pays.length>1?' · compreso acconto':''}</div>${fatIt(x)?'<div class="mut"><b>Cliente italiano:</b> la fattura va inserita a mano sul programma del commercialista (qui il numero è facoltativo)</div>':''}<input data-n="${x.id}" placeholder="${fatIt(x)?'N. fattura dal portale (facoltativo)':'N. fattura'}"></div>`).join('');
+ fatRen();$('#ff-d').value=oggi();$('#dlgf').showModal()}
+$('#ff-l').addEventListener('input',e=>{const t=e.target;if(t.id==='ff-ln'||t.id==='ff-sf')fatRen();else if(t.dataset&&t.dataset.n!=null)fatRen(t.closest('[data-row]'))});
+$('#ff-l').addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.k!=null)fatRen()});
 $('#ff-s').onclick=()=>{const ids=[],nums={};document.querySelectorAll('#ff-l input[data-k]').forEach(i=>{if(i.checked)ids.push(+i.dataset.k)});document.querySelectorAll('#ff-l input[data-n]').forEach(i=>nums[+i.dataset.n]=i.value.trim());
- if(!ids.length)return toast('Seleziona almeno una fattura');fatConf(ids,$('#ff-d').value||oggi(),nums);save();$('#dlgf').close();render();toast(ids.length===1?'Fattura confermata: consolidata in Prima nota':ids.length+' fatture confermate: consolidate in Prima nota')};
+ if(!ids.length)return toast('Seleziona almeno una fattura');
+ const mancano=ids.filter(i=>!nums[i]&&!fatIt(db.pn.find(x=>x.id===i)||{}));if(mancano.length)return toast('Manca il numero fattura per '+mancano.length+' fatture');
+ const dup=ids.map(i=>nums[i]).filter(Boolean).filter((v,k,a)=>a.indexOf(v)!==k);if(dup.length)return toast('Numero fattura ripetuto: '+dup[0]);
+ const usati=db.pn.filter(p=>p.stato==='emessa'&&p.num&&!ids.includes(p.id)).map(p=>String(p.num)),gia=ids.map(i=>nums[i]).find(v=>v&&usati.includes(v));if(gia)return toast('Il numero '+gia+' è già stato usato');
+ const mx=Math.max(0,...ids.map(i=>fatInt(nums[i])));if(mx>0)db.fl=Math.max(db.fl||0,mx);db.fs=$('#ff-sf').value;
+ fatConf(ids,$('#ff-d').value||oggi(),nums);save();$('#dlgf').close();render();toast(ids.length===1?'Fattura confermata: consolidata in Prima nota':ids.length+' fatture confermate: consolidate in Prima nota');setTimeout(()=>xmlExport(false,ids),300)};
 $('#ff-c').onclick=()=>$('#dlgf').close();
 
 // ---- Fatture elettroniche XML (formato FatturaPA FPR12, identico all'esempio del commercialista)
 const XML_CED={tr:'00865310221',iva:'03578820239',den:'GARDA CENTER SRL',ind:'LOC. CAMPOREGGIO',cap:'37010',com:'CAVAION VERONESE',pr:'VR',intId:'01530760220',intDen:'SEAC SPA',iban:'IT60S0200859380000040535208',banca:'UNICREDIT ',ph:'00000000134'};
 const XML_ISO={NL:'NL',I:'IT',D:'DE',A:'AT',CH:'CH',B:'BE',DK:'DK',GB:'GB',F:'FR'},XML_MP={BONIFICO:'MP05','PAGHERA BONIFICO':'MP05',POS:'MP08',ASSEGNO:'MP02',CONTANTI:'MP01'};
 const xe=t=>String(t==null?'':t).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[m]));
-function xmlFattura(f){const c=cli(f.cid);if(!c)return{err:'cliente non trovato'};if(!f.num)return{err:'manca il numero fattura'};
- const iso=XML_ISO[c.naz];if(!iso)return{err:'nazione del cliente non indicata'};if(iso==='IT')return{err:'cliente italiano: serve il codice fiscale, da fare dal portale del commercialista'};
+function xmlFattura(f){const c=cli(f.cid);if(!c)return{err:'cliente non trovato'};const iso=XML_ISO[c.naz];if(!iso)return{err:'nazione del cliente non indicata'};if(iso==='IT')return{err:'cliente italiano: da inserire a mano sul programma del commercialista'};if(!f.num)return{err:'manca il numero fattura'};
  const U=t=>String(t||'').trim().toUpperCase(),nm=U(c.nm)||U(String(c.nome||'').split(' ')[0]),cg=U(c.cg)||U(String(c.nome||'').split(' ').slice(1).join(' '))||nm;
  const lordo=r2(f.imp),imp=r2(lordo/1.22),iva=r2(lordo-imp),un=(lordo/1.22).toFixed(8),y2=String(f.y||db.yr).slice(2),y3=String(+(f.y||db.yr)+1).slice(2);
  const ps=(f.pays||[]).map(i=>db.pag.find(x=>x.id===i)).filter(Boolean),ops=ps.map(p=>p.op),
@@ -2195,11 +2210,11 @@ function xmlFattura(f){const c=cli(f.cid);if(!c)return{err:'cliente non trovato'
 	</FatturaElettronicaBody>
 </FatturaElettronica>`;
  return{xml:x,nome:`Fattura_${String(f.y||db.yr)}_${num.replace(/[\\/:*?"<>|\s]+/g,'-')}.xml`}}
-async function xmlExport(tutte){const y=$('#n-y').value,l=db.pn.filter(p=>p.y===y&&p.stato==='emessa'&&!p.rid&&(tutte||!p.xd)).sort((a,b)=>a.id-b.id);
+async function xmlExport(tutte,ids){const y=$('#n-y').value,l=db.pn.filter(p=>p.stato==='emessa'&&!p.rid&&(ids?ids.includes(p.id):p.y===y&&(tutte||!p.xd))).sort((a,b)=>a.id-b.id);
  if(!l.length)return toast(tutte?'Nessuna fattura emessa da esportare':'Nessuna nuova fattura da inviare: tutte già scaricate');
  const ok=[],no=[];l.forEach(f=>{const r=xmlFattura(f);if(r.err)no.push(`${esc(f.nome)} (${esc(f.num||'senza numero')}): ${r.err}`);else ok.push([f,r])});
  if(!ok.length)return askQ('Niente da esportare',`Nessuna fattura è esportabile:<br>${no.join('<br>')}`,'Ho capito');
- const go=await askQ('Scarica fatture XML',`<b>${ok.length}</b> fatture emesse in un file ZIP, da caricare sul gestionale del commercialista.${no.length?`<br><br><b>Non incluse (${no.length}):</b><br>${no.join('<br>')}`:''}`,'Scarica');if(!go)return;
+ const go=await askQ('Scarica fatture XML',`<b>${ok.length}</b> fatture emesse in un file ZIP, da caricare sul gestionale del commercialista.${no.length?'':''}${no.length?`<br><br><b>Non incluse (${no.length}):</b><br>${no.join('<br>')}`:''}`,'Scarica');if(!go)return;
  try{const d=await claude.use('downloads');if(!d)return toast('Salvataggio non disponibile qui');
   await d.save({filename:`fatture_xml_${oggi()}.zip`,data:new Blob([zipStore(ok.map(([f,r])=>[r.nome,r.xml]))],{type:'application/zip'})});
   ok.forEach(([f])=>{f.xd=oggi()});save();render();toast(ok.length+' fatture XML salvate')}catch(e){if(!e||e.code!=='declined')toast('Salvataggio non riuscito')}}
