@@ -4,6 +4,15 @@
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;background:#fafaf8}img{max-width:100%}[hidden]{display:none!important}.pgb{border:1px solid var(--line,#d9e3ea);background:#fff;border-radius:999px;padding:7px 12px;font-size:.88rem;font-weight:600;margin:4px 6px 0 0;cursor:pointer}
 .pgb.on{background:var(--in,#2e7d4f);border-color:var(--in,#2e7d4f);color:#fff}
 .pgb.re.on{background:var(--x,#b88a00);border-color:var(--x,#b88a00)}
+.prt{display:flex;gap:10px;align-items:flex-start}
+.alw{flex:0 1 46%;display:flex;flex-direction:column;gap:6px;font-size:.8rem}
+.alb{border-radius:8px;padding:6px 8px;line-height:1.3}
+.alb b{display:block;font-size:.78rem;margin-bottom:2px}
+.alb.red{background:rgba(192,57,43,.14);border:1.5px solid #c0392b;color:#7d1f15}
+.alb.org{background:rgba(230,126,34,.16);border:1.5px solid #e67e22;color:#8a4a0c}
+.alb .mut{color:inherit;opacity:.8}
+.card.al-r{border-color:#c0392b}.card.al-o{border-color:#e67e22}
+@media(max-width:520px){.prt{flex-direction:column}.alw{flex-basis:auto;width:100%}}
 .prh{border:2px solid var(--x,#b88a00);background:rgba(217,168,0,.14);border-radius:12px;padding:10px 12px;margin:8px 0}
 .prg{font-weight:700;margin:10px 0 2px}
 .prs{display:inline-block;background:rgba(217,168,0,.25);border-radius:6px;padding:1px 7px;font-size:.78rem;font-weight:700;margin-left:6px}
@@ -237,6 +246,8 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
  <div class="chips" id="pr-nav" hidden></div>
  <p class="mut">Per ogni mezzo in uscita spunta man mano: tirato fuori dal capannone, lavato, oppure rimesso dentro (non sul piazzale).</p>
  <div class="chips" id="pr-wk"></div>
+ <div class="chips" id="pr-sd"></div>
+ <div class="chips" id="pr-fl"></div>
  <div id="pr-hl"></div>
  <div id="pr-l"></div>
 </section>
@@ -1143,7 +1154,7 @@ $('#ov-cl').onclick=()=>{$('#dlgov').close();ovCount()};
 $('#ov-b').onclick=async e=>{const b=e.target.closest('button');if(!b)return;const H={Prefer:'return=minimal'};
  try{
   if(b.dataset.ra){const x=ovD.ric.find(y=>y.id===+b.dataset.ra),c=cli(x.cid);if(!c)return toast('Cliente non trovato');
-   if(db.mov.some(m=>m.t==='uo'&&m.cid===c.id&&m.d===x.data)&&!await askQ('Esiste già un\'uscita',`${esc(c.nome)} ha già un\'uscita il ${dmy(x.data)}. Crearne un\'altra?`,'Crea'))return;
+   if(await movDup(c.id,'uo',x.data))return;
    const mv={id:1+Math.max(0,...db.mov.map(y=>y.id||0)),d:x.data,t:'uo',cid:c.id,pos:c.pos||'',sede:sedeDi(c),lav:false,rit:false,note:'Richiesta del cliente'+(x.note?': '+x.note:'')};db.mov.push(mv);recalc(c.id);let nt='';
    if(x.dettagli&&x.dettagli.trasporto){const ds=x.dettagli,ora=ds.ora&&!db.tr.some(t=>t.d===x.data&&String(t.ora)===String(ds.ora))?String(ds.ora):'';
     db.tr.push({id:1+Math.max(0,...db.tr.map(t=>t.id)),mid:mv.id,cid:c.id,d:x.data,tipo:'Uscita',camp:ds.camp||'',piaz:ds.piaz||'',ora,sede:sedeDi(c),pos:c.pos||'',imp:trTariffa(c,!!c.dasse)||0,dx:!!c.dasse});nt=ora?' con trasporto':' con trasporto (orario da definire: '+(ds.ora?'quello chiesto era occupato':'non indicato')+')'}
@@ -1219,35 +1230,54 @@ const prFmt=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+St
 const prAdd=(d,n)=>{const x=new Date(d+'T12:00');x.setDate(x.getDate()+n);return prFmt(x)};
 const prMon=d=>{const x=new Date(d+'T12:00');x.setDate(x.getDate()-((x.getDay()+6)%7));return prFmt(x)};
 const prGet=id=>(db.pp||[]).find(x=>x.id===id)||{id,o:0,l:0,r:0};
-function prKey(c,m){const pos=c.pos||m.pos||'',lc=LOC[pos]||{},mm=/^(13[CS]) F(\d+) POS/.exec(pos),mc=/^(C12 (?:PORTONE|CORRIDOIO C13|AGRI)) ([A-G])\d$/.exec(pos);
- if(!pos)return null;
- if(lc.luogo==='Casalemenini'){if(mm)return{k:mm[1]+' F'+mm[2],t:'Capannone 13 · lato '+(mm[1]==='13C'?'Campagna':'Strada')+' · fila '+mm[2],fila:1};if(mc)return{k:mc[1]+' '+mc[2],t:'Capannone 12 · '+descr(pos).split(' · ').slice(1,3).join(' · ')+' · fila '+mc[2],fila:1};return{k:'cap:'+(lc.cap||pos),t:'Casalemenini · '+(lc.cap||pos),fila:0}}
- return{k:'cap:'+(lc.cap||pos),t:(lc.luogo||'')+' · '+(lc.cap||pos),fila:0}}
+function prZ(pos){/* zona: {l:luogo, k:chiave gruppo, lato, fila, t:descrizione} */
+ const lc=LOC[pos]||{},lg=lc.luogo||'';if(!pos||!lg)return null;
+ if(lg==='Camporengo')return{lg,k:'cap:'+lc.cap,t:'Capannone '+lc.cap,g:'cap'};
+ let m=/^(13[CS]) F(\d+) POS\d+$/.exec(pos);
+ if(m)return{lg,k:m[1],lato:m[1],fila:+m[2],t:'Capannone 13 · lato '+(m[1]==='13C'?'campagna':'strada')+' · fila '+m[2],g:'13'};
+ m=/^C13 CORRIDOIO ([A-Z])\d+$/.exec(pos);
+ if(m)return{lg,k:'corr13'+m[1],lato:'corr',fila:0,t:'Capannone 13 · corridoio '+m[1],g:'13c'};
+ if(lc.cap==='C12'){const a=/^(C12 PORTONE|C12 CORRIDOIO C13|STANZA \d)/.test(pos)||false,b=/^(C12 LATO AGRI|C12 CORRIDOIO AGRI|C12 AGRI)/.test(pos);
+  if(a)return{lg,k:'c12c13',t:'Capannone 12 · lato C13 (portone, corridoio, stanze)',g:'12'};
+  if(b)return{lg,k:'c12agri',t:'Capannone 12 · lato Agri',g:'12'}}
+ return{lg,k:'cap:'+(lc.cap||pos),t:(lc.cap||pos),g:'cap'}}
+/* confronto tra due mezzi in uscita: 'r' = rosso, 'o' = arancione, null = niente */
+function prCmp(a,b){if(!a||!b||a.lg!==b.lg)return null;
+ if(a.g==='13'&&b.g==='13'&&a.lato===b.lato){if(a.fila===b.fila)return{l:'r',w:'stessa fila'};if(Math.abs(a.fila-b.fila)===1)return{l:'o',w:'fila vicina'};return null}
+ if(a.k===b.k)return{l:'r',w:a.g==='13c'?'stesso corridoio':a.g==='12'?'stessa zona':'stesso capannone'};return null}
+let prA='Casalemenini',prF='';
 function prSet(id,f,v){if(!(db.pp||[]).length&&!db.pp)db.pp=[];let x=db.pp.find(y=>y.id===id);if(!x){x={id,o:0,l:0,r:0};db.pp.push(x)}x[f]=v?1:0;x.u=new Date().toISOString();x.w=ROLE;save();render()}
 function prDraw(){const el=$('#pr-l');if(!el)return;
  if(ROLE!=='master')prW=0;
  const t=oggi(),a=prAdd(prMon(t),7*prW),b=prAdd(a,9),dd=x=>new Date(x+'T12:00').toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'});
  $('#pr-wk').innerHTML=ROLE==='master'?`<button class="chip" data-pw="-1">‹ Prima</button><button class="chip on" data-pw="0">${dd(a)} → ${dd(b)}</button><button class="chip" data-pw="1">Dopo ›</button>${prW?'<button class="chip" data-pw="0r">Questa settimana</button>':''}`:`<button class="chip on">Questa settimana: ${dd(a)} → ${dd(b)}</button>`;
- const rows=(db.mov||[]).filter(m=>m.t==='uo'&&m.d>=a&&m.d<=b).map(m=>({m,c:cli(m.cid)})).filter(x=>x.c&&stato(x.c)==='IN').sort((x,y)=>x.m.d<y.m.d?-1:x.m.d>y.m.d?1:x.c.id-y.c.id);
+ const zOf=r=>prZ(r.c.pos||r.m.pos),lgOf=r=>{const z=zOf(r);return z?z.lg:(r.c.sede||'')};
+ const all=(db.mov||[]).filter(m=>m.t==='uo'&&m.d>=a&&m.d<=b).map(m=>({m,c:cli(m.cid)})).filter(x=>x.c&&stato(x.c)==='IN').sort((x,y)=>x.m.d<y.m.d?-1:x.m.d>y.m.d?1:x.c.id-y.c.id);
+ const nSede=s=>all.filter(r=>lgOf(r)===s).length;
+ $('#pr-sd').innerHTML=['Casalemenini','Camporengo'].map(s=>`<button class="chip ${prA===s?'on':''}" data-pa="${s}">${s} (${nSede(s)})</button>`).join('')+`<button class="chip ${prA===''?'on':''}" data-pa="">Tutte (${all.length})</button>`;
+ const rows=all.filter(r=>!prA||lgOf(r)===prA);
  const G=r=>{const f=prGet(r.m.id);return f.r?3:f.l?2:f.o?1:0},GN=['Da tirare fuori','Sul piazzale: da lavare','Lavate e pronte','Rimesse nel capannone (non sul piazzale)'];
+ const FL=[['','Tutte'],['o','Tirata fuori'],['l','Lavata'],['r','Rimessa dentro']];
+ const cnt=k=>rows.filter(r=>prGet(r.m.id)[k]).length;
+ $('#pr-fl').innerHTML=FL.map(([k,n])=>`<button class="chip ${prF===k?'on':''}" data-pg="${k}">${n}${k?' ('+cnt(k)+')':''}</button>`).join('');
+ const shown=rows.filter(r=>!prF||prGet(r.m.id)[prF]);
+ // avvisi: confronto tra tutti i mezzi in uscita della sede scelta
+ const al={};rows.forEach(x=>{const zx=zOf(x);rows.forEach(y=>{if(x===y)return;const c=prCmp(zx,zOf(y));if(c)(al[x.m.id]=al[x.m.id]||[]).push({r:y,l:c.l,w:c.w})})});
  const tot=[0,0,0,0];rows.forEach(r=>tot[G(r)]++);
- // evidenza: stessa fila / stesso capannone tra i mezzi in uscita nella finestra
- const grp={};rows.forEach(r=>{const k=prKey(r.c,r.m);if(k){(grp[k.k]=grp[k.k]||{t:k.t,fila:k.fila,l:[]}).l.push(r)}});
- const hot=Object.values(grp).filter(g=>g.l.length>1).sort((x,y)=>y.l.length-x.l.length);
- const hotOf={};hot.forEach(g=>g.l.forEach(r=>hotOf[r.m.id]=g));
- $('#pr-hl').innerHTML=(rows.length?`<div class="mon"><div>Da tirare fuori<b>${tot[0]}</b></div><div>Sul piazzale<b>${tot[1]}</b></div><div>Lavate<b>${tot[2]}</b></div><div>Rimesse dentro<b>${tot[3]}</b></div></div>`:'')
-  +(hot.length?`<div class="prh"><b>Escono insieme dallo stesso posto</b><div class="mut">Conviene spostarli nello stesso momento</div>${hot.map(g=>`<div style="margin-top:6px"><b>${esc(g.t)}</b>${g.fila?'':' <span class="mut">(stesso capannone)</span>'}: ${g.l.map(r=>`${esc(fid(r.c.id))} ${esc(r.c.tipo)} ${esc(r.c.targa)} <span class="mut">(${dmy(r.m.d)})</span>`).join(' · ')}</div>`).join('')}</div>`:'');
- let h='',last='';
- const days=[];for(let d=a;d<=b;d=prAdd(d,1))days.push(d);
- days.forEach(d=>{const r=rows.filter(x=>x.m.d===d);if(!r.length)return;
+ $('#pr-hl').innerHTML=rows.length?`<div class="mon"><div>Da tirare fuori<b>${tot[0]}</b></div><div>Sul piazzale<b>${tot[1]}</b></div><div>Lavate<b>${tot[2]}</b></div><div>Rimesse dentro<b>${tot[3]}</b></div></div>`:'';
+ const box=(list,lv)=>{const q=list.filter(x=>x.l===lv);if(!q.length)return'';return`<div class="alb ${lv==='r'?'red':'org'}"><b>${lv==='r'?'Stesso posto, escono insieme':'File vicine, escono insieme'}</b>${q.map(x=>`<div>${fid(x.r.c.id)} · ${esc(x.r.c.tipo)} ${esc(x.r.c.targa)}<span class="mut"> · ${esc(x.r.c.pos||x.r.m.pos)} · ${dmy(x.r.m.d)}</span></div>`).join('')}</div>`};
+ let h='';const days=[];for(let d=a;d<=b;d=prAdd(d,1))days.push(d);
+ days.forEach(d=>{const r=shown.filter(x=>x.m.d===d);if(!r.length)return;
   h+=`<h3>${new Date(d+'T12:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}${d===t?' · oggi':''} <span class="mut">(${r.length})</span></h3>`;
   [0,1,2,3].forEach(gi=>{const q=r.filter(x=>G(x)===gi);if(!q.length)return;h+=`<div class="prg">${GN[gi]} · ${q.length}</div>`;
-   q.forEach(x=>{const f=prGet(x.m.id),pos=x.c.pos||x.m.pos,hg=hotOf[x.m.id],lc=LOC[pos]||{},cl=lc.luogo==='Casalemenini'?'cas':lc.luogo==='Camporengo'?'cam':'';
-    h+=`<div class="card ${cl}"><div class="row"><span class="num">${fid(x.c.id)}</span><div><b>${esc(x.c.nome)}</b>${hg?`<span class="prs">con altri ${hg.l.length-1}</span>`:''}<div class="mut">${esc(x.c.tipo)} · ${esc(x.c.targa)}${x.m.lav?' · lavaggio extra':''}${x.m.note?' · '+esc(x.m.note):''}</div></div></div>
+   q.forEach(x=>{const f=prGet(x.m.id),pos=x.c.pos||x.m.pos,lc=LOC[pos]||{},cl=lc.luogo==='Casalemenini'?'cas':lc.luogo==='Camporengo'?'cam':'',l=al[x.m.id]||[],lv=l.some(y=>y.l==='r')?'r':l.length?'o':'';
+    h+=`<div class="card ${cl} ${lv?'al-'+lv:''}"><div class="prt"><div class="row" style="flex:1;min-width:0"><span class="num">${fid(x.c.id)}</span><div><b>${esc(x.c.nome)}</b><div class="mut">${esc(x.c.tipo)} · ${esc(x.c.targa)}${x.m.lav?' · lavaggio extra':''}${x.m.note?' · '+esc(x.m.note):''}</div></div></div>${l.length?`<div class="alw">${box(l,'r')}${box(l,'o')}</div>`:''}</div>
      <div class="pos ${pos?'':'np'}">${pos?`<b>${esc(pos)}</b><div class="mut">${esc(descr(pos))}${lc.luogo?' · '+lc.luogo:''}</div>`:'Posizione non assegnata'}</div>
      <div><button class="pgb ${f.o?'on':''}" data-pf="${x.m.id}|o">${f.o?'✔ ':''}Tirata fuori</button><button class="pgb ${f.l?'on':''}" data-pf="${x.m.id}|l">${f.l?'✔ ':''}Lavata</button><button class="pgb re ${f.r?'on':''}" data-pf="${x.m.id}|r">${f.r?'✔ ':''}Rimessa dentro</button></div></div>`})})});
- el.innerHTML=h||'<p class="mut">Nessuna uscita prevista in questo periodo.</p>'}
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-pf],[data-pw],[data-pn]');if(!b)return;
+ el.innerHTML=h||'<p class="mut">Nessuna uscita prevista in questo periodo con questi filtri.</p>'}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-pf],[data-pw],[data-pn],[data-pa],[data-pg]');if(!b)return;
+ if(b.dataset.pa!=null){prA=b.dataset.pa;prDraw();return}
+ if(b.dataset.pg!=null){prF=b.dataset.pg;prDraw();return}
  if(b.dataset.pf){const[i,f]=b.dataset.pf.split('|'),x=prGet(+i);prSet(+i,f,!x[f]);return}
  if(b.dataset.pw!=null){const v=b.dataset.pw;prW=v==='0r'||v==='0'?0:prW+ +v;prDraw();return}
  if(b.dataset.pn){go(b.dataset.pn)}});
@@ -1341,8 +1371,9 @@ document.querySelector('.qa')&&(document.querySelector('.qa').onclick=e=>{const 
 $('#m-d').value=oggi();
 $('#m-n').oninput=()=>{pv('#m-i',$('#m-n').value);trp()};
 
-$('#m-s').onclick=()=>{const c=cli($('#m-n').value),d=$('#m-d').value,tp=$('#m-t').value,conTr=$('#m-tr').checked;
+$('#m-s').onclick=async()=>{const c=cli($('#m-n').value),d=$('#m-d').value,tp=$('#m-t').value,conTr=$('#m-tr').checked;
  if(!c)return toast('Non esiste nessun cliente con questo numero');if(!d)return toast('Scegli la data');
+ if(await movDup(c.id,tp,d))return;
  let tr=null;
  if(conTr){const rr=c.tipo==='ROULOTTE',dx=rr&&$('#m-dx').checked,pr=trTariffa(c,dx),imp=pr!=null?pr:+$('#m-imp').value,ora=$('#m-ora').value,sd=sedeDi(c)||$('#m-sede').value,cf=ora&&db.tr.find(t=>t.d===d&&String(t.ora)===ora);
   if(!(imp>0))return toast("Inserisci l'importo del viaggio");
@@ -1542,6 +1573,8 @@ function emUp(){const c=cli($('#em-n').value),on=$('#em-tr').checked,tp=$('#em-t
  const rr=!!c&&c.tipo==='ROULOTTE';$('#em-dxb').hidden=!rr;const dx=rr&&$('#em-dx').checked,pr=c?trTariffa(c,dx):null,old=db.tr.find(x=>x.mid===emId);$('#em-impb').hidden=!c||pr!=null;
  $('#em-sedel').textContent=tp==='ui'?'Dove va riportato il mezzo?':'Dove si trova il mezzo?';
  $('#em-trp').textContent=c?(pr!=null?`Tariffa viaggio: ${eur(old&&old.cid===c.id&&!!old.dx===!!dx?old.imp:pr)}${dx?' (compreso doppio asse +20 €)':''}`:"Tariffa non prevista: inserisci l'importo"):''}
+async function movDup(cid,t,d,exId){const x=db.mov.find(m=>m.cid===cid&&m.t===t&&m.d===d&&m.id!==exId);if(!x)return false;const c=cli(cid)||{};
+ if(await askQ(t==='ui'?'Entrata già inserita':'Uscita già inserita',`${t==='ui'?"L'entrata":"L'uscita"} del ${dmy(d)} per <b>${esc(c.nome||'')}</b> (${esc(c.tipo||'')} ${esc(c.targa||'')}) è già in calendario${x.note?'<br><span class="mut">'+esc(x.note)+'</span>':''}.<br>Non la inserisco di nuovo: vuoi modificare quella?`,'Modifica il movimento'))emOpen(x.id);return true}
 function emOpen(id){const m=db.mov.find(x=>x.id===id);if(!m)return;emId=id;const c=cli(m.cid)||{},t=db.tr.find(x=>x.mid===id);
  $('#em-n').value=m.cid;$('#em-t').value=m.t;$('#em-d').value=m.d;$('#em-l').checked=!!m.lav;$('#em-r').checked=!!m.rit;$('#em-o').value=m.note||'';$('#em-tr').checked=!!t;
  $('#em-camp').value=t?t.camp:'';$('#em-piaz').value=t?t.piaz:'';$('#em-sede').value=t?t.sede:(sedeDi(c)||'');$('#em-dx').checked=t?!!t.dx:!!c.dasse;$('#em-imp').value=t?t.imp:'';
