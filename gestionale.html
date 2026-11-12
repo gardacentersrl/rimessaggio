@@ -2062,7 +2062,7 @@ $('#k-n').oninput=()=>{pv('#k-i',$('#k-n').value);pfDef('k');ktr()};
 // ---- Registro pagamenti e Prima nota
 const fatTxt=p=>{const f=p.fat&&db.pn.find(x=>x.id===p.fat);if(f)return f.stato==='emessa'?`Fattura emessa${f.num?' '+esc(f.num):''}`:`<b>Fattura da emettere (${e2(f.imp)})</b>`;
  return p.op==='ACCONTO'?'Caparra: nessuna fattura, sarà inclusa nel saldo':'Contanti: solo registro'};
-const qm=(q,cid,nome)=>{q=String(q||'').trim().toLowerCase();if(!q)return true;const c=cli(cid)||{};return(String(nome||c.nome||'')+' '+(c.targa||'')+' '+fid(cid)+' '+(c.nome||'')).toLowerCase().includes(q)};
+const qm=(q,cid,nome)=>{q=String(q||'').trim().toLowerCase();if(!q)return true;const c=cli(cid)||{};if(/^[ts]?\d+$/.test(q)&&(db.cl.some(x=>fid(x.id).toLowerCase()===q)||db.tmp.some(x=>String(x.k).toLowerCase()===q)))return String(fid(cid)).toLowerCase()===q;return(String(nome||c.nome||'')+' '+(c.targa||'')+' '+fid(cid)+' '+(c.nome||'')).toLowerCase().includes(q)};
 function pn(){const ys=[...new Set([oggi().slice(0,4),...db.pag.map(p=>p.y),...db.pn.map(p=>p.y)])].sort().reverse();
  $('#k-sub').innerHTML=[['R','Registra'],['G','Registro pagamenti'],['N','Prima nota'+(fatDue().length?' ⚠':'')]].map(([k,n])=>`<button class="chip ${kt===k?'on':''}" data-kt="${k}">${n}</button>`).join('');
  $('#k-a').hidden=kt!=='R';$('#k-g').hidden=kt!=='G';$('#k-pn').hidden=kt!=='N';
