@@ -213,6 +213,7 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
  <div class="chips" id="u-nav" hidden></div>
  <select id="u-y"></select>
  <button class="btn g sm" id="u-x" style="margin:4px 0 8px">Esporta in Excel</button>
+ <input id="u-q" type="search" placeholder="Cerca cliente: numero, nome o targa">
  <div class="chips" id="u-ch"></div>
  <p class="mut"><span class="dot cas"></span>Casalemenini<span class="dot cam"></span>Camporengo</p>
  <div id="u-l"></div>
@@ -289,11 +290,13 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
  <div id="k-g" hidden>
   <select id="g-y"></select>
  <button class="btn g sm" id="g-x" style="margin:4px 0 8px">Esporta in Excel</button>
+ <input id="g-q" type="search" placeholder="Cerca cliente: numero, nome o targa">
   <div id="g-tot" class="card"></div><div id="g-l"></div>
   </div>
  <div id="k-pn" hidden>
   <select id="n-y"></select>
  <button class="btn g sm" id="n-x" style="margin:4px 0 8px">Esporta in Excel</button> <button class="btn g sm" id="n-xml" style="margin:4px 0 8px">Fatture XML da inviare</button> <button class="btn g sm" id="n-xml2" style="margin:4px 0 8px">Riscarica tutte le XML</button>
+  <input id="n-q" type="search" placeholder="Cerca cliente: numero, nome o targa">
   <div id="n-tot" class="card"></div>
   <div class="card" id="n-fx" style="border:2px solid var(--x);background:rgba(217,168,0,.14)"><b>Fatture da emettere</b><div class="mut" id="n-fxt"></div><button class="btn" id="n-c">Fatture da emettere…</button><div id="n-gr" style="margin-top:8px"></div></div>
   <div id="n-l"></div>
@@ -610,7 +613,7 @@ function grid(){const q=$('#p-q').value.trim().toLowerCase(),m=occ();HMAP=$('#p-
 function det(l){const r=occ()[l],d=$('#p-d');if(!r){d.hidden=true;return}const o=r.o;d.hidden=false;d.dataset.p=l;
  d.innerHTML=`<div class="row"><span class="num" style="${r.tmp?'color:var(--out)':''}">${tag(r)}</span><div><b>${esc(o.nome)||'Senza nome'}</b>${r.tmp?' <span class="b OUT">PROVVISORIO</span>':''}<div class="mut">${esc(o.tipo)}${o.marca?' · '+esc(o.marca):''} · ${esc(o.targa)}</div><div class="mut">${esc(descr(l))}</div><div class="mut">Codice ${esc(l)}${o.note?' · '+esc(o.note):''}</div></div></div><button class="btn g" data-x="lib">Libera posto</button>${r.tmp?'<button class="btn g" data-x="del">Elimina provvisorio</button>':''}`}
 function us(){const t=oggi();$('#u-ch').innerHTML=[['P','Prossime'],['O','Passate']].map(([k,n])=>`<button class="chip ${uf===k?'on':''}" data-u="${k}">${n}</button>`).join('');
- const l=usRows();let last='',h='';
+ const uq=$('#u-q').value,l=usRows().filter(m=>qm(uq,m.cid,(cli(m.cid)||{}).nome));let last='',h='';
  l.forEach(m=>{const c=cli(m.cid)||{},pos=uf==='P'?(c.pos||m.pos):m.pos,loc=LOC[pos];
   if(m.d!==last){last=m.d;h+=`<h3>${new Date(m.d+'T12:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}${m.d===t?' · oggi':''}</h3>`}
   h+=`<div class="card ${loc?(loc.luogo==='Casalemenini'?'cas':loc.luogo==='Camporengo'?'cam':''):''}"><div class="row"><span class="num">${fid(m.cid)}</span><div><b>${esc(c.nome)}</b><div class="mut">${esc(c.tipo)} · ${esc(c.targa)}${m.lav?' · lavaggio extra':''}${m.rit?' · ritardo':''}${m.note?' · '+esc(m.note):''}</div></div><button class="btn g sm" data-em="${m.id}" style="flex:none">Modifica</button></div><div class="pos ${pos?'':'np'}">${pos?`<b>${esc(pos)}</b><div class="mut">${esc(descr(pos))}${loc&&loc.luogo?' · '+loc.luogo:''}</div>`:'Posizione non assegnata'}</div></div>`});
@@ -2059,6 +2062,7 @@ $('#k-n').oninput=()=>{pv('#k-i',$('#k-n').value);pfDef('k');ktr()};
 // ---- Registro pagamenti e Prima nota
 const fatTxt=p=>{const f=p.fat&&db.pn.find(x=>x.id===p.fat);if(f)return f.stato==='emessa'?`Fattura emessa${f.num?' '+esc(f.num):''}`:`<b>Fattura da emettere (${e2(f.imp)})</b>`;
  return p.op==='ACCONTO'?'Caparra: nessuna fattura, sarà inclusa nel saldo':'Contanti: solo registro'};
+const qm=(q,cid,nome)=>{q=String(q||'').trim().toLowerCase();if(!q)return true;const c=cli(cid)||{};return(String(nome||c.nome||'')+' '+(c.targa||'')+' '+fid(cid)+' '+(c.nome||'')).toLowerCase().includes(q)};
 function pn(){const ys=[...new Set([oggi().slice(0,4),...db.pag.map(p=>p.y),...db.pn.map(p=>p.y)])].sort().reverse();
  $('#k-sub').innerHTML=[['R','Registra'],['G','Registro pagamenti'],['N','Prima nota'+(fatDue().length?' ⚠':'')]].map(([k,n])=>`<button class="chip ${kt===k?'on':''}" data-kt="${k}">${n}</button>`).join('');
  $('#k-a').hidden=kt!=='R';$('#k-g').hidden=kt!=='G';$('#k-pn').hidden=kt!=='N';
@@ -2066,17 +2070,18 @@ function pn(){const ys=[...new Set([oggi().slice(0,4),...db.pag.map(p=>p.y),...d
  const gy=sy('#g-y'),ny=sy('#n-y');
  const g=db.pag.filter(p=>p.y===gy).sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:b.id-a.id),m={};let tot=0;g.forEach(p=>{m[p.mod]=(m[p.mod]||0)+p.imp;tot+=p.imp});
  $('#g-tot').innerHTML=`<b>Totale incassato ${e2(tot)}</b> <span class="mut">· ${g.length} pagamenti</span><div class="mut">${Object.entries(m).map(([k,v])=>k.toLowerCase()+' '+e2(v)).join(' · ')||'Nessun pagamento in questo anno'}</div>`;
- $('#g-l').innerHTML=g.map(p=>`<div class="card"><div class="row"><span class="num">${p.n}</span><div><b>${esc(p.nome)}</b> <span class="mut">n. ${esc(fid(p.cid))}</span><div class="mut">${dmy(p.d)} · ${opLab(p)} · ${p.mod.toLowerCase()}${p.note?' · '+esc(p.note):''}</div><div class="mut">${fatTxt(p)}</div></div><b style="flex:none">${e2(p.imp)}</b></div>${typeof p.cid==='number'&&!p.rid&&!(p.fat&&(db.pn.find(x=>x.id===p.fat)||{}).stato==='emessa')?`<button class="btn g sm" data-pdel="${p.id}">Elimina</button>`:''} ${typeof p.cid==='number'?`<button class="btn g sm" data-ric="${p.id}">${p.rp?'Apri la ricevuta inviata':'Ricevuta PDF'}</button>`:''}${p.rp?'<div class="mut">✉ Ricevuta inviata al cliente</div>':''}</div>`).join('');
+ const gq=$('#g-q').value,nq=$('#n-q').value;
+ $('#g-l').innerHTML=(g.filter(p=>qm(gq,p.cid,p.nome)).map(p=>`<div class="card"><div class="row"><span class="num">${p.n}</span><div><b>${esc(p.nome)}</b> <span class="mut">n. ${esc(fid(p.cid))}</span><div class="mut">${dmy(p.d)} · ${opLab(p)} · ${p.mod.toLowerCase()}${p.note?' · '+esc(p.note):''}</div><div class="mut">${fatTxt(p)}</div></div><b style="flex:none">${e2(p.imp)}</b></div>${typeof p.cid==='number'&&!p.rid&&!(p.fat&&(db.pn.find(x=>x.id===p.fat)||{}).stato==='emessa')?`<button class="btn g sm" data-pdel="${p.id}">Elimina</button>`:''} ${typeof p.cid==='number'?`<button class="btn g sm" data-ric="${p.id}">${p.rp?'Apri la ricevuta inviata':'Ricevuta PDF'}</button>`:''}${p.rp?'<div class="mut">✉ Ricevuta inviata al cliente</div>':''}</div>`).join(''))||'<p class="mut">Nessun pagamento trovato.</p>';
  const n=db.pn.filter(p=>p.y===ny).sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:b.id-a.id),cons=n.filter(p=>p.stato==='emessa').reduce((a,p)=>a+p.imp,0),dr=n.filter(p=>p.stato!=='emessa'),sa=db.pag.filter(p=>p.op==='ACCONTO'&&!p.fat&&!p.rid&&typeof p.cid==='number'&&p.y===ny);
  $('#n-tot').innerHTML=`<div class="mon"><div>Consolidato (fatture emesse)<b>${e2(cons)}</b></div><div>Da registrare<b>${e2(dr.reduce((a,p)=>a+p.imp,0))}</b>${dr.length} fatture</div><div>Acconti non fatturati<b>${e2(sa.reduce((a,p)=>a+p.imp,0))}</b>${sa.length}</div></div><div class="mut" style="margin-top:6px">Il dato è consolidato solo dopo la conferma che la fattura è stata emessa. Le fatture si emettono circa ogni 15 giorni: dopo ${FDAYS} giorni dall'incasso ti chiedo conferma.</div>`;
- $('#n-l').innerHTML=n.map(p=>{const ps=p.pays.map(i=>db.pag.find(x=>x.id===i)).filter(Boolean);return`<div class="card" style="${p.stato!=='emessa'?'border:2px solid var(--x)':''}"><div class="row"><span class="num" style="min-width:48px">${p.stato==='emessa'?esc(p.num||'—'):'DA EMETTERE'}</span><div><b>${esc(p.nome)}</b> <span class="mut">n. ${esc(fid(p.cid))}</span><div class="mut">${ps.map(x=>`${opLab(x)} ${e2(x.imp)} ${x.mod.toLowerCase()} (${dmy(x.d)})`).join(' + ')}</div><div class="mut">${p.stato==='emessa'?'Emessa il '+dmy(p.de||p.d):'Da registrare entro il '+dmy(p.due)}</div></div><b style="flex:none">${e2(p.imp)}</b></div>${p.stato!=='emessa'?`<button class="btn g sm" data-fat1="${p.id}">Segna fattura emessa</button>`:''}</div>`}).join('')||'<p class="mut">Nessuna riga di Prima nota in questo anno.</p>';
+ $('#n-l').innerHTML=(n.filter(p=>qm(nq,p.cid,p.nome)).map(p=>{const ps=p.pays.map(i=>db.pag.find(x=>x.id===i)).filter(Boolean);return`<div class="card" style="${p.stato!=='emessa'?'border:2px solid var(--x)':''}"><div class="row"><span class="num" style="min-width:48px">${p.stato==='emessa'?esc(p.num||'—'):'DA EMETTERE'}</span><div><b>${esc(p.nome)}</b> <span class="mut">n. ${esc(fid(p.cid))}</span><div class="mut">${ps.map(x=>`${opLab(x)} ${e2(x.imp)} ${x.mod.toLowerCase()} (${dmy(x.d)})`).join(' + ')}</div><div class="mut">${p.stato==='emessa'?'Emessa il '+dmy(p.de||p.d):'Da registrare entro il '+dmy(p.due)}</div></div><b style="flex:none">${e2(p.imp)}</b></div>${p.stato!=='emessa'?`<button class="btn g sm" data-fat1="${p.id}">Segna fattura emessa</button>`:''}</div>`}).join(''))||'<p class="mut">Nessuna riga trovata.</p>';
  {const pe=fatDue(),nx=db.fx?addD(db.fx,FGIRO):'';$('#n-fxt').innerHTML=pe.length?`<b>${pe.length}</b> fatture da emettere (${e2(pe.reduce((a,x)=>a+x.imp,0))}) dall'ultimo giro.<br>${db.fx?`Ultimo giro di fatture: ${dmy(db.fx)} · prossimo promemoria: ${dmy(nx)}${nx<=oggi()?' <b>(è ora)</b>':''}.`:'Non hai ancora fatto nessun giro di fatture.'} Puoi farlo anche prima.`:'Nessuna fattura da emettere.'+(db.fx?` Ultimo giro: ${dmy(db.fx)}.`:'');$('#n-c').hidden=!pe.length;$('#n-c').textContent=`Fatture da emettere (${pe.length})…`;
  const gb=db.gb&&pe.filter(x=>db.gb.nums[x.id]),gr=(db.gr||[]).slice(-6).reverse();
  $('#n-gr').innerHTML=(gb&&gb.length?`<div class="card" style="margin:0 0 8px"><b>Giro scaricato il ${dmy(db.gb.d)}, non ancora confermato</b><div class="mut">${gb.length} fatture con i numeri già assegnati. Dopo aver inserito le fatture nel programma del commercialista conferma l'emissione.</div><button class="btn sm" data-gb="1">Conferma emissione…</button></div>`:'')
   +(gr.length?`<div class="mut"><b>Giri già fatti</b> (puoi riscaricare i file):</div>`+gr.map(g=>{const l=db.pn.filter(p=>p.gr===g.id).map(p=>fatInt(p.num)).filter(Boolean);return`<div class="row" style="gap:6px;align-items:center;margin-top:4px"><div class="mut" style="flex:1">${dmy(g.d)} · ${g.n} fatture${l.length?` · n. ${Math.min(...l)}–${Math.max(...l)}`:''}</div><button class="btn g sm" data-gp="${g.id}">PDF</button><button class="btn g sm" data-gx="${g.id}">XML</button></div>`}).join(''):'')}
  ofr();csList();yrFill()}
 $('#k-sub').onclick=e=>{if(e.target.dataset.kt){kt=e.target.dataset.kt;pn()}};
-$('#g-y').onchange=pn;$('#n-y').onchange=pn;
+$('#g-y').onchange=pn;$('#n-y').onchange=pn;$('#g-q').oninput=pn;$('#n-q').oninput=pn;$('#u-q').oninput=us;
 $('#g-l').onclick=e=>{const dd=e.target.dataset||{};if(dd.ric)ricScarica(+dd.ric);if(dd.ricm)ricMail(+dd.ricm);if(dd.pdel)payAsk(+dd.pdel)};
 function payAsk(id){const p=db.pag.find(x=>x.id===id);if(!p)return;askQ('Eliminare il pagamento?',`${esc(p.nome)} · ${e2(p.imp)} del ${dmy(p.d)} (${opLab(p)}, ${p.mod.toLowerCase()}). Il residuo del cliente verrà aggiornato${p.fat?' e la riga di Prima nota ancora da emettere verrà corretta':''}.`,'Elimina').then(ok=>{if(!ok)return;const r=payDel(id);if(r.err)return toast(r.err);save();render();toast('Pagamento eliminato')})}
 $('#n-l').onclick=e=>{const id=e.target.dataset&&e.target.dataset.fat1;if(id)fatOpen([+id])};
