@@ -295,7 +295,7 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
   <select id="n-y"></select>
  <button class="btn g sm" id="n-x" style="margin:4px 0 8px">Esporta in Excel</button> <button class="btn g sm" id="n-xml" style="margin:4px 0 8px">Fatture XML da inviare</button> <button class="btn g sm" id="n-xml2" style="margin:4px 0 8px">Riscarica tutte le XML</button>
   <div id="n-tot" class="card"></div>
-  <div class="card" id="n-fx" style="border:2px solid var(--x);background:rgba(217,168,0,.14)"><b>Fatture da emettere</b><div class="mut" id="n-fxt"></div><button class="btn" id="n-c">Prepara le fatture…</button></div>
+  <div class="card" id="n-fx" style="border:2px solid var(--x);background:rgba(217,168,0,.14)"><b>Fatture da emettere</b><div class="mut" id="n-fxt"></div><button class="btn" id="n-c">Fatture da emettere…</button></div>
   <div id="n-l"></div>
   </div>
 </section>
@@ -449,10 +449,10 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
  <div id="ss-i"></div>
  <label>Data in cui ti ricordo di aprirla</label><input id="ss-d" type="date">
  <button class="btn" id="ss-s">Apri la nuova stagione</button><button class="btn g" id="ss-u" hidden>Annulla l'apertura</button><button class="btn g" id="ss-c">Chiudi</button></dialog>
-<dialog id="dlgf"><h2>Fatture emesse</h2>
- <p class="mut">Conferma solo le fatture che hai davvero emesso. Una volta confermate, la riga di Prima nota è consolidata.</p>
+<dialog id="dlgf"><h2>Fatture da emettere</h2>
+ <p class="mut">Tutti i pagamenti da fatturare dall'ultimo giro, dal più vecchio. Accanto a ognuno c'è il numero di fattura da usare (puoi cambiarlo). Togli la spunta a quelle che non vuoi fare adesso.</p>
  <div id="ff-l"></div><label>Data di emissione</label><input id="ff-d" type="date">
- <button class="btn" id="ff-s">Conferma fatture emesse</button><button class="btn g" id="ff-c">Annulla</button></dialog>
+ <button class="btn g" id="ff-p">Stampa elenco (PDF)</button><button class="btn g" id="ff-x">Scarica file XML</button><button class="btn" id="ff-s">Ho emesso le fatture: conferma</button><button class="btn g" id="ff-c">Annulla</button></dialog>
 <dialog id="dlg3"><h2>Pagamento trasporto</h2>
  <div id="pd-i" class="mut"></div>
  <label>Importo (€) · solo contanti</label><input id="pd-e" type="number" step="0.01" inputmode="decimal">
@@ -1971,7 +1971,7 @@ function payDel(id){const p=db.pag.find(x=>x.id===id);if(!p)return{err:'Pagament
   if(!rest.some(x=>x.op!=='ACCONTO')){rest.forEach(x=>delete x.fat);db.pn=db.pn.filter(x=>x!==f)}else{f.pays=rest.map(x=>x.id);f.imp=r2(rest.reduce((a,x)=>a+x.imp,0))}}
  db.pag=db.pag.filter(x=>x!==p);return{ok:1}}
 function fatConf(ids,d,nums){db.pn.forEach(p=>{if(ids.includes(p.id)){p.stato='emessa';p.de=d;p.num=(nums&&nums[p.id])||p.num||''}})}
-const fatDue=()=>db.pn.filter(x=>x.stato==='da_reg'&&!x.rid&&x.due<=oggi());
+const fatDue=()=>db.pn.filter(x=>x.stato==='da_reg'&&!x.rid);
 // migrazione dei vecchi incassi: id univoco; i non-contanti diventano righe di Prima nota già emesse
 (()=>{let m=Math.max(0,...db.pag.map(p=>p.id||0));db.pag.forEach(p=>{if(!p.id)p.id=++m});let pm=Math.max(0,...db.pn.map(p=>p.id||0));
  db.pag.forEach(p=>{if(p.t&&!p.fat&&p.op!=='ACCONTO'&&p.mod!==NC){const x={id:++pm,y:p.y,d:p.d,due:p.d,cid:p.cid,nome:p.nome,imp:p.imp,pays:[p.id],stato:'emessa',de:p.d,num:(p.t==='Fattura'?'F':'R')+p.n};if(p.rid)x.rid=p.rid;db.pn.push(x);p.fat=x.id}})})();
@@ -2029,7 +2029,7 @@ function pfUpd(p,chg){const c=PFC[p](),op=$('#'+p+'-o').value,rf=$('#'+p+'-rf').
   box.style.border=(!nc&&op==='SALDO'&&!rf)?'2px solid var(--x)':''}
  const ai=!box.hidden&&$('#'+p+'-ai').checked;let h;
  if(op==='ACCONTO')h="Acconto (caparra): viene scritto solo nel Registro pagamenti, senza fattura. Sarà compreso nella fattura del saldo.";
- else if(nc)h=`Registro pagamenti + Prima nota: fattura da emettere di ${e2(imp+(ai?at:0))}${ai?' (compreso acconto)':''}, da confermare dopo ${FDAYS} giorni (entro il ${dmy(addD(d,FDAYS))}).`;
+ else if(nc)h=`Registro pagamenti + Prima nota: fattura da emettere di ${e2(imp+(ai?at:0))}${ai?' (compreso acconto)':''}. Verrà inserita nel prossimo giro di fatture (Prima nota → Fatture da emettere).`;
  else h=ai?`Contanti: ${e2(imp)} solo nel Registro pagamenti. In Prima nota va solo la fattura dell'acconto (${e2(at)}).`:'Contanti: scritto solo nel Registro pagamenti, nessuna riga in Prima nota.';
  $('#'+p+'-h').textContent=h}
 function pfYears(p,c){const ar=c?arrList(c):[];$('#'+p+'-yb').hidden=!ar.length;$('#'+p+'-ay').innerHTML=`<option value="">Stagione ${db.yr} (corrente) · residuo ${e2(c?Math.max(0,daPagare(c)):0)}</option>`+ar.map(x=>`<option value="${x.y}">Arretrato ${x.y} · residuo ${e2(r2(x.imp-(x.pag||0)))}</option>`).join('');return ar}
@@ -2057,7 +2057,7 @@ function ktr(){const b=$('#k-t'),h=$('#k-th');if(!b)return;const c=cli($('#k-n')
 $('#k-t').onclick=e=>{const d=e.target.dataset||{};if(d.otp)trOpenPay(d.otp)};
 $('#k-n').oninput=()=>{pv('#k-i',$('#k-n').value);pfDef('k');ktr()};
 // ---- Registro pagamenti e Prima nota
-const fatTxt=p=>{const f=p.fat&&db.pn.find(x=>x.id===p.fat);if(f)return f.stato==='emessa'?`Fattura emessa${f.num?' '+esc(f.num):''}`:`<b style="color:${f.due<=oggi()?'var(--out)':'inherit'}">Fattura da emettere (${e2(f.imp)})</b>`;
+const fatTxt=p=>{const f=p.fat&&db.pn.find(x=>x.id===p.fat);if(f)return f.stato==='emessa'?`Fattura emessa${f.num?' '+esc(f.num):''}`:`<b>Fattura da emettere (${e2(f.imp)})</b>`;
  return p.op==='ACCONTO'?'Caparra: nessuna fattura, sarà inclusa nel saldo':'Contanti: solo registro'};
 function pn(){const ys=[...new Set([oggi().slice(0,4),...db.pag.map(p=>p.y),...db.pn.map(p=>p.y)])].sort().reverse();
  $('#k-sub').innerHTML=[['R','Registra'],['G','Registro pagamenti'],['N','Prima nota'+(fatDue().length?' ⚠':'')]].map(([k,n])=>`<button class="chip ${kt===k?'on':''}" data-kt="${k}">${n}</button>`).join('');
@@ -2069,35 +2069,39 @@ function pn(){const ys=[...new Set([oggi().slice(0,4),...db.pag.map(p=>p.y),...d
  $('#g-l').innerHTML=g.map(p=>`<div class="card"><div class="row"><span class="num">${p.n}</span><div><b>${esc(p.nome)}</b> <span class="mut">n. ${esc(fid(p.cid))}</span><div class="mut">${dmy(p.d)} · ${opLab(p)} · ${p.mod.toLowerCase()}${p.note?' · '+esc(p.note):''}</div><div class="mut">${fatTxt(p)}</div></div><b style="flex:none">${e2(p.imp)}</b></div>${typeof p.cid==='number'&&!p.rid&&!(p.fat&&(db.pn.find(x=>x.id===p.fat)||{}).stato==='emessa')?`<button class="btn g sm" data-pdel="${p.id}">Elimina</button>`:''} ${typeof p.cid==='number'?`<button class="btn g sm" data-ric="${p.id}">${p.rp?'Apri la ricevuta inviata':'Ricevuta PDF'}</button>`:''}${p.rp?'<div class="mut">✉ Ricevuta inviata al cliente</div>':''}</div>`).join('');
  const n=db.pn.filter(p=>p.y===ny).sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:b.id-a.id),cons=n.filter(p=>p.stato==='emessa').reduce((a,p)=>a+p.imp,0),dr=n.filter(p=>p.stato!=='emessa'),sa=db.pag.filter(p=>p.op==='ACCONTO'&&!p.fat&&!p.rid&&typeof p.cid==='number'&&p.y===ny);
  $('#n-tot').innerHTML=`<div class="mon"><div>Consolidato (fatture emesse)<b>${e2(cons)}</b></div><div>Da registrare<b>${e2(dr.reduce((a,p)=>a+p.imp,0))}</b>${dr.length} fatture</div><div>Acconti non fatturati<b>${e2(sa.reduce((a,p)=>a+p.imp,0))}</b>${sa.length}</div></div><div class="mut" style="margin-top:6px">Il dato è consolidato solo dopo la conferma che la fattura è stata emessa. Le fatture si emettono circa ogni 15 giorni: dopo ${FDAYS} giorni dall'incasso ti chiedo conferma.</div>`;
- $('#n-l').innerHTML=n.map(p=>{const ps=p.pays.map(i=>db.pag.find(x=>x.id===i)).filter(Boolean);return`<div class="card" style="${p.stato!=='emessa'&&p.due<=oggi()?'border:2px solid var(--x)':''}"><div class="row"><span class="num" style="min-width:48px">${p.stato==='emessa'?esc(p.num||'—'):'DA EMETTERE'}</span><div><b>${esc(p.nome)}</b> <span class="mut">n. ${esc(fid(p.cid))}</span><div class="mut">${ps.map(x=>`${opLab(x)} ${e2(x.imp)} ${x.mod.toLowerCase()} (${dmy(x.d)})`).join(' + ')}</div><div class="mut">${p.stato==='emessa'?'Emessa il '+dmy(p.de||p.d):'Da registrare entro il '+dmy(p.due)}</div></div><b style="flex:none">${e2(p.imp)}</b></div>${p.stato!=='emessa'?`<button class="btn g sm" data-fat1="${p.id}">Segna fattura emessa</button>`:''}</div>`}).join('')||'<p class="mut">Nessuna riga di Prima nota in questo anno.</p>';
- {const pe=db.pn.filter(x=>x.stato==='da_reg'&&!x.rid),pr=fatDue().length,nx=db.fx?addD(db.fx,FGIRO):'';$('#n-fxt').innerHTML=pe.length?`<b>${pe.length}</b> da emettere${pr?`, di cui <b>${pr}</b> già pronte (passati ${FDAYS} giorni dall'incasso)`:''}.<br>${db.fx?`Ultimo giro di fatture: ${dmy(db.fx)} · prossimo promemoria: ${dmy(nx)}${nx<=oggi()?' <b>(è ora)</b>':''}.`:'Non hai ancora fatto nessun giro di fatture.'} Puoi farlo anche prima.`:'Nessuna fattura da emettere.'+(db.fx?` Ultimo giro: ${dmy(db.fx)}.`:'');$('#n-c').hidden=!pe.length;$('#n-c').textContent=`Prepara le fatture (${pe.length})…`}
+ $('#n-l').innerHTML=n.map(p=>{const ps=p.pays.map(i=>db.pag.find(x=>x.id===i)).filter(Boolean);return`<div class="card" style="${p.stato!=='emessa'?'border:2px solid var(--x)':''}"><div class="row"><span class="num" style="min-width:48px">${p.stato==='emessa'?esc(p.num||'—'):'DA EMETTERE'}</span><div><b>${esc(p.nome)}</b> <span class="mut">n. ${esc(fid(p.cid))}</span><div class="mut">${ps.map(x=>`${opLab(x)} ${e2(x.imp)} ${x.mod.toLowerCase()} (${dmy(x.d)})`).join(' + ')}</div><div class="mut">${p.stato==='emessa'?'Emessa il '+dmy(p.de||p.d):'Da registrare entro il '+dmy(p.due)}</div></div><b style="flex:none">${e2(p.imp)}</b></div>${p.stato!=='emessa'?`<button class="btn g sm" data-fat1="${p.id}">Segna fattura emessa</button>`:''}</div>`}).join('')||'<p class="mut">Nessuna riga di Prima nota in questo anno.</p>';
+ {const pe=fatDue(),nx=db.fx?addD(db.fx,FGIRO):'';$('#n-fxt').innerHTML=pe.length?`<b>${pe.length}</b> fatture da emettere (${e2(pe.reduce((a,x)=>a+x.imp,0))}) dall'ultimo giro.<br>${db.fx?`Ultimo giro di fatture: ${dmy(db.fx)} · prossimo promemoria: ${dmy(nx)}${nx<=oggi()?' <b>(è ora)</b>':''}.`:'Non hai ancora fatto nessun giro di fatture.'} Puoi farlo anche prima.`:'Nessuna fattura da emettere.'+(db.fx?` Ultimo giro: ${dmy(db.fx)}.`:'');$('#n-c').hidden=!pe.length;$('#n-c').textContent=`Fatture da emettere (${pe.length})…`}
  ofr();csList();yrFill()}
 $('#k-sub').onclick=e=>{if(e.target.dataset.kt){kt=e.target.dataset.kt;pn()}};
 $('#g-y').onchange=pn;$('#n-y').onchange=pn;
 $('#g-l').onclick=e=>{const dd=e.target.dataset||{};if(dd.ric)ricScarica(+dd.ric);if(dd.ricm)ricMail(+dd.ricm);if(dd.pdel)payAsk(+dd.pdel)};
 function payAsk(id){const p=db.pag.find(x=>x.id===id);if(!p)return;askQ('Eliminare il pagamento?',`${esc(p.nome)} · ${e2(p.imp)} del ${dmy(p.d)} (${opLab(p)}, ${p.mod.toLowerCase()}). Il residuo del cliente verrà aggiornato${p.fat?' e la riga di Prima nota ancora da emettere verrà corretta':''}.`,'Elimina').then(ok=>{if(!ok)return;const r=payDel(id);if(r.err)return toast(r.err);save();render();toast('Pagamento eliminato')})}
 $('#n-l').onclick=e=>{const id=e.target.dataset&&e.target.dataset.fat1;if(id)fatOpen([+id])};
-$('#n-c').onclick=()=>fatOpen(fatAll());
+$('#n-c').onclick=()=>fatOpen(fatAll())
 let fatIds=[];
 const fatInt=v=>{const m=String(v||'').match(/\d+/);return m?+m[0]:0},fatIt=f=>((cli(f.cid)||{}).naz==='I');
 function fatRen(from){const sf=$('#ff-sf').value,rows=[...document.querySelectorAll('#ff-l [data-row]')];let n=fatInt($('#ff-ln').value),go=from==null;
- rows.forEach(r=>{const inp=r.querySelector('[data-n]'),on=r.querySelector('[data-k]').checked;if(r.dataset.it==='1')return;
+ rows.forEach(r=>{const inp=r.querySelector('[data-n]'),on=r.querySelector('[data-k]').checked;
   if(!go){if(r===from){go=true;n=fatInt(inp.value)}return}
   if(!on){inp.value='';return}n++;inp.value=n+sf})}
-function fatOpen(ids){fatIds=ids;const l=ids.map(i=>db.pn.find(x=>x.id===i)).filter(Boolean);if(!l.length)return;
+function fatOpen(ids){const l=ids.map(i=>db.pn.find(x=>x.id===i)).filter(Boolean).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.id-b.id);fatIds=l.map(x=>x.id);if(!l.length)return;
  const ln=db.fl||0,sf=db.fs==null?'/B00':db.fs;
- $('#ff-l').innerHTML=`<div class="card"><b>Numerazione fatture</b><div class="row" style="gap:8px;margin-top:6px"><div style="flex:1"><label>Ultimo numero già usato</label><input id="ff-ln" type="number" inputmode="numeric" value="${ln||''}" placeholder="es. 335"></div><div style="flex:1"><label>Dopo il numero</label><input id="ff-sf" value="${esc(sf)}"></div></div><div class="mut">Controlla sul portale del commercialista qual è l'ultima fattura emessa: i numeri qui sotto partono da quello. Puoi cambiare ogni numero a mano: i successivi si adeguano.</div></div>`
-  +l.map(x=>`<div class="card" data-row="1" data-it="${fatIt(x)?1:0}"><label class="chk"><input type="checkbox" data-k="${x.id}" ${x.due<=oggi()?'checked':''}> <b>${esc(x.nome)}</b> · ${e2(x.imp)}</label><div class="mut">n. ${esc(fid(x.cid))} · pagato il ${dmy(x.d)}${x.due>oggi()?' · <b>non ancora pronta</b> (scatta il '+dmy(x.due)+')':''}${x.pays.length>1?' · compreso acconto':''}</div>${fatIt(x)?'<div class="mut"><b>Cliente italiano:</b> la fattura va inserita a mano sul programma del commercialista (qui il numero è facoltativo)</div>':''}<input data-n="${x.id}" placeholder="${fatIt(x)?'N. fattura dal portale (facoltativo)':'N. fattura'}"></div>`).join('');
+ $('#ff-l').innerHTML=`<div class="card"><b>Numerazione fatture</b><div class="row" style="gap:8px;margin-top:6px"><div style="flex:1"><label>Ultimo numero già usato</label><input id="ff-ln" type="number" inputmode="numeric" value="${ln||''}" placeholder="es. 335"></div><div style="flex:1"><label>Dopo il numero</label><input id="ff-sf" value="${esc(sf)}"></div></div><div class="mut">Controlla sul portale del commercialista qual è l'ultima fattura emessa: i numeri partono da quello. Se ne cambi uno, i successivi si adeguano.</div></div>`
+  +l.map(x=>`<div class="card" data-row="1" data-it="${fatIt(x)?1:0}"><div class="row" style="gap:10px;align-items:flex-start"><div style="flex:1;min-width:0"><label class="chk"><input type="checkbox" data-k="${x.id}" checked> <b>${esc(x.nome)}</b> · ${e2(x.imp)}</label><div class="mut">n. ${esc(fid(x.cid))} · pagato il ${dmy(x.d)}${x.pays.length>1?' · compreso acconto':''}</div>${fatIt(x)?'<div class="mut"><b>Cliente italiano:</b> da inserire a mano sul programma del commercialista (non va nello ZIP XML)</div>':''}</div><div style="flex:none;width:130px"><input data-n="${x.id}" placeholder="N. fattura" style="margin:0;text-align:right;font-weight:700"></div></div></div>`).join('');
  fatRen();$('#ff-d').value=oggi();$('#dlgf').showModal()}
 $('#ff-l').addEventListener('input',e=>{const t=e.target;if(t.id==='ff-ln'||t.id==='ff-sf')fatRen();else if(t.dataset&&t.dataset.n!=null)fatRen(t.closest('[data-row]'))});
 $('#ff-l').addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.k!=null)fatRen()});
-$('#ff-s').onclick=()=>{const ids=[],nums={};document.querySelectorAll('#ff-l input[data-k]').forEach(i=>{if(i.checked)ids.push(+i.dataset.k)});document.querySelectorAll('#ff-l input[data-n]').forEach(i=>nums[+i.dataset.n]=i.value.trim());
- if(!ids.length)return toast('Seleziona almeno una fattura');
- const mancano=ids.filter(i=>!nums[i]&&!fatIt(db.pn.find(x=>x.id===i)||{}));if(mancano.length)return toast('Manca il numero fattura per '+mancano.length+' fatture');
- const dup=ids.map(i=>nums[i]).filter(Boolean).filter((v,k,a)=>a.indexOf(v)!==k);if(dup.length)return toast('Numero fattura ripetuto: '+dup[0]);
- const usati=db.pn.filter(p=>p.stato==='emessa'&&p.num&&!ids.includes(p.id)).map(p=>String(p.num)),gia=ids.map(i=>nums[i]).find(v=>v&&usati.includes(v));if(gia)return toast('Il numero '+gia+' è già stato usato');
+function ffStato(){const ids=[],nums={};document.querySelectorAll('#ff-l input[data-k]').forEach(i=>{if(i.checked)ids.push(+i.dataset.k)});document.querySelectorAll('#ff-l input[data-n]').forEach(i=>nums[+i.dataset.n]=i.value.trim());
+ if(!ids.length)return{err:'Seleziona almeno una fattura'};
+ const mancano=ids.filter(i=>!nums[i]);if(mancano.length)return{err:'Manca il numero fattura per '+mancano.length+' fatture'};
+ const dup=ids.map(i=>nums[i]).filter((v,k,a)=>a.indexOf(v)!==k);if(dup.length)return{err:'Numero fattura ripetuto: '+dup[0]};
+ const usati=db.pn.filter(p=>p.stato==='emessa'&&p.num&&!ids.includes(p.id)).map(p=>String(p.num)),gia=ids.map(i=>nums[i]).find(v=>usati.includes(v));if(gia)return{err:'Il numero '+gia+' è già stato usato'};
+ const de=$('#ff-d').value||oggi();return{ids,nums,de,items:ids.map(i=>Object.assign({},db.pn.find(x=>x.id===i),{num:nums[i],de}))}}
+$('#ff-s').onclick=()=>{const r=ffStato();if(r.err)return toast(r.err);const ids=r.ids,nums=r.nums;
  const mx=Math.max(0,...ids.map(i=>fatInt(nums[i])));if(mx>0)db.fl=Math.max(db.fl||0,mx);db.fs=$('#ff-sf').value;
- fatConf(ids,$('#ff-d').value||oggi(),nums);db.fx=oggi();save();$('#dlgf').close();render();toast(ids.length===1?'Fattura confermata: consolidata in Prima nota':ids.length+' fatture confermate: consolidate in Prima nota');setTimeout(()=>xmlExport(false,ids),300)};
+ fatConf(ids,r.de,nums);db.fx=oggi();save();$('#dlgf').close();render();toast(ids.length===1?'Fattura confermata: consolidata in Prima nota':ids.length+' fatture confermate: consolidate in Prima nota')};
+$('#ff-x').onclick=()=>{const r=ffStato();if(r.err)return toast(r.err);xmlRun(r.items)};
+$('#ff-p').onclick=()=>{const r=ffStato();if(r.err)return toast(r.err);fatPdf(r.items)};
 $('#ff-c').onclick=()=>$('#dlgf').close();
 
 // ---- Fatture elettroniche XML (formato FatturaPA FPR12, identico all'esempio del commercialista)
@@ -2212,14 +2216,24 @@ function xmlFattura(f){const c=cli(f.cid);if(!c)return{err:'cliente non trovato'
 	</FatturaElettronicaBody>
 </FatturaElettronica>`;
  return{xml:x,nome:`Fattura_${String(f.y||db.yr)}_${num.replace(/[\\/:*?"<>|\s]+/g,'-')}.xml`}}
-async function xmlExport(tutte,ids){const y=$('#n-y').value,l=db.pn.filter(p=>p.stato==='emessa'&&!p.rid&&(ids?ids.includes(p.id):p.y===y&&(tutte||!p.xd))).sort((a,b)=>a.id-b.id);
- if(!l.length)return toast(tutte?'Nessuna fattura emessa da esportare':'Nessuna nuova fattura da inviare: tutte già scaricate');
+async function xmlRun(l){
  const ok=[],no=[];l.forEach(f=>{const r=xmlFattura(f);if(r.err)no.push(`${esc(f.nome)} (${esc(f.num||'senza numero')}): ${r.err}`);else ok.push([f,r])});
  if(!ok.length)return askQ('Niente da esportare',`Nessuna fattura è esportabile:<br>${no.join('<br>')}`,'Ho capito');
- const go=await askQ('Scarica fatture XML',`<b>${ok.length}</b> fatture emesse in un file ZIP, da caricare sul gestionale del commercialista.${no.length?'':''}${no.length?`<br><br><b>Non incluse (${no.length}):</b><br>${no.join('<br>')}`:''}`,'Scarica');if(!go)return;
+ const go=await askQ('Scarica fatture XML',`<b>${ok.length}</b> fatture in un file ZIP, da caricare sul gestionale del commercialista.${no.length?`<br><br><b>Non incluse (${no.length}):</b><br>${no.join('<br>')}`:''}`,'Scarica');if(!go)return;
  try{const d=await claude.use('downloads');if(!d)return toast('Salvataggio non disponibile qui');
   await d.save({filename:`fatture_xml_${oggi()}.zip`,data:new Blob([zipStore(ok.map(([f,r])=>[r.nome,r.xml]))],{type:'application/zip'})});
-  ok.forEach(([f])=>{f.xd=oggi()});save();render();toast(ok.length+' fatture XML salvate')}catch(e){if(!e||e.code!=='declined')toast('Salvataggio non riuscito')}}
+  ok.forEach(([f])=>{const p=db.pn.find(x=>x.id===f.id);if(p)p.xd=oggi()});save();render();toast(ok.length+' fatture XML salvate')}catch(e){if(!e||e.code!=='declined')toast('Salvataggio non riuscito')}}
+function xmlExport(tutte){const y=$('#n-y').value,l=db.pn.filter(p=>p.stato==='emessa'&&!p.rid&&p.y===y&&(tutte||!p.xd)).sort((a,b)=>a.id-b.id);
+ if(!l.length)return toast(tutte?'Nessuna fattura emessa da esportare':'Nessuna nuova fattura da inviare: tutte già scaricate');return xmlRun(l)}
+async function fatPdf(items){const J=typeof window!=='undefined'&&window.jspdf&&window.jspdf.jsPDF;if(!J)return toast('Libreria PDF non caricata: controlla la connessione');
+ const doc=new J({unit:'mm',format:'a4'});let y=18;const tx=(t,x,sz,b,al)=>{if(y>282){doc.addPage();y=18}doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(sz||10);doc.text(String(t),x,y,al?{align:al}:undefined)};
+ tx('Garda Center - Fatture da emettere',14,14,1);y+=7;tx('Elenco del '+dmy(oggi())+' - '+items.length+' fatture, in ordine di pagamento',14,10);y+=9;
+ tx('N. fattura',14,9,1);tx('Pagato il',46,9,1);tx('Cliente',68,9,1);tx('Mod.',138,9,1);tx('Importo',196,9,1,'right');y+=2;doc.line(14,y,196,y);y+=5;
+ let tot=0;items.forEach(f=>{const c=cli(f.cid)||{},it=fatIt(f),ps=(f.pays||[]).map(i=>db.pag.find(x=>x.id===i)).filter(Boolean),lp=ps.filter(p=>p.mod).pop();tot+=f.imp;
+  tx(String(f.num),14,10,1);tx(dmy(f.d),46,9);tx((fid(f.cid)+' '+(f.nome||'')).slice(0,42),68,9);tx(String(lp&&lp.mod||'').slice(0,12),138,8);tx(pe(f.imp),196,9,0,'right');y+=5;
+  tx((it?'Cliente italiano: inserire a mano nel programma del commercialista':'Estero: file XML')+' - nazione '+(c.naz||'-')+(c.via?' - '+[c.via,c.cap,c.citta].filter(Boolean).join(', '):''),68,7.5);y+=6});
+ y+=2;doc.line(14,y,196,y);y+=6;tx('Totale '+pe(tot),196,11,1,'right');
+ try{const dl=await claude.use('downloads');if(!dl)return toast('Download non disponibile');await dl.save({filename:`fatture-da-emettere-${oggi()}.pdf`,data:doc.output('blob')});toast('PDF salvato')}catch(er){if(!er||er.code!=='declined')toast('Operazione non riuscita')}}
 $('#n-xml').onclick=()=>xmlExport(false);$('#n-xml2').onclick=()=>xmlExport(true);
 // ---- Esportazioni Excel
 const stF=p=>{const f=p.fat&&db.pn.find(x=>x.id===p.fat);return f?(f.stato==='emessa'?'Fattura emessa':'Fattura da emettere'):p.op==='ACCONTO'?'Caparra (no fattura)':'Contanti (no fattura)'};
