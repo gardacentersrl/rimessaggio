@@ -1374,11 +1374,12 @@ $('#m-n').oninput=()=>{pv('#m-i',$('#m-n').value);trp()};
 $('#m-s').onclick=async()=>{const c=cli($('#m-n').value),d=$('#m-d').value,tp=$('#m-t').value,conTr=$('#m-tr').checked;
  if(!c)return toast('Non esiste nessun cliente con questo numero');if(!d)return toast('Scegli la data');
  if(await movDup(c.id,tp,d))return;
- let tr=null;
+ window._exT=null;let tr=null;
  if(conTr){const rr=c.tipo==='ROULOTTE',dx=rr&&$('#m-dx').checked,pr=trTariffa(c,dx),imp=pr!=null?pr:+$('#m-imp').value,ora=$('#m-ora').value,sd=sedeDi(c)||$('#m-sede').value,cf=ora&&db.tr.find(t=>t.d===d&&String(t.ora)===ora);
   if(!(imp>0))return toast("Inserisci l'importo del viaggio");
   if(!sd)return toast(tp==='ui'?'Indica dove va riportato il mezzo':'Indica dove si trova il mezzo');
   if(cf)return toast(`Enrico ha già un trasporto il ${d} alle ${ora}:00 (cliente ${fid(cf.cid)}). Scegli un altro orario`);
+  const exT=db.tr.find(t=>t.cid===c.id&&t.d===d&&t.tipo===(tp==='uo'?'Uscita':'Rientro')&&!t.mid);if(exT){window._exT=exT}else
   tr={id:1+Math.max(0,...db.tr.map(t=>t.id)),cid:c.id,d,tipo:tp==='uo'?'Uscita':'Rientro',camp:$('#m-camp').value.trim(),piaz:$('#m-piaz').value.trim(),ora,sede:sd,pos:c.pos||'',imp,dx};
   c.sede=sd;if(rr)c.dasse=dx}
  const x=$('#m-x').value,xp=Math.round(100*(+String($('#m-xp').value).replace(',','.')||0))/100,xd=$('#m-xd').value.trim();
@@ -1386,6 +1387,7 @@ $('#m-s').onclick=async()=>{const c=cli($('#m-n').value),d=$('#m-d').value,tp=$(
  const mv={id:1+Math.max(0,...db.mov.map(y=>y.id||0)),d,t:tp,cid:c.id,pos:c.pos||'',sede:sedeDi(c),lav:x==='lav',rit:x==='rit',note:$('#m-o').value.trim()};db.mov.push(mv);recalc(c.id);
  if(x==='pneu'||x==='altro')exAdd(c,{d,t:x==='pneu'?'Cambio pneumatici':'Altro',desc:xd,imp:xp,mid:mv.id});
  if(tr){tr.mid=mv.id;db.tr.push(tr)}
+ if(window._exT){window._exT.mid=mv.id;window._exT=null}
  $('#m-n').value='';$('#m-o').value='';$('#m-x').value='';$('#m-xd').value='';$('#m-xp').value='';$('#m-xx').hidden=true;$('#m-tr').checked=false;['#m-camp','#m-piaz','#m-imp'].forEach(y=>$(y).value='');$('#m-sede').value='';
  save();pv('#m-i','');trp();render();
  const mu=tr&&tr.tipo==='Rientro'&&tr.d<=oggi()&&((cont().find(o=>o.cid===c.id)||{}).dap||0)>0;
@@ -2308,7 +2310,10 @@ const pendHtml=()=>{const pe=pendList();return pe.length?pendCard(pe):''};
 function pendClick(e){const d=e.target&&e.target.dataset;if(!d)return false;
  if(d.bkn){bkSave();return true}
  const f=(v)=>{const q=v.split(':'),arr=q[0]==='tr'?db.tr:db.trp;return{k:q[0],arr,x:arr.find(y=>y.id===+q[1])}};
- if(d.pk){const r=f(d.pk);if(r.x){delete r.x.pend;if(r.k==='trp')r.x.mail=false;save();render();toast('Confermato')}return true}
+ if(d.pk){const r=f(d.pk);if(r.x){if(r.k==='tr'){const x=r.x,mt=x.tipo==='Uscita'?'uo':'ui',c=cli(x.cid);let mv=x.mid&&db.mov.find(m=>m.id===x.mid);if(!mv)mv=db.mov.find(m=>m.cid===x.cid&&m.t===mt&&m.d===x.d);
+   if(!mv&&c){mv={id:1+Math.max(0,...db.mov.map(y=>y.id||0)),d:x.d,t:mt,cid:c.id,pos:c.pos||'',sede:sedeDi(c),lav:false,rit:false,note:'Inserito da Enrico'};db.mov.push(mv);recalc(c.id)}
+   if(mv)x.mid=mv.id}
+   delete r.x.pend;if(r.k==='trp')r.x.mail=false;save();render();toast('Confermato')}return true}
  if(d.pr){const r=f(d.pr);if(r.x)askQ('Rifiutare?',pendTxt(r.k,r.x)+'<br>Verrà eliminato.','Rifiuta').then(ok=>{if(ok){const i=r.arr.indexOf(r.x);if(i>=0)r.arr.splice(i,1);save();render();toast('Eliminato')}});return true}
  return false}
 const bkOld=()=>{if(typeof window==='undefined'||!window.SITE)return false;try{const t=localStorage.getItem('rim-bk');return !t||t<new Date(Date.now()-7*864e5).toISOString().slice(0,10)}catch(e){return false}};
@@ -2327,7 +2332,10 @@ $('#tr-ok').onclick=()=>{const c=cli($('#tr-n').value),d=$('#tr-d').value,imp=+$
  if(!c)return toast('Non esiste nessun cliente con questo numero');if(!d)return toast('Scegli la data');if(!(imp>0))return toast("Inserisci l'importo del viaggio");
  if(ora&&db.tr.find(t=>t.d===d&&String(t.ora)===ora))return toast('Questo orario è già occupato');
  const t={id:1+Math.max(0,...db.tr.map(x=>x.id||0)),cid:c.id,d,tipo:$('#tr-t').value,camp:$('#tr-c').value.trim(),piaz:$('#tr-p').value.trim(),ora,sede:$('#tr-s').value,pos:c.pos||'',imp,dx:false,pend:1};
- db.tr.push(t);save();$('#dlgtr').close();render();toast('Trasporto aggiunto: in attesa di conferma')};
+ const mt=t.tipo==='Uscita'?'uo':'ui',mv=db.mov.find(m=>m.cid===c.id&&m.t===mt&&m.d===d);
+ if(db.tr.find(x=>x.cid===c.id&&x.d===d&&x.tipo===t.tipo))return toast(`Per questa data c'è già un trasporto di ${t.tipo==='Uscita'?'uscita':'rientro'} per questo cliente`);
+ if(mv)t.mid=mv.id;
+ db.tr.push(t);save();$('#dlgtr').close();render();toast(mv?'Il movimento di quel giorno c\'era già: ho aggiunto solo il trasporto, in attesa di conferma':'Trasporto aggiunto: il movimento verrà creato alla conferma dell\'ufficio')};
 if(ROLE!=='master'){document.body.classList.add('role-'+ROLE);render();go(ROLE==='operaio'?'pr':'r')}
 db.cl.forEach(c=>{if(!c.b){const ms=db.mov.filter(m=>m.cid===c.id);c.b={ui:ms.some(m=>m.t==='ui')?'':(c.ui||''),uo:ms.some(m=>m.t==='uo')?'':(c.uo||''),lav:Math.max(0,(c.lav||0)-ms.filter(m=>m.lav).length),rit:Math.max(0,(c.rit||0)-ms.filter(m=>m.rit).length)};recalc(c.id)}});
 trp();
