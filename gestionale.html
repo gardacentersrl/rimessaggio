@@ -2088,8 +2088,8 @@ function fatRen(from){const sf=$('#ff-sf').value,rows=[...document.querySelector
   if(!go){if(r===from){go=true;n=fatInt(inp.value)}return}
   if(!on){inp.value='';return}n++;inp.value=n+sf})}
 function fatOpen(ids){const l=ids.map(i=>db.pn.find(x=>x.id===i)).filter(Boolean).sort((a,b)=>fatIt(a)-fatIt(b)||(a.d<b.d?-1:a.d>b.d?1:a.id-b.id));fatIds=l.map(x=>x.id);if(!l.length)return;
- const ln=db.fl||0,sf=db.fs==null?'/B00':db.fs;
- $('#ff-l').innerHTML=`<div class="card"><b>Numerazione fatture</b><div class="row" style="gap:8px;margin-top:6px"><div style="flex:1"><label>Ultimo numero già usato</label><input id="ff-ln" type="number" inputmode="numeric" value="${ln||''}" placeholder="es. 335"></div><div style="flex:1"><label>Dopo il numero</label><input id="ff-sf" value="${esc(sf)}"></div></div><div class="mut">Controlla sul portale del commercialista qual è l'ultima fattura emessa: i numeri partono da quello. Se ne cambi uno, i successivi si adeguano.</div></div>`
+ const nuovo=!!db.fa&&db.fa!==oggi().slice(0,4),ln=nuovo?0:db.fl,sf=db.fs==null?'/B00':db.fs;
+ $('#ff-l').innerHTML=`<div class="card"><b>Numerazione fatture</b><div class="row" style="gap:8px;margin-top:6px"><div style="flex:1"><label>Ultimo numero già usato</label><input id="ff-ln" type="number" inputmode="numeric" value="${ln==null?'':ln}" placeholder="es. 335"></div><div style="flex:1"><label>Dopo il numero</label><input id="ff-sf" value="${esc(sf)}"></div></div><div class="mut">${nuovo?'<b>Nuovo anno: la numerazione riparte da 1</b> (ho messo 0 come ultimo numero). ':''}Controlla sul portale del commercialista qual è l'ultima fattura emessa: i numeri partono da quello. Se ne cambi uno, i successivi si adeguano.</div></div>`
   +l.map((x,k)=>(fatIt(x)&&(!k||!fatIt(l[k-1]))?'<div class="mut" style="margin:10px 0 4px"><b>Clienti italiani</b>: numerati per ultimi. Inseriscili a mano nel programma del commercialista DOPO aver caricato lo ZIP XML, così la numerazione non ha buchi.</div>':'')+`<div class="card" data-row="1" data-it="${fatIt(x)?1:0}"><div class="row" style="gap:10px;align-items:flex-start"><div style="flex:1;min-width:0"><label class="chk"><input type="checkbox" data-k="${x.id}" checked> <b>${esc(x.nome)}</b> · ${e2(x.imp)}</label><div class="mut">n. ${esc(fid(x.cid))} · pagato il ${dmy(x.d)}${x.pays.length>1?' · compreso acconto':''}</div>${fatIt(x)?'<div class="mut">da inserire a mano (non va nello ZIP XML)</div>':''}</div><div style="flex:none;width:130px"><input data-n="${x.id}" placeholder="N. fattura" style="margin:0;text-align:right;font-weight:700"></div></div></div>`).join('');
  fatRen();
  const gb=db.gb;if(gb&&gb.nums){const rows=[...document.querySelectorAll('#ff-l [data-row]')];let mx=0;rows.forEach(r=>{const id=r.querySelector('[data-k]').dataset.k,v=gb.nums[id];if(v){r.querySelector('[data-n]').value=v;mx=Math.max(mx,fatInt(v))}});
@@ -2099,13 +2099,13 @@ $('#ff-l').addEventListener('input',e=>{const t=e.target;if(t.id==='ff-ln'||t.id
 $('#ff-l').addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.k!=null)fatRen()});
 function ffStato(){const ids=[],nums={};document.querySelectorAll('#ff-l input[data-k]').forEach(i=>{if(i.checked)ids.push(+i.dataset.k)});document.querySelectorAll('#ff-l input[data-n]').forEach(i=>nums[+i.dataset.n]=i.value.trim());
  if(!ids.length)return{err:'Seleziona almeno una fattura'};
- if(!fatInt($('#ff-ln').value))return{err:"Scrivi prima 'Ultimo numero già usato' (controlla sul portale del commercialista)"};
+ if($('#ff-ln').value.trim()==='')return{err:"Scrivi prima 'Ultimo numero già usato' (controlla sul portale del commercialista)"};
  const mancano=ids.filter(i=>!nums[i]);if(mancano.length)return{err:'Manca il numero fattura per '+mancano.length+' fatture'};
  const dup=ids.map(i=>nums[i]).filter((v,k,a)=>a.indexOf(v)!==k);if(dup.length)return{err:'Numero fattura ripetuto: '+dup[0]};
  const usati=db.pn.filter(p=>p.stato==='emessa'&&p.num&&!ids.includes(p.id)).map(p=>String(p.num)),gia=ids.map(i=>nums[i]).find(v=>usati.includes(v));if(gia)return{err:'Il numero '+gia+' è già stato usato'};
  const de=$('#ff-d').value||oggi();return{ids,nums,de,items:ids.map(i=>Object.assign({},db.pn.find(x=>x.id===i),{num:nums[i],de}))}}
 $('#ff-s').onclick=()=>{const r=ffStato();if(r.err)return toast(r.err);const ids=r.ids,nums=r.nums;
- const mx=Math.max(0,...ids.map(i=>fatInt(nums[i])));if(mx>0)db.fl=mx;db.fs=$('#ff-sf').value;
+ const mx=Math.max(0,...ids.map(i=>fatInt(nums[i])));if(mx>0)db.fl=mx;db.fa=String(r.de).slice(0,4);db.fs=$('#ff-sf').value;
  fatConf(ids,r.de,nums);db.gr=db.gr||[];const gid=1+Math.max(0,...db.gr.map(g=>g.id));db.gr.push({id:gid,d:oggi(),de:r.de,n:ids.length});ids.forEach(i=>{const p=db.pn.find(x=>x.id===i);if(p)p.gr=gid});db.gb=null;db.fx=oggi();save();$('#dlgf').close();render();toast(ids.length===1?'Fattura confermata: consolidata in Prima nota':ids.length+' fatture confermate: consolidate in Prima nota')};
 const ffBozza=r=>{db.gb={d:oggi(),nums:r.nums,ln:$('#ff-ln').value,sf:$('#ff-sf').value,de:r.de};db.fs=$('#ff-sf').value;save();render()};
 $('#ff-x').onclick=()=>{const r=ffStato();if(r.err)return toast(r.err);ffBozza(r);xmlRun(r.items)};
