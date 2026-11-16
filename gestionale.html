@@ -312,6 +312,7 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
  <div class="chips" id="b-ch"></div>
  <div id="b-l"></div>
  <button class="btn" id="b-new">Nuova prenotazione</button>
+ <button class="btn g" id="b-inv">Invita online</button>
 </section>
 </main>
 <div id="t"></div>
@@ -424,6 +425,7 @@ body.role-trasportatore #pd-w,body.role-trasportatore label:has(+#pd-w),body.rol
  <button class="btn" id="tr-ok">Aggiungi</button><button class="btn g" id="tr-no">Annulla</button></dialog>
 <dialog id="dlg11"><h2>Cerca numero cliente</h2><input id="sr-q" type="search" placeholder="Nome, targa o marca"><div id="sr-l"></div><button class="btn g" id="sr-x">Chiudi</button></dialog>
 <dialog id="dlg12"><h2>Trasforma in cliente</h2><div id="fn-i"></div><label>Codice cancello (generato in automatico, puoi cambiarlo)</label><input id="fn-cod"><label id="fn-al">Data di arrivo del mezzo</label><input id="fn-arr" type="date"><button class="btn" id="fn-s">Conferma</button><button class="btn g" id="fn-c">Annulla</button></dialog>
+<dialog id="dlginv"><h2>Invita online</h2><p class="mut">Il cliente riceve un'email con le istruzioni per completare la prenotazione da solo: dati personali, documento d'identità, libretto del mezzo, firma del contratto e acconto online. La prenotazione diventa valida quando paga l'acconto.</p><label>Nome</label><input id="iv-n" autocomplete="off"><label>Cognome</label><input id="iv-c" autocomplete="off"><label>Email del cliente</label><input id="iv-m" type="email" inputmode="email" autocomplete="off"><label>Lingua dell'email</label><select id="iv-l"><option value="it">Italiano</option><option value="de">Tedesco</option><option value="en">Inglese</option></select><div id="iv-e" class="ko"></div><button class="btn" id="iv-s">Invia l'invito</button><button class="btn g" id="iv-x">Annulla</button></dialog>
 <dialog id="dlg7"><h2>Documenti cliente</h2><div id="dc-b"></div><button class="btn g" id="dc-x">Chiudi</button></dialog>
 <dialog id="dlgar"><h2>Rientri automatici dei mezzi</h2><p class="mut">Clienti con il mezzo fuori o senza movimenti. Spunta quelli che devono avere il rientro registrato: gli altri (per esempio mezzi che non sono nel capannone) restano come sono.</p><input id="ar-q" type="search" placeholder="Cerca numero, nome o targa"><div class="chips" id="ar-ch"></div><div class="row"><button class="btn g sm" id="ar-a">Seleziona tutti</button><button class="btn g sm" id="ar-z">Deseleziona tutti</button></div><div id="ar-l" class="cl" style="max-height:44vh"></div><div class="mut" id="ar-n" style="margin:6px 0"></div><button class="btn" id="ar-s">Registra i rientri</button><button class="btn g" id="ar-c">Chiudi</button></dialog>
 <dialog id="dlgrp"><h2 id="rp-t">Nuova riparazione</h2>
@@ -1092,7 +1094,7 @@ if(typeof window!=='undefined')setTimeout(mlAutoSoon,8000);
 // ======== Area ospiti ========
 const ovCard=()=>(typeof window!=='undefined'&&window.SITE&&ROLE==='master')?`<div class="card xm" data-ov="1"><div><b>Dai clienti (area ospiti)</b><div class="mut">Richieste di uscita e documenti caricati dai clienti${window.OVN?' · <b>'+window.OVN+' da vedere</b>':''}</div></div><span class="ch">›</span></div>`:'';
 function ovVista(c,F){F=F||{};const f=F[c.id]||{},dk=c.dk||{},ds=(c.doc||{}).s||'',L=mlLang(c),cf=mlCfg(),st=stato(c),cas=sedeDi(c)==='Casalemenini',ex=exT(c),lc=LOC[c.pos]||{};
- return{L,nome:c.nome,mezzo:((MZ[c.tipo]||{})[L])||String(c.tipo||'').toLowerCase(),targa:c.targa||'',stato:st,area:st==='IN'?(lc.cap||''):'',cod:(cas&&st==='IN')?String(c.cod||''):'',
+ return{L,nome:c.nome,mezzo:((MZ[c.tipo]||{})[L])||String(c.tipo||'').toLowerCase(),targa:c.targa||'',stato:st,area:st==='IN'?(lc.cap||''):'',cod:cas?String(c.cod||''):'',
   yr:db.yr,exl:exLines(c,L),tot:r2(tarC(c)+ex),vers:r2((c.acconto||0)+(c.pagato||0)),dap:r2(Math.max(0,daPagare(c))),arr:r2(arrRest(c)),
   pag:db.pag.filter(p=>p.cid===c.id&&p.y===db.yr).sort((a,b)=>b.d<a.d?-1:1).slice(0,10).map(p=>({d:p.d,imp:p.imp})),
   usc:db.mov.filter(m=>m.t==='uo'&&m.cid===c.id&&m.d>=oggi()).map(m=>m.d).sort(),
@@ -1101,11 +1103,16 @@ function ovVista(c,F){F=F||{};const f=F[c.id]||{},dk=c.dk||{},ds=(c.doc||{}).s||
   anag:{nm:c.nm||'',cg:c.cg||'',luogoN:c.luogoN||'',nasc:c.nasc||'',via:c.via||'',citta:c.citta||'',cap:c.cap||''},
   st:{id:(ds&&ds<=oggi())?'scaduto':dk.id?'ok':'manca',ids:ds,veh:dk.veh?'ok':'manca',ctr:(f.s1&&f.sv&&f.sp)?'ok':'manca',acc:((c.acconto||0)+(c.pagato||0))>0?'ok':'manca'},
   iban:cf.iban||'',bic:cf.bic||'',intest:cf.intest||'',caus:'Cliente n. '+fid(c.id)+' '+(c.targa||'')}}
+function ovVistaP(p,F){const f=(F||{})['P'+p.bk]||{},dk=p.dk||{},ds=(p.doc||{}).s||'',cf=mlCfg();
+ return{L:p.lg||'it',nome:p.nome,mezzo:'',targa:p.targa||'',stato:'',pren:p.bk,conf:p.stato==='attiva',num:'P'+p.bk,yr:db.yr,accImp:+p.acc||+cf.acc||0,
+  anag:{nm:p.nm||'',cg:p.cg||'',luogoN:p.luogoN||'',nasc:p.nasc||'',via:p.via||'',citta:p.citta||'',cap:p.cap||''},
+  st:{id:(ds&&ds<=oggi())?'scaduto':dk.id?'ok':'manca',ids:ds,veh:dk.veh?'ok':'manca',ctr:(f.s1&&f.sv&&f.sp)?'ok':'manca',acc:p.accok?'ok':'manca'}}}
 let ovT=0,ovBusy=false;
 function ovAutoSoon(){if(!(typeof window!=='undefined'&&window.SITE&&ROLE==='master'&&window.__rim&&window.__rim.dbr))return;clearTimeout(ovT);ovT=setTimeout(ovAuto,6000)}
 async function ovAuto(){if(ovBusy)return;ovBusy=true;try{const R=mlR,rows=[];
  const F=fdb();
  db.cl.forEach(c=>{const m=String(c.mail||'').trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m))return;const d=ovVista(c,F);rows.push({cid:c.id,mail:m,h:mlHash(oggi()+m+JSON.stringify(d)),dati:d})});
+ db.pren.filter(p=>p.inv&&(p.stato==='richiesta'||p.stato==='attiva')&&mailOk(p.mail)).forEach(p=>{const m=String(p.mail).trim().toLowerCase(),d=ovVistaP(p,F);rows.push({cid:-p.bk,mail:m,h:mlHash(oggi()+m+JSON.stringify(d)),dati:d})});
  const ex=await R('ospiti_vista?select=cid,h&limit=5000'),eh={};ex.forEach(x=>eh[x.cid]=x.h);const up=rows.filter(r=>eh[r.cid]!==r.h),ag=new Date().toISOString();
  for(let i=0;i<up.length;i+=40)await R('ospiti_vista?on_conflict=cid',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(up.slice(i,i+40).map(r=>Object.assign({agg:ag},r)))});
  try{const ct={t:TXT,s:{acc:ST.acc,gen:ST.gen,ves:ST.ves,pri:ST.pri,sig:ST.sig,clr:ST.clr,pnote:ST.pnote}},ch=mlHash(oggi()+JSON.stringify(ct));
@@ -1116,7 +1123,7 @@ async function ovAuto(){if(ovBusy)return;ovBusy=true;try{const R=mlR,rows=[];
 async function ovCount(){if(!(typeof window!=='undefined'&&window.SITE&&ROLE==='master'&&window.__rim&&window.__rim.dbr))return;try{const R=mlR,[a,b,c3,c4]=await Promise.all([R('richieste_ospiti?select=id&stato=eq.nuova'),R('documenti_ospiti?select=id&visto=eq.false'),R('pratiche_ospiti?select=id&stato=eq.inviata'),R('pagamenti_online?select=id&stato=eq.errore').catch(()=>[])]);const n=a.length+b.length+c3.length+c4.length;if(n!==window.OVN){window.OVN=n;al()}}catch(e){}}
 if(typeof window!=='undefined'){setTimeout(ovAutoSoon,10000);setTimeout(ovCount,9000);setInterval(ovCount,300000);setTimeout(poAuto,8000);setInterval(poAuto,60000)}
 let ovD={ric:[],doc:[],pr:[],po:[]};
-const ovNm=cid=>{const c=cli(cid);return c?esc(c.nome)+' <span class="mut">('+esc(fid(c.id))+')</span>':'cliente '+cid};
+const ovNm=cid=>{if(cid<0){const p=db.pren.find(q=>q.bk===-cid);return p?'Prenotazione P'+p.bk+' · '+esc(p.nome):'prenotazione P'+(-cid)}const c=cli(cid);return c?esc(c.nome)+' <span class="mut">('+esc(fid(c.id))+')</span>':'cliente '+cid};
 async function ovOpen(){$('#dlgov').showModal();$('#ov-dl').innerHTML=db.cl.filter(c=>c.mail).slice(0,600).map(c=>`<option value="${esc(fid(c.id)+' '+c.nome)}">`).join('');$('#ov-b').innerHTML='<p class="mut">Carico…</p>';
  try{ovD.ric=await mlR('richieste_ospiti?select=*&stato=eq.nuova&order=id.asc');ovD.doc=await mlR('documenti_ospiti?select=*&order=id.desc&limit=40');ovD.pr=await mlR('pratiche_ospiti?select=*&stato=eq.inviata&order=id.asc');await poAuto();ovD.po=await mlR('pagamenti_online?select=*&order=id.desc&limit=30').catch(()=>[]);ovTab=ovD.po.some(x=>x.stato==='errore')?'pag':ovD.ric.length?'ric':(ovD.pr.length||ovD.doc.some(x=>!x.visto))?'doc':'pag';ovDraw()}catch(e){$('#ov-b').innerHTML='<p class="mut">Non riesco a leggere i dati. Hai eseguito schema7_ospiti.sql?</p>'}}
 const OVCAT={identita:"Documento d'identità",mezzo:'Documento del mezzo',altro:'Altro documento'};
@@ -1137,6 +1144,14 @@ async function poAuto(){if(poBusy||!(typeof window!=='undefined'&&window.SITE&&R
   for(const x of L||[]){
    const cl=await R('pagamenti_online?id=eq.'+x.id+'&stato=eq.nuovo',{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({stato:'in_corso'})});if(!cl||!cl.length)continue;
    const fail=async m=>{await R('pagamenti_online?id=eq.'+x.id,{method:'PATCH',headers:H,body:JSON.stringify({stato:'errore',errore:m})});did=true};
+   if(x.cid<0){const p=db.pren.find(q=>q.bk===-x.cid);if(!p){await fail('Prenotazione non trovata (P'+(-x.cid)+')');continue}
+    if(p.stato==='convertita'){await fail('La prenotazione è già diventata cliente: registra l\'acconto a mano');continue}
+    if(p.accok){await fail('Acconto già registrato per P'+p.bk);continue}
+    const d=new Date(x.creato).toLocaleDateString('sv-SE',{timeZone:'Europe/Rome'});p.acc=r2(+x.importo);p.accok=true;p.accm='CARTA';if(p.stato!=='attiva'){p.stato='attiva';delete p.da;delete p.mot}
+    payAcc('P'+p.bk,p.nome,p.acc,'CARTA',d,p.bk);const pg=db.pag[db.pag.length-1];pg.note='Pagamento online (Stripe) - acconto prenotazione P'+p.bk;
+    save();render();await R('pagamenti_online?id=eq.'+x.id,{method:'PATCH',headers:H,body:JSON.stringify({stato:'registrato',pag_id:pg.id,errore:null})});did=true;
+    try{const m=await ricInvia(pg,false);if(m.err)throw new Error(m.err)}catch(e){toast('Acconto registrato, ma l\'email non è partita: '+e.message);await R('pagamenti_online?id=eq.'+x.id,{method:'PATCH',headers:H,body:JSON.stringify({errore:'Email non inviata: '+e.message})}).catch(()=>{})}
+    continue}
    if(!cli(x.cid)){await fail('Cliente non trovato (n. '+x.cid+')');continue}
    const d=new Date(x.creato).toLocaleDateString('sv-SE',{timeZone:'Europe/Rome'}),c0=cli(x.cid),parts=[];let resto=r2(+x.importo),err='';
    if(x.tipo!=='acconto'){const al=arrList(c0).slice().sort((p,q)=>p.y-q.y),tot=r2(arrOpen(c0)+Math.max(0,daPagare(c0)));if(resto>tot+.005){await fail("L'importo supera il dovuto ("+eur(tot)+")");continue}
@@ -1149,12 +1164,12 @@ async function poAuto(){if(poBusy||!(typeof window!=='undefined'&&window.SITE&&R
  if(did){try{ovCount()}catch(e){}if($('#dlgov').open)ovRefresh()}}
 async function ovRefresh(){try{ovD.po=await mlR('pagamenti_online?select=*&order=id.desc&limit=30').catch(()=>[]);ovDraw()}catch(e){}}
 async function ovUrlData(path){const u=await window.__rim.sign(path),b=await (await fetch(u)).blob();return await new Promise((ok,ko)=>{const fr=new FileReader();fr.onload=()=>ok(fr.result);fr.onerror=ko;fr.readAsDataURL(b)})}
-async function ovImp(id){const x=ovD.pr.find(y=>y.id===id),c=cli(x.cid);if(!c)return toast('Cliente non trovato');const A=x.dati.anag;
- try{const all=fdb(),f=all[c.id]=all[c.id]||{};for(const k of ['s1','sv','sp'])f[k]=await ovUrlData(x.firme[k]);
+async function ovImp(id){const x=ovD.pr.find(y=>y.id===id),neg=x.cid<0,c=neg?db.pren.find(q=>q.bk===-x.cid):cli(x.cid);if(!c)return toast(neg?'Prenotazione non trovata (forse è già diventata cliente)':'Cliente non trovato');const A=x.dati.anag,fk=neg?'P'+(-x.cid):c.id;
+ try{const all=fdb(),f=all[fk]=all[fk]||{};for(const k of ['s1','sv','sp'])f[k]=await ovUrlData(x.firme[k]);
   if(!fsave(all))return toast('Memoria piena: non riesco a salvare le firme');
   const ch=A.nm!==(c.nm||'')||A.cg!==(c.cg||'');Object.assign(c,{nm:A.nm,cg:A.cg,luogoN:A.luogoN,nasc:A.nasc,via:A.via,citta:A.citta,cap:A.cap});if(ch)c.nome=(A.cg+' '+A.nm).trim().toUpperCase();
-  if(['it','en','de'].includes(x.dati.lingua))c.lg=x.dati.lingua;c.reg={d:oggi(),stato:'ok',fonte:'sito'};save();render();
-  await mlR('pratiche_ospiti?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({stato:'importata'})});toast('Contratto importato nella scheda');ovOpen()}catch(e){toast('Non riuscito: '+e.message)}}
+  if(['it','en','de'].includes(x.dati.lingua))c.lg=x.dati.lingua;if(!neg)c.reg={d:oggi(),stato:'ok',fonte:'sito'};save();render();
+  await mlR('pratiche_ospiti?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({stato:'importata'})});toast(neg?'Contratto importato nella prenotazione':'Contratto importato nella scheda');ovOpen()}catch(e){toast('Non riuscito: '+e.message)}}
 async function ovPreview(c){if(!c)return toast('Cliente non trovato');if(!c.mail)return toast("Questo cliente non ha un'email");const w=window.open('','_blank');
  try{const r=await window.__rim.fn('ospite',{a:'anteprima',cid:c.id});w.location='ospiti.html#p='+r.token}catch(e){if(w)w.close();toast(String(e.message).includes('nessun dato')?'I dati del cliente non sono ancora online: aspetta qualche secondo e riprova':"Non riesco ad aprire l'anteprima: "+e.message)}}
 $('#ov-go').onclick=()=>{const v=$('#ov-q').value.trim(),n=+(v.match(/\d+/)||[0])[0],c=db.cl.find(x=>fid(x.id)+' '+x.nome===v)||cli(n)||db.cl.find(x=>x.nome.toLowerCase().includes(v.toLowerCase()));ovPreview(c)};
@@ -1183,9 +1198,9 @@ $('#ov-b').onclick=async e=>{const b=e.target.closest('button');if(!b)return;con
   else if(b.dataset.pgx){await mlR('pagamenti_online?id=eq.'+b.dataset.pgx,{method:'PATCH',headers:H,body:JSON.stringify({stato:'ignorato'})});ovOpen()}
   else if(b.dataset.pi){await ovImp(+b.dataset.pi)}
   else if(b.dataset.pr){await mlR('pratiche_ospiti?id=eq.'+b.dataset.pr,{method:'PATCH',headers:H,body:JSON.stringify({stato:'rifiutata'})});ovOpen()}
-  else if(b.dataset.dc){const x=ovD.doc.find(y=>y.id===+b.dataset.dc),c=cli(x.cid);if(!c)return toast('Cliente non trovato');c.dk=c.dk||{};
+  else if(b.dataset.dc){const x=ovD.doc.find(y=>y.id===+b.dataset.dc),neg=x.cid<0,c=neg?db.pren.find(q=>q.bk===-x.cid):cli(x.cid);if(!c)return toast(neg?'Prenotazione non trovata (forse è già diventata cliente)':'Cliente non trovato');c.dk=c.dk||{};
    const vecchio=x.cat==='identita'?c.dk.idp:c.dk.vehp;if(vecchio&&vecchio!==x.path){window.__rim.del([vecchio]).catch(()=>{});mlR('documenti_ospiti?cid=eq.'+x.cid+'&cat=eq.'+x.cat+'&id=neq.'+x.id,{method:'DELETE',headers:H}).catch(()=>{})}
-   if(x.cat==='identita'){const mm=String(c.mail||'').trim().toLowerCase();db.cl.filter(z=>z===c||(mm&&String(z.mail||'').trim().toLowerCase()===mm)).forEach(z=>{z.dk=z.dk||{};z.dk.id=true;z.dk.idp=x.path;z.doc=Object.assign({},z.doc||{},{t:x.tipo_doc||(z.doc||{}).t||'ID',n:x.num||(z.doc||{}).n||'',s:x.scad||(z.doc||{}).s||''})})}else{c.dk.veh=true;c.dk.vehp=x.path}
+   if(x.cat==='identita'){const mm=String(c.mail||'').trim().toLowerCase();(neg?[c]:db.cl.filter(z=>z===c||(mm&&String(z.mail||'').trim().toLowerCase()===mm))).forEach(z=>{z.dk=z.dk||{};z.dk.id=true;z.dk.idp=x.path;z.doc=Object.assign({},z.doc||{},{t:x.tipo_doc||(z.doc||{}).t||'ID',n:x.num||(z.doc||{}).n||'',s:x.scad||(z.doc||{}).s||''})})}else{c.dk.veh=true;c.dk.vehp=x.path}
    save();render();await mlR('documenti_ospiti?id=eq.'+x.id,{method:'PATCH',headers:H,body:JSON.stringify({visto:true})});toast('Scheda aggiornata');ovOpen()}
   else if(b.dataset.ov2){await mlR('documenti_ospiti?id=eq.'+b.dataset.ov2,{method:'PATCH',headers:H,body:JSON.stringify({visto:true})});ovOpen()}
   else if(b.dataset.od){const x=ovD.doc.find(y=>y.id===+b.dataset.od),w=window.open('','_blank');try{const u=await window.__rim.sign(x.path);w.location=u;await mlR('documenti_ospiti?id=eq.'+x.id,{method:'PATCH',headers:H,body:JSON.stringify({visto:true})})}catch(er){if(w)w.close();toast('Non riesco ad aprire il file')}}
@@ -1692,18 +1707,18 @@ function ritList(){const q=$('#q').value.trim().toLowerCase(),l=db.rit.filter(r=
 // ---- Prenotazioni (numerazione P1, P2…) → diventano cliente quando il cliente salda (annuale) o arriva col mezzo (stagionale)
 let bkF='A';
 const bkFiles=p=>fdb()['P'+p.bk]||{};
-function bkMissing(p){const f=bkFiles(p),m=[];if(!p.accok)m.push('acconto');if(!f.id)m.push('documento identità');if(!f.veh)m.push('documento mezzo');if(!(f.s1&&f.sv&&f.sp))m.push('contratto firmato');return m}
-function bkList(){$('#b-ch').innerHTML=[['A','Attive'],['C','Convertite'],['X','Annullate']].map(([k,n])=>`<button class="chip ${bkF===k?'on':''}" data-bf="${k}">${n}</button>`).join('');
- const st={A:'attiva',C:'convertita',X:'annullata'}[bkF],q=($('#b-q').value||'').trim().toLowerCase(),l=db.pren.filter(p=>p.stato===st&&(!by||String(p.stag||'')===by)&&(!q||(p.nome+p.targa+'p'+p.bk).toLowerCase().includes(q))).sort((a,b)=>b.bk-a.bk);
- $('#b-l').innerHTML=l.length?l.map(p=>{const mi=bkMissing(p),seas=p.ct!=='A';return`<div class="card"><div class="row"><span class="num">P${p.bk}</span><div><b>${esc(p.nome)}</b><div class="mut">${esc(p.tipo)} ${esc(p.marca||'')} ${p.lung||''} m · ${esc(p.targa)}</div><div class="mut">${seas?'Stagionale '+(p.per?esc(p.per.dal)+' → '+esc(p.per.al):''):'Annuale'} · stagione ${esc(p.stag||'')} · tariffa ${eur(tarC(p))} · acconto ${eur(p.acc||0)} ${p.accok?'incassato':'da incassare'}</div>
- ${p.stato==='attiva'?(mi.length?`<div class="ko">Incompleta: manca ${mi.join(', ')}</div>`:'<div class="ok">✓ Confermata (acconto, documenti e contratto)</div>'):p.stato==='convertita'?`<div class="mut">Diventata cliente n. <b>${p.cn}</b> il ${p.dc}</div>`:`<div class="mut">Annullata il ${p.da||''}</div>`}</div></div>
- <div style="margin-top:8px"><button class="btn g sm" data-bdoc="${p.bk}">Documenti e contratto</button> ${p.stato==='attiva'?`<button class="btn g sm" data-bed="${p.bk}">Modifica</button> <button class="btn sm" data-bfin="${p.bk}">${seas?'Registra arrivo':'Trasforma in cliente'}</button> <button class="btn g sm" data-bann="${p.bk}">Annulla</button>`:''}</div></div>`}).join(''):'<p class="mut">Nessuna prenotazione in questo elenco.</p>'}
+function bkMissing(p){const f=bkFiles(p),dk=p.dk||{},m=[];if(!p.accok)m.push('acconto');if(!(f.id||dk.id))m.push('documento identità');if(!(f.veh||dk.veh))m.push('documento mezzo');if(!(f.s1&&f.sv&&f.sp))m.push('contratto firmato');return m}
+function bkList(){$('#b-ch').innerHTML=[['A','Attive'],['R','Richieste online'+(db.pren.some(x=>x.stato==='richiesta')?' ('+db.pren.filter(x=>x.stato==='richiesta').length+')':'')],['C','Convertite'],['X','Annullate']].map(([k,n])=>`<button class="chip ${bkF===k?'on':''}" data-bf="${k}">${n}</button>`).join('');
+ const st={A:'attiva',R:'richiesta',C:'convertita',X:'annullata'}[bkF],q=($('#b-q').value||'').trim().toLowerCase(),l=db.pren.filter(p=>p.stato===st&&(!by||String(p.stag||'')===by)&&(!q||(p.nome+p.targa+'p'+p.bk).toLowerCase().includes(q))).sort((a,b)=>b.bk-a.bk);
+ $('#b-l').innerHTML=l.length?l.map(p=>{const mi=bkMissing(p),seas=p.ct!=='A';return`<div class="card"><div class="row"><span class="num">P${p.bk}</span><div><b>${esc(p.nome)}</b>${p.tipo?`<div class="mut">${esc(p.tipo)} ${esc(p.marca||'')} ${p.lung||''} m · ${esc(p.targa)}</div>`:`<div class="mut">${esc(p.mail||'')}</div>`}<div class="mut">${seas?'Stagionale '+(p.per?esc(p.per.dal)+' → '+esc(p.per.al):''):'Annuale'} · stagione ${esc(p.stag||'')}${p.tipo?' · tariffa '+eur(tarC(p)):''} · acconto ${eur(p.acc||0)} ${p.accok?'incassato':'da incassare'}</div>
+ ${p.stato==='richiesta'?`<div class="ko">Richiesta online: manca ${mi.join(', ')}</div><div class="mut">Invitata il ${dmy(p.inv.d)} · se non completa entro il ${dmy(invScad(p))} viene annullata</div>`:p.stato==='attiva'?(mi.length?`<div class="ko">Incompleta: manca ${mi.join(', ')}</div>`:'<div class="ok">✓ Confermata (acconto, documenti e contratto)</div>'):p.stato==='convertita'?`<div class="mut">Diventata cliente n. <b>${p.cn}</b> il ${p.dc}</div>`:`<div class="mut">Annullata il ${p.da||''}${p.mot?' · '+esc(p.mot):''}</div>`}</div></div>
+ <div style="margin-top:8px"><button class="btn g sm" data-bdoc="${p.bk}">Documenti e contratto</button> ${p.stato==='attiva'||p.stato==='richiesta'?`<button class="btn g sm" data-bed="${p.bk}">Modifica</button> ${p.stato==='attiva'?`<button class="btn sm" data-bfin="${p.bk}">${seas?'Registra arrivo':'Trasforma in cliente'}</button> `:''}${p.inv&&mailOk(p.mail)?`<button class="btn g sm" data-binv="${p.bk}">Rinvia le istruzioni</button> <button class="btn g sm" data-bprev="${p.bk}">Vedi come cliente</button> `:''}<button class="btn g sm" data-bann="${p.bk}">Annulla</button>`:''}</div></div>`}).join(''):'<p class="mut">Nessuna prenotazione in questo elenco.</p>'}
 $('#b-ch').onclick=e=>{if(e.target.dataset.bf){bkF=e.target.dataset.bf;bkList()}};$('#b-q').oninput=bkList;
 $('#b-new').onclick=()=>regOpen(false,'p');
 $('#b-l').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
- if(d.bdoc)docOpen('p',+d.bdoc);else if(d.bed)ecOpen('p',+d.bed);else if(d.bfin)fnOpen(+d.bfin);
+ if(d.bdoc)docOpen('p',+d.bdoc);else if(d.bed)ecOpen('p',+d.bed);else if(d.bfin)fnOpen(+d.bfin);else if(d.binv)invSend(+d.binv,false,true);else if(d.bprev){const p=db.pren.find(x=>x.bk===+d.bprev);if(p)ovPreview({id:-p.bk,mail:p.mail})}
  else if(d.bann){const p=db.pren.find(x=>x.bk===+d.bann);askQ('Annullare la prenotazione?',`P${p.bk} - ${esc(p.nome)}. ${p.accok?'L\'acconto di '+eur(p.acc)+' resta registrato in Prima nota: gestisci a parte l\'eventuale restituzione.':''}`,'Annulla prenotazione').then(ok=>{if(ok){bkCancel(p.bk);toast('Prenotazione annullata')}})}};
-function bkCancel(bk){const p=db.pren.find(x=>x.bk===bk);if(!p)return;p.stato='annullata';p.da=oggi();save();render()}
+function bkCancel(bk,mot){const p=db.pren.find(x=>x.bk===bk);if(!p)return;const rich=p.inv;p.stato='annullata';p.da=oggi();if(mot)p.mot=mot;save();render();if(rich)invPulisci(-bk)}
 let fnBk=null;
 function fnOpen(bk){const p=db.pren.find(x=>x.bk===bk);if(!p)return;fnBk=bk;const mi=bkMissing(p),seas=p.ct!=='A';
  $('#fn-i').innerHTML=`<div class="row"><span class="num">P${p.bk}</span><div><b>${esc(p.nome)}</b><div class="mut">${esc(p.tipo)} ${esc(p.targa)} · ${eur(tarC(p))}${p.accok?' · acconto '+eur(p.acc)+' già incassato':''}</div></div></div>${mi.length?`<div class="ko">Attenzione, manca: ${mi.join(', ')}</div>`:''}<p class="mut">Verrà creato un nuovo cliente con il primo numero libero.${seas?'':' Poi registra il saldo in Cassa.'}</p>`;
@@ -1718,6 +1733,33 @@ function bkFinal(bk,cod,arr){const p=db.pren.find(q=>q.bk===bk);if(!p||p.stato!=
 $('#fn-c').onclick=()=>$('#dlg12').close();
 $('#fn-s').onclick=()=>{const bk=fnBk,r=bkFinal(bk,$('#fn-cod').value.trim(),$('#fn-arr').value);if(r.err)return toast(r.err);$('#dlg12').close();const c=cli(r.id);
  if(c.ct==='A'){go('k');$('#k-n').value=fid(r.id);pv('#k-i',fid(r.id))}else go('c');toast(`P${bk} è diventata cliente n. ${fid(r.id)}`)};
+// ---- Invito online: il cliente completa da solo la prenotazione (dati, documenti, contratto, acconto)
+const INVDAYS=14;
+const invScad=p=>new Date(Date.parse(p.inv.d)+INVDAYS*864e5).toISOString().slice(0,10);
+const INVT={it:(p,u)=>({s:'Prenota il tuo posto da Garda Center: completa la pratica online',l:['Ciao '+gn(p)+',','','grazie per averci scritto! Per prenotare il tuo posto nel nostro rimessaggio devi completare la pratica online: bastano pochi minuti, anche da telefono.','','Ecco cosa fare:','1. Entra qui: '+AREA_URL,'2. Scrivi questa email ('+p.mail+') e ti mandiamo un codice di 6 cifre: niente password da ricordare.','3. Controlla i tuoi dati personali e firma il contratto con il dito o con il mouse.',"4. Carica una foto o la scansione del documento d'identità (o passaporto) e del libretto del mezzo (carta di circolazione).",'5. Paga online l\'acconto di '+u.ac+' con carta o iDEAL.','','La prenotazione è confermata solo quando riceviamo l\'acconto. Hai tempo fino al '+u.sc+': dopo questa data la richiesta viene annullata.','','Per qualsiasi domanda rispondi pure a questa email.','','A presto,','Il team di Garda Center']}),
+ en:(p,u)=>({s:'Book your space at Garda Center: complete your booking online',l:['Hi '+gn(p)+',','','thank you for getting in touch! To book your space in our storage you need to complete the booking online: it only takes a few minutes, even from your phone.','','Here is what to do:','1. Go here: '+AREA_URL,'2. Enter this email address ('+p.mail+') and we send you a 6-digit code: no password to remember.','3. Check your personal details and sign the contract with your finger or mouse.','4. Upload a photo or scan of your ID (or passport) and of the vehicle registration document.','5. Pay the deposit of '+u.ac+' online by card or iDEAL.','','The booking is confirmed only when we receive the deposit. You have until '+u.sc+': after that date the request is cancelled.','','If you have any questions, just reply to this email.','','See you soon,','The Garda Center team']}),
+ de:(p,u)=>({s:'Reservieren Sie Ihren Stellplatz bei Garda Center: online abschließen',l:['Hallo '+gn(p)+',','','vielen Dank für Ihre Nachricht! Um Ihren Platz in unserem Rimessaggio zu reservieren, schließen Sie bitte die Reservierung online ab: Das dauert nur wenige Minuten, auch mit dem Handy.','','So geht es:','1. Hier anmelden: '+AREA_URL,'2. Geben Sie diese E-Mail-Adresse ('+p.mail+') ein, wir senden Ihnen einen 6-stelligen Code: ein Passwort brauchen Sie nicht.','3. Prüfen Sie Ihre persönlichen Daten und unterschreiben Sie den Vertrag mit dem Finger oder der Maus.','4. Laden Sie ein Foto oder einen Scan Ihres Ausweises (oder Reisepasses) und des Fahrzeugscheins hoch.','5. Zahlen Sie die Anzahlung von '+u.ac+' online mit Karte oder iDEAL.','','Die Reservierung ist erst bestätigt, wenn wir die Anzahlung erhalten. Sie haben Zeit bis '+u.sc+': danach wird die Anfrage storniert.','','Bei Fragen antworten Sie einfach auf diese E-Mail.','','Bis bald,','Ihr Garda-Center-Team']})};
+const BKC={it:(p,u)=>({s:'Prenotazione confermata - '+u.num,l:['Ciao '+gn(p)+',','','grazie! Abbiamo ricevuto il tuo acconto di '+u.ac+' e la tua prenotazione ('+u.num+') è confermata. In allegato trovi la ricevuta.','','Il tuo posto è riservato. Ti scriveremo noi per i prossimi passi (arrivo del mezzo e saldo).','',...areaLines('it'),'','Grazie per aver scelto Garda Center!','Il team di Garda Center']}),
+ en:(p,u)=>({s:'Booking confirmed - '+u.num,l:['Hi '+gn(p)+',','','thank you! We received your deposit of '+u.ac+' and your booking ('+u.num+') is confirmed. Your receipt is attached.','','Your space is reserved. We will write to you about the next steps (arrival of your vehicle and the balance).','',...areaLines('en'),'','Thank you for choosing Garda Center!','The Garda Center team']}),
+ de:(p,u)=>({s:'Reservierung bestätigt - '+u.num,l:['Hallo '+gn(p)+',','','vielen Dank! Wir haben Ihre Anzahlung von '+u.ac+' erhalten und Ihre Reservierung ('+u.num+') ist bestätigt. Den Beleg finden Sie im Anhang.','','Ihr Platz ist reserviert. Wir melden uns bei Ihnen zu den nächsten Schritten (Ankunft des Fahrzeugs und Restzahlung).','',...areaLines('de'),'','Danke, dass Sie sich für Garda Center entschieden haben!','Ihr Garda-Center-Team']})};
+function bkConfMail(pg){const p=entOf(pg.cid);if(!p||!p.inv)return null;const L=['it','en','de'].includes(p.lg)?p.lg:'en',w=BKC[L](p,{num:'P'+p.bk,ac:em2(pg.imp,L)});return{L,to:p.mail||'',subject:w.s,body:w.l.join('\n')}}
+async function invSend(bk,quiet,again){const p=db.pren.find(x=>x.bk===bk);if(!p||!mailOk(p.mail))return{err:"Email non valida"};
+ try{try{await ovAuto()}catch(e){}
+  const L=['it','en','de'].includes(p.lg)?p.lg:'en',w=INVT[L](p,{ac:em2(+p.acc||+mlCfg().acc||0,L),sc:dLoc(invScad(p),L)});p.inv.n=(p.inv.n||0)+(again?1:0);if(!p.inv.n)p.inv.n=1;
+  const r=await mlPost([{id:'inv'+bk+'-'+p.inv.n,key:'inv-'+bk+'-'+p.inv.n,to:String(p.mail).trim(),subject:w.s,html:mlWrap(esc(w.l.join('\n')).replace(/\n/g,'<br>'))}]),o=r.results[0];if(!o.ok)throw new Error(o.info);
+  p.inv.m=oggi();save();if(!quiet)toast('Istruzioni inviate a '+p.mail);return{ok:1}}catch(e){if(!quiet)toast('Email non inviata: '+e.message);return{err:e.message}}}
+async function invPulisci(cid){try{const R=mlR,dc=await R('documenti_ospiti?select=path&cid=eq.'+cid),pr=await R('pratiche_ospiti?select=firme&cid=eq.'+cid),ps=dc.map(x=>x.path);pr.forEach(x=>Object.values(x.firme||{}).forEach(v=>v&&ps.push(v)));
+ if(ps.length)await window.__rim.del(ps);await R('documenti_ospiti?cid=eq.'+cid,{method:'DELETE'});await R('pratiche_ospiti?cid=eq.'+cid,{method:'DELETE'});await R('richieste_ospiti?cid=eq.'+cid,{method:'DELETE'})}catch(e){}}
+function invSweep(){let ch=false;db.pren.filter(p=>p.stato==='richiesta'&&p.inv&&oggi()>invScad(p)).forEach(p=>{p.stato='annullata';p.da=oggi();p.mot='richiesta scaduta: acconto non pagato';ch=true;invPulisci(-p.bk)});if(ch){save();render()}}
+$('#b-inv').onclick=()=>{['#iv-n','#iv-c','#iv-m'].forEach(k=>$(k).value='');$('#iv-l').value='it';$('#iv-e').textContent='';$('#dlginv').showModal()};
+$('#iv-x').onclick=()=>$('#dlginv').close();
+$('#iv-s').onclick=async()=>{const nm=$('#iv-n').value.trim(),cg=$('#iv-c').value.trim(),m=$('#iv-m').value.trim(),e=$('#iv-e');
+ if(!nm&&!cg){e.textContent='Scrivi il nome del cliente';return}if(!mailOk(m)){e.textContent="L'email non sembra corretta";return}
+ const dup=db.pren.find(x=>x.inv&&(x.stato==='richiesta'||x.stato==='attiva')&&String(x.mail).trim().toLowerCase()===m.toLowerCase());if(dup){e.textContent='Esiste già P'+dup.bk+' con questa email: usa "Rinvia le istruzioni" dalla sua scheda';return}
+ const bk=nextBk(),lg=$('#iv-l').value,p={bk,d:oggi(),stato:'richiesta',nome:(cg+' '+nm).trim().toUpperCase(),nm,cg,mail:m,naz:lg==='it'?'I':lg==='de'?'D':'',lg,citta:'',via:'',cap:'',doc:null,nasc:'',luogoN:'',marca:'',targa:'',tipo:'',lung:0,ct:'A',dasse:false,cod:genCod(),stag:db.yr,per:null,acc:+mlCfg().acc||0,accm:'',accok:false,dk:{},inv:{d:oggi(),n:1}};
+ $('#iv-s').disabled=true;db.pren.push(p);save();const r=await invSend(bk,true);$('#iv-s').disabled=false;
+ if(r.err){e.textContent='Richiesta creata (P'+bk+') ma la mail non è partita: '+r.err+'. Aprila da "Richieste online" e usa "Rinvia le istruzioni".';bkF='R';bkList();return}
+ $('#dlginv').close();bkF='R';bkList();toast('Invito inviato a '+m+' (P'+bk+')')};
 // ---- Documenti (cliente, prenotazione o ritirato)
 let dcK=null;
 function docCtx(){const x=dcK;if(!x)return null;
@@ -1956,13 +1998,13 @@ async function pdfRicevuta(p){const J=typeof window!=='undefined'&&window.jspdf&
  yy+=30;d.setFont('helvetica','normal');d.setFontSize(9.5);d.setTextColor(92,110,125);d.text(d.splitTextToSize(T.nota,174),18,yy);
  d.setFontSize(9);d.text('www.gardacenter.info',18,285);
  return d.output('blob')}
-async function ricInvia(pg,auto,more){more=more||[];const tot=r2(pg.imp+more.reduce((a,p)=>a+p.imp,0)),x=mailPag(pg,tot,more.length>0);if(!x||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(x.to).trim()))return{err:"Il cliente non ha un'email valida"};
+async function ricInvia(pg,auto,more){more=more||[];const tot=r2(pg.imp+more.reduce((a,p)=>a+p.imp,0)),x=(typeof pg.cid==='string'&&bkConfMail(pg))||mailPag(pg,tot,more.length>0);if(!x||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(x.to).trim()))return{err:"Il cliente non ha un'email valida"};
  const att=[],urls=[];for(const q of [pg,...more]){const bl=await pdfRicevuta(q);if(!bl)return{err:'PDF non creato'};const nome=`ricevuta-${q.y||''}-${q.n}.pdf`,
   url=await window.__rim.up('ricevute/'+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2))+'/'+nome,bl,'application/pdf');att.push({filename:nome,url});urls.push(url)}
  const r=await mlPost([{id:'pay'+pg.id,key:'pay-'+pg.id,to:String(x.to).trim(),subject:x.subject,html:mlWrap(esc(x.body).replace(/\n/g,'<br>')),attachments:att}]),o=r.results[0];
  if(!o.ok)return{err:'Invio non riuscito: '+o.info};[pg,...more].forEach((q,k)=>{q.rp=urls[k];q.mail=true});save();render();try{mlR('pagamenti_online?pag_id=eq.'+pg.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({errore:null})}).catch(()=>{})}catch(e){}return{ok:1}}
 async function ricScarica(id){const p=db.pag.find(x=>x.id===id);if(!p)return;if(p.rp){window.open(p.rp,'_blank');return}const bl=await pdfRicevuta(p);if(!bl)return;try{const dl=await claude.use('downloads');if(!dl)return toast('Download non disponibile');await dl.save({filename:`ricevuta-${p.y||''}-${p.n}-${String(p.nome||'cliente').replace(/\W+/g,'_')}.pdf`,data:bl})}catch(er){if(!er||er.code!=='declined')toast('Operazione non riuscita')}}
-async function ricMail(id){const p=db.pag.find(x=>x.id===id),c=p&&cli(p.cid);if(!p||!c)return;if(!await askQ('Inviare la ricevuta?',`Invio a ${esc(c.mail||'(email mancante)')} la conferma del pagamento di ${e2(p.imp)} con la ricevuta PDF in allegato.`,'Invia'))return;
+async function ricMail(id){const p=db.pag.find(x=>x.id===id),c=p&&entOf(p.cid);if(!p||!c)return;if(!await askQ('Inviare la ricevuta?',`Invio a ${esc(c.mail||'(email mancante)')} la conferma del pagamento di ${e2(p.imp)} con la ricevuta PDF in allegato.`,'Invia'))return;
  try{const r=await ricInvia(p);toast(r.err||'Email inviata con la ricevuta')}catch(e){toast('Invio non riuscito: '+e.message)}}
 const opLab=p=>(p.op==='RATA'?(p.rata?p.rata+'ª ':'')+'rata':String(p.op||'').toLowerCase())+(p.ay?' (arretrato '+p.ay+')':'');
 // Registra un pagamento: scrive SEMPRE nel Registro pagamenti; in Prima nota solo se non è contanti (fattura da emettere) o se si fattura l'acconto
@@ -2318,7 +2360,7 @@ async function contrattoMail(cid,quiet){const c=cli(cid);if(!c||ROLE!=='master'|
 let sweepBusy=false;async function mailSweep(){if(sweepBusy||ROLE!=='master'||!(typeof window!=='undefined'&&window.__rim&&window.__rim.fn))return;sweepBusy=true;try{
  for(const m of db.mov.filter(x=>x.mq&&!x.mc))await autoMov(m.id,true);
  for(const c of db.cl.filter(x=>x.wq&&!x.wsent&&(!x.reg||x.reg.stato!=='verifica')))await welcomeMail(c.id,true);
- if(!db.cmDa){db.cmDa=oggi();save()}
+ invSweep();if(!db.cmDa){db.cmDa=oggi();save()}
  for(const c of db.cl.filter(x=>!x.csent&&x.reg&&x.reg.fonte!=='import'&&x.reg.stato!=='verifica'&&x.reg.d>=db.cmDa&&mailOk(x.mail)&&((fdb()[x.id]||{}).s1)))await contrattoMail(c.id,true)}catch(e){}finally{sweepBusy=false}}
 if(typeof window!=='undefined')setInterval(mailSweep,60000),setTimeout(mailSweep,9000);
 function openMailRaw(x,info,st){mailSt=st;$('#ml-i').textContent=info+(x.to?'':" · Manca l'email del cliente: scrivila qui sotto.");$('#ml-to').value=x.to;$('#ml-s').value=x.subject;$('#ml-b').value=x.body;updMail();$('#dlg5').showModal()}
@@ -2486,7 +2528,7 @@ $('#u-x').onclick=()=>{expXlsx(`uscite-${uy}-${uy===cur()?(uf==='P'?'prossime':'
   usRows().map(m=>{const c=cli(m.cid)||{},pos=(uf==='P'&&uy===cur())?(c.pos||m.pos):m.pos;return[{d:m.d},xnum(m.cid),c.nome||'',c.tipo||'',c.targa||'',pos||'',(LOC[pos]||{}).luogo||'',m.lav?'sì':'',m.rit?'sì':'',m.note||'']}))};
 $('#r-x').onclick=()=>{if(rs==='K'){const C=cont(ty);return expXlsx('trasporti-contabilita-'+ty+'.xlsx','Contabilità trasporti '+ty,['N. CLIENTE','NOME E COGNOME','VIAGGI','TOTALE','PAGATO','DA PAGARE','DA CONSEGNARE A ENRICO','CONSEGNATO A ENRICO'],C.map(o=>[xnum(o.cid),(cli(o.cid)||{}).nome||'',o.n,{m:o.tot},{m:o.pag},{m:o.dap},{m:Math.max(0,o.dare)},{m:o.cons}]))}
  expXlsx('trasporti-'+ty+'.xlsx','Trasporti '+ty,['DATA','ORA','TIPO','N. CLIENTE','NOME E COGNOME','MEZZO','TARGA','CAMPEGGIO','PIAZZOLA','SEDE','IMPORTO VIAGGIO'],db.tr.filter(x=>x.d.slice(0,4)===ty).sort((a,b)=>a.d>b.d?1:a.d<b.d?-1:(+a.ora||99)-(+b.ora||99)).map(x=>{const c=cli(x.cid)||{};return[{d:x.d},x.ora?x.ora+':00':'',x.tipo,xnum(x.cid),c.nome||'',c.tipo||'',c.targa||'',x.camp||'',x.piaz||'',x.sede||'',{m:x.imp||0}]}))};
-const bkRows=()=>{const q=($('#b-q').value||'').trim().toLowerCase(),st={A:'attiva',C:'convertita',X:'annullata'}[bkF];return db.pren.filter(p=>p.stato===st&&(!by||String(p.stag||'')===by)&&(!q||(p.nome+p.targa+'p'+p.bk).toLowerCase().includes(q))).sort((a,b)=>b.bk-a.bk)};
+const bkRows=()=>{const q=($('#b-q').value||'').trim().toLowerCase(),st={A:'attiva',R:'richiesta',C:'convertita',X:'annullata'}[bkF];return db.pren.filter(p=>p.stato===st&&(!by||String(p.stag||'')===by)&&(!q||(p.nome+p.targa+'p'+p.bk).toLowerCase().includes(q))).sort((a,b)=>b.bk-a.bk)};
 $('#b-x').onclick=()=>expXlsx('prenotazioni-'+(by||'tutte')+'.xlsx','Prenotazioni '+(by||'tutte'),['N. PRENOTAZIONE','NOME E COGNOME','TIPO','TARGA','LUNGHEZZA','TIPO CONTRATTO','STAGIONE','TARIFFA','ACCONTO','ACCONTO INCASSATO','STATO','DIVENTATA CLIENTE N.','EMAIL','MANCA'],
  bkRows().map(p=>['P'+p.bk,p.nome,p.tipo,p.targa,p.lung||'',p.ct==='A'?'Annuale':'Stagionale',p.stag||'',{m:tarC(p)},{m:p.acc||0},p.accok?'sì':'no',p.stato,p.cn?xnum(p.cn):'',p.mail||'',p.stato==='attiva'?bkMissing(p).join(', '):'']));
 
