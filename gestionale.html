@@ -2769,13 +2769,13 @@ function startApp(){
   ov.remove();ready=true;badge('Salvato online ✓');setTimeout(doPush,600)}
 function importScreen(msg){
   box('<h1 style="font:600 1.6rem Georgia,serif;margin:0 0 8px">Importa i dati</h1>'
-   +'<p style="color:#5b665f">Il database online è vuoto. Scegli il file di backup scaricato dall\'app (Altro → Backup completo).</p>'
+   +'<p style="color:#5b665f">Il database online è vuoto. Per caricare l\'Excel scegli «Parti da zero senza importare», poi vai in Altro → Dati e accessi → Carica i dati dall\'Excel. Se invece hai un backup scaricato dall\'app, sceglilo qui sotto.</p>'
    +(msg?'<p style="color:#b3312b;font-weight:600">'+msg+'</p>':'')
    +'<input id="bk-f" type="file" accept=".json,application/json" style="margin:12px 0;display:block">'
    +'<button id="bk-go" style="font:600 16px system-ui;background:#245c7a;color:#fff;border:0;border-radius:6px;padding:12px 16px;cursor:pointer;width:100%">Importa</button>'
    +'<p style="margin-top:16px"><a href="#" id="bk-new" style="color:#245c7a">Parti da zero senza importare</a> · <a href="#" id="bk-out" style="color:#245c7a">Esci</a></p>');
   document.getElementById('bk-out').onclick=function(e){e.preventDefault();esci()};
-  document.getElementById('bk-new').onclick=function(e){e.preventDefault();_rem.call(localStorage,'rim2');_rem.call(localStorage,'rim2f');snap=new Map();boot2(false)};
+  document.getElementById('bk-new').onclick=function(e){e.preventDefault();_set.call(localStorage,'rim2',JSON.stringify({cl:[],mov:[]}));_rem.call(localStorage,'rim2f');snap=new Map();boot2(false)};
   document.getElementById('bk-go').onclick=async function(){
     var f=document.getElementById('bk-f').files[0];if(!f)return importScreen('Scegli prima il file.');
     var o;try{o=JSON.parse(await f.text())}catch(e){return importScreen('Il file non è leggibile.')}
