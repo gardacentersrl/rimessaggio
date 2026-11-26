@@ -2507,7 +2507,7 @@ $('#ss-d').onchange=()=>{if($('#ss-d').value){db.rd=$('#ss-d').value;save();rend
  $('#x-l').innerHTML+=`<h3 class="xh">Strumenti</h3><div class="xgrid">`
  +(M?`<div class="xt2" data-ml="1"><b>Email ai clienti</b><span>Natale, acconti, arretrati</span></div><div class="xt2" data-ov="1"><b>Dai clienti</b><span>Richieste e documenti</span>${ov?`<i class="bd">${ov}</i>`:''}</div><div class="xt2" data-st="1"><b>Statistiche</b><span>Guadagni e mezzi in deposito</span></div>`:'')
  +(M?`<div class="xt2" data-ab="1"><b>Arretrati</b><span>Valuta, abbuona o lascia</span></div>`:'')+`<div class="xt2 ${n?'al':''}" data-roll="1"><b>Stagione ${db.yr}</b><span>${n?'⚠ da aprire (previsto il '+dmy(db.rd)+')':'Apri la nuova stagione'}</span></div>`
- +`<div class="xt2" data-sys="1"><b>Dati e accessi</b><span>Backup, ripristino${M?', utenti':''}</span></div></div>`}}
+ +`<div class="xt2" data-sys="1"><b>Dati e accessi</b><span>Backup, ripristino${M?', utenti':''}</span></div>${M?`<a class="xt2" href="prova.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><b>Versione di prova</b><span>Per fare pratica con dati finti</span></a>`:''}</div>`}}
 // ---- Selettori di anno nelle sezioni
 const yrOpts=(extra,sel)=>[...new Set([cur(),...extra.filter(Boolean)])].sort().reverse().map(y=>`<option value="${y}" ${y===sel?'selected':''}>${y}${y===cur()?' (corrente)':''}</option>`).join('');
 function yrFill(){const st=(id,ys,sel,all)=>{$(id).innerHTML=(all?`<option value="" ${sel===''?'selected':''}>Tutte le stagioni</option>`:'')+yrOpts(ys,sel)};
