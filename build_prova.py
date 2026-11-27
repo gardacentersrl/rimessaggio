@@ -15,7 +15,7 @@ PRO=r'''<script>
  var P='prova:',S=Storage.prototype,g=S.getItem,st=S.setItem,rm=S.removeItem;
  S.getItem=function(k){return g.call(this,P+k)};S.setItem=function(k,v){return st.call(this,P+k,v)};S.removeItem=function(k){return rm.call(this,P+k)};
  // 2) Ruolo da provare: prova.html?ruolo=operaio | trasportatore (altrimenti titolare)
- var q=new URLSearchParams(location.search).get('ruolo');window.ROLE=['operaio','trasportatore'].indexOf(q)>=0?q:'master';
+ var q=new URLSearchParams(location.search).get('ruolo');window.ROLE=['operaio','trasportatore'].indexOf(q)>=0?q:'master';window.UFFICIO=q==='ufficio';
  // 3) Nessun collegamento online: email e file sono solo simulati
  window.__rim={up:async function(p){return 'https://prova.invalid/'+p},del:async function(){},dbr:async function(){return[]},fn:async function(n,b){return{results:((b&&b.messages)||[]).map(function(){return{ok:true}})}}};
 
@@ -34,9 +34,9 @@ PRO=r'''<script>
  document.title='PROVA - Rimessaggio';
  var d=document.createElement('div');d.id='provabar';
  d.style.cssText='position:sticky;top:0;z-index:9999;background:#b3261e;color:#fff;font:13px/1.35 system-ui,sans-serif;padding:6px 10px;text-align:center';
- var ro=window.ROLE==='master'?'titolare':window.ROLE;
- function L(r,n){return window.ROLE===(r==='titolare'?'master':r)?'<b style="text-decoration:underline">'+n+'</b>':'<a href="prova.html'+(r==='titolare'?'':'?ruolo='+r)+'" style="color:#fff">'+n+'</a>'}
- d.innerHTML='<b>MODALITÀ PROVA</b> · i dati sono finti e restano solo su questo dispositivo. Stai provando come: '+L('titolare','titolare')+' · '+L('operaio','operaio')+' · '+L('trasportatore','trasportatore')+' · <a href="#" id="provareset" style="color:#fff;font-weight:700">Azzera e ricomincia</a>';
+ 
+ function L(r,n){var cur=window.UFFICIO?'ufficio':(window.ROLE==='master'?'titolare':window.ROLE);return cur===r?'<b style="text-decoration:underline">'+n+'</b>':'<a href="prova.html'+(r==='titolare'?'':'?ruolo='+r)+'" style="color:#fff">'+n+'</a>'}
+ d.innerHTML='<b>MODALITÀ PROVA</b> · i dati sono finti e restano solo su questo dispositivo. Stai provando come: '+L('titolare','titolare')+' · '+L('ufficio','ufficio')+' · '+L('operaio','operaio')+' · '+L('trasportatore','trasportatore')+' · <a href="#" id="provareset" style="color:#fff;font-weight:700">Azzera e ricomincia</a>';
  document.addEventListener('DOMContentLoaded',function(){document.body.insertBefore(d,document.body.firstChild);
   document.getElementById('provareset').onclick=function(e){e.preventDefault();if(!confirm('Cancello tutto quello che hai provato e riparto dai dati finti iniziali. Confermi?'))return;
    var raw=[];for(var j=0;j<window.localStorage.length;j++)raw.push(window.localStorage.key(j));raw.forEach(function(k){if(k.indexOf(P)===0)rm.call(localStorage,k)});location.reload()}});
